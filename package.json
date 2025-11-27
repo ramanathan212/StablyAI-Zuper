@@ -1,0 +1,24 @@
+{
+  "name": "playwrite-automation",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "npx playwright test",
+    "test:playwright": "npx playwright test",
+    "create-jobs": "node tests/create-bulk-jobs.js",
+    "create-jobs-custom": "node tests/create-bulk-jobs-custom.js",
+    "fetch-template": "node tests/utils/fetch-job-template.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "playwright": "^1.56.1"
+  }
+}

@@ -1,0 +1,30 @@
+import { test, expect } from '@playwright/test';
+
+test('test', async ({ page }) => {
+  await page.goto('https://stagingv3.zuperpro.com/login');
+  await page.getByRole('textbox', { name: 'Company Name' }).click();
+  await page.getByRole('textbox', { name: 'Company Name' }).fill('sofyaizuper');
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByRole('textbox', { name: 'Email address' }).click();
+  await page.getByRole('textbox', { name: 'Email address' }).fill('ramanathan.m@zuper.co');
+  await page.getByRole('textbox', { name: 'Password Forgot password?' }).click();
+  await page.getByRole('textbox', { name: 'Password Forgot password?' }).fill('Test@123');
+  await page.getByRole('button', { name: 'Login' }).click();
+  await page.locator('.mat-mdc-tooltip-trigger > .mat-icon > svg > path:nth-child(2)').first().click();
+  await page.getByRole('link', { name: 'Jobs', exact: true }).click();
+  await page.locator('z-view').getByRole('textbox', { name: 'Search' }).click();
+  await page.locator('z-view').getByRole('textbox', { name: 'Search' }).fill('Testing -> job 2');
+  await page.locator('z-view').getByRole('textbox', { name: 'Search' }).press('Enter');
+  await page.getByRole('link', { name: 'Sofy AI1875' }).click();
+  await page.locator('a').filter({ hasText: 'More Actions' }).click();
+  await page.getByRole('menuitem', { name: ' Clone Job' }).click();
+  await page.locator('a').filter({ hasText: /^Assign Users$/ }).click();
+  await page.getByText('Users (12)').click();
+  await page.getByRole('searchbox', { name: 'Search...' }).click();
+  await page.getByRole('searchbox', { name: 'Search...' }).fill('ramanathan');
+  await page.getByRole('searchbox', { name: 'Search...' }).press('Enter');
+  await page.locator('.text-xl.text-green-500').click();
+  await page.getByRole('button', { name: 'Save' }).click();
+  await page.locator('a').filter({ hasText: 'Create Job' }).click();
+  await page.getByRole('button', { name: 'Create' }).click();
+});
