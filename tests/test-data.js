@@ -52,20 +52,30 @@ export const testData = {
 
   // Organization details
   organization: {
-    name: `UAT Organization ${Date.now()}`,
-    email: `org${Date.now()}@gmail.com`,
+    name: 'UAT Validation',
+    email: 'uatvalidation@gmail.com',
     serviceAddress: {
       search: 'turya',
       select: 'Turyaa Chennai, Rajiv Gandhi',
       sameAsBilling: true
     },
     customFields: {
-      singleLineText: 'Single line input value',
-      multiLineText: 'Multi line text input value',
-      date: true,
-      time: true,
-      dateTime: true,
-      radioOption: 'option 1'
+      singleLineText: 'single',
+      multiLineText: 'mutliple',
+      date: 'November 29,'
+    }
+  },
+
+  // Customer/Contact details
+  customer: {
+    firstName: 'UAT Customer',
+    lastName: 'Testing',
+    organization: 'ACME Corporation',
+    email: 'UATcustomertesting@gmail.com',
+    serviceAddress: {
+      search: 'walmart',
+      select: 'Walmart Park, Avenida Manuel',
+      sameAsBilling: true
     }
   },
 

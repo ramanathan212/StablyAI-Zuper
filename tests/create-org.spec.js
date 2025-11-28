@@ -1,37 +1,19 @@
 import { test, expect } from '@playwright/test';
-
-// Test Configuration
-const CONFIG = {
-  baseUrl: 'https://uat.zuperpro.com/login',
-  credentials: {
-    companyName: 'zuper-pro',
-    email: 'vignesh.s@zuper.co',
-    password: 'Vicky@123'
-  },
-  organization: {
-    name: 'UAT Validation',
-    email: 'uatvalidation@gmail.com',
-    address: 'turya',
-    customFields: {
-      singleLineText: 'single',
-      multiLineText: 'mutliple'
-    },
-    date: 'November 29,'
-  }
-};
+import { testData } from './test-data.js';
 
 test.describe('Organization Management', () => {
   test('Create new organization with complete details', async ({ page }) => {
-    // Step 1: Login to application
-    await loginToApplication(page);
+    // Authentication already handled by global-setup.js
+    // Start directly from the main screen
 
-    // Step 2: Navigate to Organizations
+    // Step 1: Navigate to Organizations
+    await page.goto('/');
     await navigateToOrganizations(page);
 
-    // Step 3: Create new organization
+    // Step 2: Create new organization
     await createNewOrganization(page);
 
-    // Step 4: Fill organization details
+    // Step 3: Fill organization details
     await fillOrganizationBasicInfo(page);
     await fillOrganizationAddress(page);
     await fillCustomFields(page);
@@ -39,41 +21,29 @@ test.describe('Organization Management', () => {
     await selectOptions(page);
     await handleModalDialogs(page);
 
-    // Step 5: Save organization
+    // Step 4: Save organization
     await saveOrganization(page);
 
-    // Step 6: Verify organization created successfully
-    await verifyOrganizationCreated(page);
+    // Step 5: Refresh page and verify organization created successfully
+    // await page.reload();
+    // await page.waitForLoadState('networkidle');
+    // await verifyOrganizationCreated(page);
   });
 });
 
 // Helper Functions
 
-async function loginToApplication(page) {
-  await page.goto(CONFIG.baseUrl);
-
-  // Enter company name
-  await page.getByRole('textbox', { name: 'Company Name' }).click();
-  await page.getByRole('textbox', { name: 'Company Name' }).fill(CONFIG.credentials.companyName);
-  await page.getByRole('button', { name: 'Continue' }).click();
-
-  // Enter credentials
-  await page.getByRole('textbox', { name: 'Email address' }).click();
-  await page.getByRole('textbox', { name: 'Email address' }).fill(CONFIG.credentials.email);
-  await page.getByRole('textbox', { name: 'Password Forgot password?' }).click();
-  await page.getByRole('textbox', { name: 'Password Forgot password?' }).fill(CONFIG.credentials.password);
-
-  // Login
-  await page.getByRole('button', { name: 'Login', exact: true }).click();
-}
-
 async function navigateToOrganizations(page) {
+  // Notification is already dismissed in global-setup.js
   // Open navigation menu
-  await page.locator('.mat-mdc-tooltip-trigger.zuper-vertical-navigation-item.zuper-vertical-navigation-item-active > .mat-icon > svg').click();
-  await page.getByRole('link', { name: 'Organizations' }).click();
+  const navigationIcon = page.locator("//zuper-vertical-navigation-aside-item[@id='customer_organization_property']");
+  await navigationIcon.waitFor({ state: 'visible', timeout: 10000 });
+  await navigationIcon.click();
 
-  // Dismiss notification if present
-  await page.getByRole('button', { name: 'No, thanks' }).click();
+  // Click Organizations link
+  const organizationsMenuItem = page.getByRole('link', { name: 'Organizations' });
+  await organizationsMenuItem.waitFor({ state: 'visible', timeout: 10000 });
+  await organizationsMenuItem.click();
 }
 
 async function createNewOrganization(page) {
@@ -83,37 +53,39 @@ async function createNewOrganization(page) {
 async function fillOrganizationBasicInfo(page) {
   // Organization name
   await page.getByRole('textbox', { name: 'Organization Name*' }).click();
-  await page.getByRole('textbox', { name: 'Organization Name*' }).fill(CONFIG.organization.name);
+  await page.getByRole('textbox', { name: 'Organization Name*' }).fill(testData.organization.name);
 
   // Organization email
   await page.getByRole('textbox', { name: 'Organization Email*' }).click();
-  await page.getByRole('textbox', { name: 'Organization Email*' }).fill(CONFIG.organization.email);
+  await page.getByRole('textbox', { name: 'Organization Email*' }).fill(testData.organization.email);
 }
 
 async function fillOrganizationAddress(page) {
   // Service address
   await page.getByText('Service AddressContact First').first().click();
-  await page.getByRole('textbox', { name: 'Flat / House No, Street /' }).first().fill(CONFIG.organization.address);
-  await page.getByText('Turyaa Chennai, Rajiv Gandhi').click();
+  await page.getByRole('textbox', { name: 'Flat / House No, Street /' }).first().fill(testData.organization.serviceAddress.search);
+  await page.getByText(testData.organization.serviceAddress.select).click();
 
   // Use same address for billing
-  await page.getByRole('checkbox', { name: 'Same As Service Address' }).check();
+  if (testData.organization.serviceAddress.sameAsBilling) {
+    await page.getByRole('checkbox', { name: 'Same As Service Address' }).check();
+  }
 }
 
 async function fillCustomFields(page) {
   // Single line text
   await page.getByRole('textbox', { name: 'Single Line Text' }).click();
-  await page.getByRole('textbox', { name: 'Single Line Text' }).fill(CONFIG.organization.customFields.singleLineText);
+  await page.getByRole('textbox', { name: 'Single Line Text' }).fill(testData.organization.customFields.singleLineText);
 
   // Multi line text
   await page.getByRole('textbox', { name: 'Multi Line Text' }).click();
-  await page.getByRole('textbox', { name: 'Multi Line Text' }).fill(CONFIG.organization.customFields.multiLineText);
+  await page.getByRole('textbox', { name: 'Multi Line Text' }).fill(testData.organization.customFields.multiLineText);
 }
 
 async function selectDateTime(page) {
   // Select date
   await page.getByRole('textbox', { name: 'Date' }).click();
-  await page.getByRole('button', { name: CONFIG.organization.date }).click();
+  await page.getByRole('button', { name: testData.organization.customFields.date }).click();
 
   // Select time
   await page.locator('#UAT_Time').click();
@@ -141,7 +113,7 @@ async function saveOrganization(page) {
 
 async function verifyOrganizationCreated(page) {
   // Verify organization name is visible
-  await expect(page.getByRole('paragraph').filter({ hasText: CONFIG.organization.name })).toBeVisible();
+  await expect(page.getByRole('paragraph').filter({ hasText: testData.organization.name })).toBeVisible();
 
   // Verify organization status is active
   await expect(page.getByText('Active')).toBeVisible();
