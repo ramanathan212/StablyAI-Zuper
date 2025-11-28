@@ -14,6 +14,7 @@ export default defineConfig({
     ['html'],
     ['list']
   ],
+  globalSetup: './tests/global-setup.js',
   use: {
     baseURL: 'https://uat.zuperpro.com',
     trace: 'on-first-retry',
@@ -21,6 +22,7 @@ export default defineConfig({
     video: 'retain-on-failure',
     actionTimeout: 15000,
     navigationTimeout: 30000,
+    storageState: 'tests/.auth/user.json',
   },
 
   projects: [

@@ -6,6 +6,9 @@ test-results/
 playwright-report/
 playwright/.cache/
 
+# Authentication state
+tests/.auth/
+
 # Test results and outputs
 *.json
 !package.json
