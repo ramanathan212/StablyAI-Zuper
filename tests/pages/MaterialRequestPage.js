@@ -17,10 +17,8 @@ export class MaterialRequestPage {
   }
 
   async navigateToMaterialRequests() {
-    await this.purchasingLocator.waitFor({ state: 'visible', timeout: 10000 });
-    await this.purchasingLocator.click();
-    await this.materialRequestsLink.waitFor({ state: 'visible', timeout: 10000 });
-    await this.materialRequestsLink.click();
+    // Direct navigation to material requests page
+    await this.page.goto('/material_requests');
     await this.page.waitForLoadState('networkidle');
   }
 

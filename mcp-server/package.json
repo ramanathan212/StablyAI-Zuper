@@ -1,0 +1,22 @@
+{
+  "name": "zuper-playwright-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Zuper Playwright Test Automation",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "playwright",
+    "testing",
+    "automation",
+    "zuper"
+  ],
+  "author": "",
+  "license": "MIT"
+}

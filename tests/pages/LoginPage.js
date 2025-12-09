@@ -18,6 +18,7 @@ export class LoginPage {
   }
 
   async login(companyName, email, password) {
+    await this.navigate();
     await this.companyNameInput.click();
     await this.companyNameInput.fill(companyName);
     await this.continueButton.click();

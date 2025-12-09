@@ -2,7 +2,8 @@ export class VendorPage {
   constructor(page) {
     this.page = page;
     this.cancelTimezoneButton = page.getByRole('button', { name: 'Cancel' });
-    this.purchasingLocator = page.locator('div').filter({ hasText: 'Purchasing' }).nth(3);
+    // Purchasing icon in left sidebar (shopping cart icon)
+    this.purchasingMenu = page.locator('a[href*="/purchasing"], a[href*="/vendors"]').first();
     this.vendorsLink = page.getByRole('link', { name: 'Vendors' });
     this.newVendorButton = page.getByRole('link', { name: ' New Vendor' });
     this.vendorNameInput = page.getByRole('textbox', { name: 'Vendor Name *' });
@@ -28,19 +29,22 @@ export class VendorPage {
   }
 
   async navigateToVendors() {
+    // Direct navigation to vendors page
+    await this.page.goto('/vendors');
+    await this.page.waitForLoadState('domcontentloaded');
+
     // Check if timezone cancel button exists and click it if visible
     try {
       const isVisible = await this.cancelTimezoneButton.isVisible({ timeout: 5000 });
       if (isVisible) {
         await this.cancelTimezoneButton.click();
         console.log('✓ Timezone dialog dismissed');
+        await this.page.waitForTimeout(1000);
       }
     } catch (error) {
       console.log('No timezone dialog to dismiss, continuing...');
     }
 
-    await this.purchasingLocator.click();
-    await this.vendorsLink.click();
     await this.page.waitForLoadState('networkidle');
   }
 

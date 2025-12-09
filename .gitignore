@@ -4,6 +4,7 @@ node_modules/
 # Playwright
 test-results/
 playwright-report/
+playwright-report-unit/
 playwright/.cache/
 
 # Authentication state

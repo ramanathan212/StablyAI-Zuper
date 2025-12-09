@@ -1,12 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { LoginPage } from './pages/LoginPage.js';
 import { VendorPage } from './pages/VendorPage.js';
 import { MaterialRequestPage } from './pages/MaterialRequestPage.js';
 import { PurchaseOrderPage } from './pages/PurchaseOrderPage.js';
 import { testData } from './test-data.js';
 
 test.describe('Complete Vendor, MR, and PO Flow', () => {
-  let loginPage;
   let vendorPage;
   let materialRequestPage;
   let purchaseOrderPage;
@@ -22,7 +20,6 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
   };
 
   test.beforeEach(async ({ page }) => {
-    loginPage = new LoginPage(page);
     vendorPage = new VendorPage(page);
     materialRequestPage = new MaterialRequestPage(page);
     purchaseOrderPage = new PurchaseOrderPage(page);
@@ -97,21 +94,13 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
       }
     };
 
-    // Step 1: Login
-    await executeStep('Login to application', async () => {
-      await loginPage.navigate();
-      await loginPage.login(
-        testData.login.companyName,
-        testData.login.email,
-        testData.login.password
-      );
-      await loginPage.dismissOnboarding();
+    // Authentication is handled by global-setup.js
+    // The test will start with an authenticated session
+    // Navigate to the app first to ensure we're on an authenticated page
+    // await page.goto('/dashboard');
+    // await page.waitForLoadState('networkidle');
 
-      // Verify successful login
-      await expect(page).toHaveURL(/\/dashboard|\/vendors/);
-    });
-
-    // Step 2: Create Vendor
+    // Step 1: Create Vendor
     await executeStep('Create new vendor', async () => {
       await vendorPage.navigateToVendors();
       await vendorPage.clickNewVendor();
@@ -139,7 +128,7 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
       await expect(page).toHaveURL(/\/vendors\/.*\/details/);
     });
 
-    // Step 3: Create Material Request
+    // Step 2: Create Material Request
     let mrNumber;
     await executeStep('Create material request', async () => {
       await materialRequestPage.navigateToMaterialRequests();
@@ -164,7 +153,7 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
       await expect(page).toHaveURL(/\/material_requests\/.*\/details/);
     });
 
-    // Step 4: Create Purchase Order from MR
+    // Step 3: Create Purchase Order from MR
     let poPage;
     await executeStep('Create purchase order from material request', async () => {
       // Create PO from MR with vendor selection
@@ -177,7 +166,7 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
       await expect(poPage).toHaveURL(/\/purchase_order\/.*\/details/);
     });
 
-    // Step 5: Process Purchase Order
+    // Step 4: Process Purchase Order
     await executeStep('Process purchase order through workflow', async () => {
       purchaseOrderPage = new PurchaseOrderPage(poPage);
 
@@ -211,7 +200,7 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
     //   await expect(poPage.locator('.status, .po-status, [class*="status"]')).toContainText(/closed/i, { timeout: 10000 });
     });
 
-    // Step 6: Verify MR link from PO
+    // Step 5: Verify MR link from PO
     await executeStep('Verify material request link from purchase order', async () => {
       const mrPage = await purchaseOrderPage.openLinkedMR();
 
