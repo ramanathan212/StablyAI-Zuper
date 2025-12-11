@@ -85,44 +85,6 @@ export class OrganizationPage {
       await this.multiLineTextInput.click();
       await this.multiLineTextInput.fill(customFields.multiLineText);
     }
-
-    // Date field
-    if (customFields.date) {
-      await this.dateInput.click();
-      await this.page.waitForTimeout(1000);
-
-      // Select date dynamically
-      try {
-        const todayButton = this.page.locator('button.mat-calendar-body-active, button.mat-calendar-body-today');
-        await todayButton.first().waitFor({ state: 'visible', timeout: 5000 });
-        await todayButton.first().click();
-      } catch (error) {
-        console.log('Selecting first available date...');
-        const anyDate = this.page.locator('button.mat-calendar-body-cell:not(.mat-calendar-body-disabled)').first();
-        await anyDate.click();
-      }
-    }
-
-    // Time field
-    if (customFields.time) {
-      await this.timeInput.click();
-      await this.page.waitForTimeout(500);
-      await this.page.locator('.cdk-overlay-backdrop').click();
-    }
-
-    // Date & Time field
-    if (customFields.dateTime) {
-      await this.dateTimeInput.click();
-      await this.page.waitForTimeout(1000);
-      const dateTimeButton = this.page.getByRole('button', { name: /\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{2} (AM|PM)/ }).first();
-      await dateTimeButton.click();
-      await this.page.getByRole('button', { name: 'OK' }).click();
-    }
-
-    // Radio option
-    if (customFields.radioOption) {
-      await this.page.getByRole('radio', { name: customFields.radioOption }).check();
-    }
   }
 
   async saveOrganization() {

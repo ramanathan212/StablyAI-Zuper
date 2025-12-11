@@ -1,17 +1,13 @@
 import { test, expect } from '@playwright/test';
-import { LoginPage } from './pages/LoginPage.js';
-import { JobPage } from './pages/JobPage.js';
-import { testData } from './test-data.js';
-import { getEnvironment } from './config/environments.js';
+import { AssetPage } from './pages/AssetPage.js';
+import { testData } from './config/test-data-config.js';
 
-test.describe('Job Management', () => {
-  let loginPage;
-  let jobPage;
-  let env;
+test.describe('Asset Management', () => {
+  let assetPage;
 
   // Test results tracking
   const testResults = {
-    testName: 'Clone Job Workflow',
+    testName: 'Create New Asset',
     startTime: null,
     endTime: null,
     duration: null,
@@ -19,12 +15,15 @@ test.describe('Job Management', () => {
     overallStatus: 'PENDING'
   };
 
-  test.beforeEach(async ({ page }) => {
-    // Get environment configuration
-    env = getEnvironment();
+  // Test data
+  const assetData = testData.asset;
 
-    loginPage = new LoginPage(page, env.baseURL);
-    jobPage = new JobPage(page);
+  test.use({
+    storageState: 'tests/.auth/user.json'
+  });
+
+  test.beforeEach(async ({ page }) => {
+    assetPage = new AssetPage(page);
 
     // Reset test results
     testResults.startTime = new Date();
@@ -66,7 +65,7 @@ test.describe('Job Management', () => {
     console.log('='.repeat(80) + '\n');
   });
 
-  test('should clone a job successfully', async ({ page }) => {
+  test('Create new asset with organization and contact', async () => {
     // Helper function to track step execution
     const executeStep = async (stepName, stepFunction) => {
       const stepStart = new Date();
@@ -96,84 +95,54 @@ test.describe('Job Management', () => {
       }
     };
 
-    // Get loop count from test data or environment variable
-    const loopCount = process.env.CLONE_LOOP_COUNT
-      ? parseInt(process.env.CLONE_LOOP_COUNT)
-      : testData.jobClone.loopCount || 1;
-
-    console.log(`\n🔄 Running job clone in loop mode: ${loopCount} iteration(s)\n`);
-
-    // Step 1: Login (only once)
-    await executeStep('Login to application', async () => {
-      await loginPage.navigate();
-      await loginPage.login(
-        env.login.companyName,
-        env.login.email,
-        env.login.password
-      );
-      await loginPage.dismissOnboarding();
-
-      // Verify successful login
-      await expect(page).toHaveURL(/\/dashboard|\/vendors|\/organizations|\/jobs/);
+    // Step 1: Navigate to Assets page
+    await executeStep('Navigate to Assets page', async () => {
+      await assetPage.navigateToAssets();
     });
 
-    // Step 2: Navigate to Jobs (only once)
-    await executeStep('Navigate to Jobs', async () => {
-      await jobPage.navigateToJobs();
-      await expect(page).toHaveURL(/\/jobs/);
+    // Step 2: Verify Assets page elements
+    await executeStep('Verify Assets page elements', async () => {
+      await assetPage.verifyAssetsPageElements();
     });
 
-    // Loop through cloning process
-    for (let i = 1; i <= loopCount; i++) {
-      console.log(`\n${'='.repeat(80)}`);
-      console.log(`🔁 CLONE ITERATION ${i} of ${loopCount}`);
-      console.log('='.repeat(80) + '\n');
+    // Step 3: Click New Asset button
+    await executeStep('Open New Asset form', async () => {
+      await assetPage.clickNewAsset();
+    });
 
-      // Step 3: Search for Job
-      await executeStep(`[${i}/${loopCount}] Search for job`, async () => {
-        await jobPage.searchJob(testData.jobClone.searchText);
-      });
+    // Step 4: Fill asset basic information
+    await executeStep('Fill asset basic information', async () => {
+      await assetPage.fillAssetBasicInfo(assetData);
+    });
 
-      // Step 4: Open Job
-      await executeStep(`[${i}/${loopCount}] Open job details`, async () => {
-        await jobPage.openJobByNumber(testData.jobClone.jobNumber);
-      });
+    // Step 5: Select organization
+    await executeStep('Select organization', async () => {
+      await assetPage.selectOrganization(assetData.organization);
+    });
 
-      // Step 5: Clone Job
-      await executeStep(`[${i}/${loopCount}] Clone the job`, async () => {
-        await jobPage.cloneJob();
-      });
+    // Step 6: Select contact
+    await executeStep('Select contact', async () => {
+      await assetPage.selectContact(assetData.contact);
+    });
 
-      // Step 6: Assign User
-      await executeStep(`[${i}/${loopCount}] Assign user to cloned job`, async () => {
-        await jobPage.assignUser(testData.jobClone.assignedUser);
-      });
+    // Step 7: Verify address field is visible
+    await executeStep('Verify address field is visible', async () => {
+      await assetPage.verifyAddressFieldVisible();
+    });
 
-      // Step 7: Create Cloned Job
-      await executeStep(`[${i}/${loopCount}] Create cloned job`, async () => {
-        await jobPage.createClonedJob();
+    // Step 8: Save asset
+    await executeStep('Save asset', async () => {
+      await assetPage.saveAsset();
+    });
 
-        // Verify job was created/cloned
-        await page.waitForTimeout(2000);
-        await expect(page).toHaveURL(/\/jobs\/.*\/details/);
-      });
-
-      console.log(`\n✓ Clone iteration ${i} completed successfully!\n`);
-
-      // Navigate back to jobs list for next iteration (if not last iteration)
-      if (i < loopCount) {
-        await executeStep(`[${i}/${loopCount}] Navigate back to Jobs list`, async () => {
-          await jobPage.navigateToJobs();
-          await expect(page).toHaveURL(/\/jobs/);
-        });
-      }
-    }
+    // Step 9: Verify asset created
+    await executeStep('Verify asset created', async () => {
+      await assetPage.verifyAssetCreated(assetData.code);
+    });
 
     // Mark test as passed if all steps succeeded
     testResults.overallStatus = 'PASSED';
-    console.log(`\n${'='.repeat(80)}`);
-    console.log(`✓ Successfully cloned job ${loopCount} time(s)!`);
-    console.log('='.repeat(80) + '\n');
+    console.log('\n✓ Asset creation test passed successfully!');
 
     // Print final summary
     printTestSummary();

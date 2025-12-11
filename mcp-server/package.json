@@ -1,22 +1,29 @@
 {
-  "name": "zuper-playwright-mcp-server",
+  "name": "playwrite-automation",
   "version": "1.0.0",
-  "description": "MCP Server for Zuper Playwright Test Automation",
   "type": "module",
   "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
   "scripts": {
-    "start": "node index.js"
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "npx playwright test --config=playwright.unit.config.js",
+    "test:e2e": "npx playwright test --config=playwright.e2e.config.js",
+    "test:playwright": "npx playwright test",
+    "create-jobs": "node tests/create-bulk-jobs.js",
+    "create-jobs-custom": "node tests/create-bulk-jobs-custom.js",
+    "fetch-template": "node tests/utils/fetch-job-template.js",
+    "monitor": "node utils/run-monitor-agent.js",
+    "monitor:watch": "node utils/run-monitor-agent.js --watch",
+    "monitor:report": "node utils/generate-report.js"
   },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0"
-  },
-  "keywords": [
-    "mcp",
-    "playwright",
-    "testing",
-    "automation",
-    "zuper"
-  ],
+  "keywords": [],
   "author": "",
-  "license": "MIT"
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "playwright": "^1.56.1"
+  }
 }

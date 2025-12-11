@@ -55,8 +55,8 @@ export const getTestData = () => ({
 
   // Organization details
   organization: {
-    name: 'UAT Validation',
-    email: 'uatvalidation@gmail.com',
+    name: `UAT Validation ${Date.now()}`,
+    email: `uatvalidation${Date.now()}@gmail.com`,
     serviceAddress: {
       search: 'turya',
       select: 'Turyaa Chennai, Rajiv Gandhi',
@@ -65,21 +65,29 @@ export const getTestData = () => ({
     customFields: {
       singleLineText: 'single',
       multiLineText: 'mutliple',
-      date: 'November 29,'
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     }
   },
 
   // Customer/Contact details
   customer: {
-    firstName: 'UAT Customer',
+    firstName: `UAT Customer ${Date.now()}`,
     lastName: 'Testing',
     organization: 'ACME Corporation',
-    email: 'UATcustomertesting@gmail.com',
+    email: `UATcustomertesting${Date.now()}@gmail.com`,
     serviceAddress: {
       search: 'walmart',
       select: 'Walmart Park, Avenida Manuel',
       sameAsBilling: true
     }
+  },
+
+  // Asset details
+  asset: {
+    code: `Test#${Date.now()}`,
+    name: `GPU ${Date.now()}`,
+    organization: 'ACME Corporation',
+    contact: 'John Smith'
   },
 
   // Job clone details

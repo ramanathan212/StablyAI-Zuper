@@ -295,6 +295,30 @@ export class MaterialRequestPage {
     await this.page.waitForLoadState('networkidle');
   }
 
+  async verifyMaterialRequestCreated() {
+    // Verify Material Request details are displayed correctly
+    const { expect } = await import('@playwright/test');
+
+    await expect(this.page.locator('as-split').getByText('Submitted')).toBeVisible();
+    await expect(this.page.getByText('Priority', { exact: true })).toBeVisible();
+    await expect(this.page.locator('as-split').getByText('Low')).toBeVisible();
+
+    // Get current date in MM/DD/ format (e.g., "12/10/")
+    const currentDate = new Date();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    const datePattern = `${month}/${day}/`;
+
+    await expect(this.page.getByText(datePattern)).toBeVisible();
+    await expect(this.page.getByText('Direct Shipment to Job\'s site')).toBeVisible();
+    await expect(this.page.getByText('Vignesh Sam').first()).toBeVisible();
+    await expect(this.page.getByText('Vignesh Sam').nth(1)).toBeVisible();
+    await expect(this.page.getByText('test MR remark')).toBeVisible();
+    await expect(this.page.getByRole('link', { name: 'Validation UAT -15/' })).toBeVisible();
+
+    console.log('✓ Material Request details verified successfully');
+  }
+
   // async markAsSubmitted() {
   //   // Wait for Mark as Submitted button to be visible
   //   await this.markSubmittedButton.waitFor({ state: 'visible', timeout: 10000 });

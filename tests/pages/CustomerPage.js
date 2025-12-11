@@ -24,7 +24,7 @@ export class CustomerPage {
 
     // Action locators
     this.saveContactLink = page.getByText('Save Contact', { exact: true });
-    this.createButton = page.getByRole('button', { name: 'Create' });
+    this.createButton = page.locator('button:has-text("Create")');
 
     // Verification locators
     this.emailVerification = (email) => page.locator('as-split').getByText(email);
@@ -162,8 +162,11 @@ export class CustomerPage {
   async saveContact() {
     // Scroll to save button and click
     await this.page.waitForLoadState('networkidle');
+
+    // Wait for the save contact link to be visible and clickable
+    await this.saveContactLink.waitFor({ state: 'visible', timeout: 10000 });
     await this.saveContactLink.click();
-    console.log('✓ Clicked Save Contact');
+    console.log('✓ Clicked Save Contact Link Button');
 
     // Wait for the confirmation dialog to appear
     await this.page.waitForLoadState('networkidle');

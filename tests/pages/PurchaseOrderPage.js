@@ -7,11 +7,14 @@ export class PurchaseOrderPage {
     this.markSentToVendorButton = page.getByRole('button', { name: 'Mark as Sent to Vendor' });
     this.markVendorAcceptedButton = page.getByRole('button', { name: 'Mark as Vendor Accepted' });
     this.updateButton = page.locator("//button[normalize-space(text())='Update']");
-    this.markClosedButton = page.getByRole('button', { name: 'Mark as closed' });
-    this.markAsInvoicedLocator = page.locator("span[class='primary-font text-base mt-0.5 ml-2']");
+    this.markAsInvoicedButton = page.locator('a:has-text("Mark as Invoiced")');
+    this.confirmMarkAsInvoicedButton = page.getByRole('button', { name: 'Mark as Invoiced' });
     this.confirmButtonMarkAsInvoiced = page.locator("button[class='px-6 flex items-center py-2 border shadow-sm text-white text-base font-medium rounded-md btn-small bg-green-500 ng-star-inserted']");
-    this.markAsPaidLocator = page.locator("span[class='primary-font text-base mt-0.5 ml-2']");
-    this.markAsPaidButton = page.locator("//span[@class='ng-tns-c3121319209-51 ng-star-inserted']");
+    this.markAsPaidLocator = page.locator('a:has-text("Mark as Paid")');
+    this.markAsPaidButton = page.locator('span.ng-tns-c3121319209-153.ng-star-inserted');
+    this.confirmMarkAsPaidButton = page.getByRole('button', { name: 'Mark as Paid' });
+    this.markClosedButton = page.locator('span:has-text("Close PO")');
+    this.confirmPOClosureButton = page.getByRole('button', { name: 'Mark as Closed' });
   }
 
   async markAsSubmitted() {
@@ -204,15 +207,23 @@ export class PurchaseOrderPage {
     console.log('✓ Update button clicked successfully');
   }
 
-  async markAsInvoiced() { 
+  async markAsInvoiced() {
     await this.page.waitForLoadState('networkidle');
-    const markAsInvoicedButton = this.page.getByRole('button', { name: 'Mark as Invoiced' });
-    await markAsInvoicedButton.waitFor({ state: 'visible', timeout: 10000 });
-    await markAsInvoicedButton.click();
+    await this.page.waitForTimeout(1500);
+
+    // Click "Mark as Invoiced" span/link
+    await this.markAsInvoicedButton.waitFor({ state: 'visible', timeout: 10000 });
+    await this.markAsInvoicedButton.click();
+
+    // Wait for confirmation dialog
     await this.page.waitForLoadState('networkidle');
-    await this.confirmButtonMarkAsInvoiced.waitFor({ state: 'visible', timeout: 10000 });
-    await this.confirmButtonMarkAsInvoiced.click();
-    await this.page.waitForLoadState('networkidle');  
+
+    // Click the confirmation button
+    await this.confirmMarkAsInvoicedButton.waitFor({ state: 'visible', timeout: 10000 });
+    await this.confirmMarkAsInvoicedButton.scrollIntoViewIfNeeded();
+    await this.confirmMarkAsInvoicedButton.click();
+
+    await this.page.waitForLoadState('networkidle');
     console.log('✓ Marked as Invoiced');
   }
 
@@ -235,10 +246,9 @@ export class PurchaseOrderPage {
     await reasonField.fill('Payment confirmed');
 
     // Click the Mark as Paid confirmation button
-    const markAsPaidButton = this.markAsPaidButton;
-    await markAsPaidButton.waitFor({ state: 'visible', timeout: 10000 });
-    await markAsPaidButton.scrollIntoViewIfNeeded();
-    await markAsPaidButton.click();
+    await this.confirmMarkAsPaidButton.waitFor({ state: 'visible', timeout: 10000 });
+    await this.confirmMarkAsPaidButton.scrollIntoViewIfNeeded();
+    await this.confirmMarkAsPaidButton.click();
 
     await this.page.waitForLoadState('networkidle');
     console.log('✓ Marked as Paid with remark: Payment confirmed');
@@ -250,6 +260,10 @@ export class PurchaseOrderPage {
     await this.markClosedButton.scrollIntoViewIfNeeded();
     await this.markClosedButton.click();
     await this.page.waitForLoadState('networkidle');
+    await this.confirmPOClosureButton.waitFor({ state: 'visible', timeout: 10000 });
+    await this.confirmPOClosureButton.click();
+    await this.page.waitForLoadState('networkidle');
+    console.log('✓ PO Closed successfully');
   }
 
   async getPONumber() {

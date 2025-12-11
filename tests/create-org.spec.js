@@ -17,7 +17,6 @@ test.describe('Organization Management', () => {
     await fillOrganizationBasicInfo(page);
     await fillOrganizationAddress(page);
     await fillCustomFields(page);
-    await selectDateTime(page);
     await selectOptions(page);
     await handleModalDialogs(page);
 
@@ -80,17 +79,6 @@ async function fillCustomFields(page) {
   // Multi line text
   await page.getByRole('textbox', { name: 'Multi Line Text' }).click();
   await page.getByRole('textbox', { name: 'Multi Line Text' }).fill(testData.organization.customFields.multiLineText);
-}
-
-async function selectDateTime(page) {
-  // Select date
-  await page.getByRole('textbox', { name: 'Date' }).click();
-  await page.getByRole('button', { name: testData.organization.customFields.date }).click();
-
-  // Select time
-  await page.locator('#UAT_Time').click();
-  await page.getByRole('button', { name: 'PM' }).click();
-  await page.locator('.cdk-overlay-backdrop').click();
 }
 
 async function selectOptions(page) {

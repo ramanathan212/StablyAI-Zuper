@@ -148,6 +148,10 @@ export class VendorPage {
           await streetInput.fill('123 Test Street');
         }
 
+        // Click on Test St, Waconia, MN, USA address suggestion
+        await this.page.getByText('Test St, Waconia, MN, USA').click();
+    
+
         // Fill city
         const cityInput = this.page.getByRole('textbox', { name: /city/i }).first();
         if (await cityInput.isVisible({ timeout: 3000 }).catch(() => false)) {

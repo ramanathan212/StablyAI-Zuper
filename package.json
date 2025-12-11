@@ -13,7 +13,10 @@
     "test:playwright": "npx playwright test",
     "create-jobs": "node tests/create-bulk-jobs.js",
     "create-jobs-custom": "node tests/create-bulk-jobs-custom.js",
-    "fetch-template": "node tests/utils/fetch-job-template.js"
+    "fetch-template": "node tests/utils/fetch-job-template.js",
+    "monitor": "node tests/utils/code-monitor-agent.js",
+    "monitor:watch": "node tests/utils/code-monitor-agent.js --watch",
+    "monitor:report": "node tests/utils/generate-report.js"
   },
   "keywords": [],
   "author": "",

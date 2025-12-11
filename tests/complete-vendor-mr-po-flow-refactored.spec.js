@@ -151,6 +151,7 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
 
       // Verify MR is in correct state
       await expect(page).toHaveURL(/\/material_requests\/.*\/details/);
+      await materialRequestPage.verifyMaterialRequestCreated();
     });
 
     // Step 3: Create Purchase Order from MR
@@ -188,16 +189,13 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
       await purchaseOrderPage.clickUpdateButton();
 
       // //Click update Mark as Invoiced
-      // await purchaseOrderPage.markAsInvoiced();
+      await purchaseOrderPage.markAsInvoiced();
 
       // //Click Mark as Paid
-      // await purchaseOrderPage.markAsPaid();
+      await purchaseOrderPage.markAsPaid();
 
       // Mark as closed
-      // await purchaseOrderPage.markAsClosed();
-
-      // Verify PO is closed
-    //   await expect(poPage.locator('.status, .po-status, [class*="status"]')).toContainText(/closed/i, { timeout: 10000 });
+      await purchaseOrderPage.markAsClosed();
     });
 
     // Step 5: Verify MR link from PO

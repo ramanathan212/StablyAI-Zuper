@@ -385,6 +385,60 @@ npx playwright test --headed
 
 # Run with debugging
 npx playwright test --debug
+
+# Playwright code run
+Basic Recording Commands
+1. Codegen (Code Generator) - Main Recording Tool
+npx playwright codegen
+2. Record Against Specific URL
+npx playwright codegen https://uat.zuperpro.com
+3. Record with Specific Browser
+npx playwright codegen --browser=chromium https://uat.zuperpro.com
+npx playwright codegen --browser=firefox https://uat.zuperpro.com
+npx playwright codegen --browser=webkit https://uat.zuperpro.com
+4. Record with Authentication (Use Saved State)
+npx playwright codegen --load-storage=tests/.auth/user.json https://uat.zuperpro.com
+5. Record and Save to File
+npx playwright codegen --target javascript -o tests/my-recorded-test.spec.js https://uat.zuperpro.com
+6. Record with Specific Viewport Size
+npx playwright codegen --viewport-size=1280,720 https://uat.zuperpro.com
+7. Record with Device Emulation
+npx playwright codegen --device="iPhone 13" https://uat.zuperpro.com
+8. Record and Save Authentication State
+npx playwright codegen --save-storage=tests/.auth/user.json https://uat.zuperpro.com/login
+Advanced Options
+9. Record in Headed Mode (Visible Browser)
+npx playwright codegen --headed https://uat.zuperpro.com
+10. Record with Specific Language/Locale
+npx playwright codegen --lang=en-US https://uat.zuperpro.com
+11. Record with Network Throttling
+npx playwright codegen --device="iPhone 13" --geolocation="37.7749,-122.4194" https://uat.zuperpro.com
+Most Useful for Your Zuper Project
+Record with Authentication Already Set Up:
+npx playwright codegen --load-storage=tests/.auth/user.json https://uat.zuperpro.com/vendors
+Record and Save as New Test File:
+npx playwright codegen --target javascript -o tests/my-new-test.spec.js --load-storage=tests/.auth/user.json https://uat.zuperpro.com
+How It Works
+Run the codegen command - Opens a browser window
+Inspector window appears - Shows generated code in real-time
+Interact with your app - Click, type, navigate
+Code is generated automatically - Appears in the inspector
+Copy or save the code - Use it in your tests
+Tips
+Use --load-storage to skip login and start from authenticated state
+Use -o filename.spec.js to save directly to a file
+Press Record button in inspector to start/stop recording
+Click Copy to copy generated code to clipboard
+Use Explore mode to inspect selectors without recording
+Example Workflow
+# 1. First, authenticate and save state
+npx playwright codegen --save-storage=tests/.auth/user.json https://uat.zuperpro.com/login
+
+# 2. Then record tests using saved auth
+npx playwright codegen --load-storage=tests/.auth/user.json https://uat.zuperpro.com/vendors
+This way you don't need to log in every time you record!
+
+
 ```
 
 ## Troubleshooting
