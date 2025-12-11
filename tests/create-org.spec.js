@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { testData } from './test-data.js';
+import { clickWithOverlayHandling, waitForPageReady } from './Helper/overlay-helper.js';
 
 test.describe('Organization Management', () => {
   test('Create new organization with complete details', async ({ page }) => {
@@ -8,6 +9,7 @@ test.describe('Organization Management', () => {
 
     // Step 1: Navigate to Organizations
     await page.goto('/');
+    await waitForPageReady(page);
     await navigateToOrganizations(page);
 
     // Step 2: Create new organization
@@ -36,13 +38,11 @@ async function navigateToOrganizations(page) {
   // Notification is already dismissed in global-setup.js
   // Open navigation menu
   const navigationIcon = page.locator("//zuper-vertical-navigation-aside-item[@id='customer_organization_property']");
-  await navigationIcon.waitFor({ state: 'visible', timeout: 10000 });
-  await navigationIcon.click();
+  await clickWithOverlayHandling(navigationIcon);
 
   // Click Organizations link
   const organizationsMenuItem = page.getByRole('link', { name: 'Organizations' });
-  await organizationsMenuItem.waitFor({ state: 'visible', timeout: 10000 });
-  await organizationsMenuItem.click();
+  await clickWithOverlayHandling(organizationsMenuItem);
 }
 
 async function createNewOrganization(page) {

@@ -1,3 +1,5 @@
+import { clickWithOverlayHandling, waitForPageReady } from '../Helper/overlay-helper.js';
+
 export class SettingsPage {
   constructor(page) {
     this.page = page;
@@ -9,10 +11,10 @@ export class SettingsPage {
 
   async navigateToSettings() {
     await this.page.goto('https://uat.zuperpro.com/dashboard');
-    await this.page.waitForLoadState('networkidle');
-    await this.settingsLink.click();
-    await this.tryNowButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await waitForPageReady(this.page);
+    await clickWithOverlayHandling(this.settingsLink);
+    await clickWithOverlayHandling(this.tryNowButton);
+    await waitForPageReady(this.page);
     console.log('✓ Navigated to Settings');
   }
 
