@@ -36,6 +36,19 @@ export class OrganizationPage {
   }
 
   async clickNewOrganization() {
+    // Dismiss any overlays first
+    try {
+      await this.page.keyboard.press('Escape');
+      await this.page.waitForTimeout(500);
+      const overlays = this.page.locator('.cdk-overlay-backdrop');
+      if (await overlays.count() > 0 && await overlays.first().isVisible().catch(() => false)) {
+        await overlays.first().click({ force: true });
+        await this.page.waitForTimeout(500);
+      }
+    } catch (error) {
+      // Continue if no overlays found
+    }
+
     // Try multiple strategies to find the New Organization button
     let clicked = false;
 

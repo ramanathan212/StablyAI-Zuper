@@ -43,6 +43,32 @@ export async function loginToApplication(page, credentials) {
   } catch (error) {
     console.log('No welcome notification to dismiss, continuing...');
   }
+
+  // Dismiss any remaining overlays/backdrops
+  try {
+    await page.waitForTimeout(1000); // Wait for any animations
+    const overlays = page.locator('.cdk-overlay-backdrop');
+    const count = await overlays.count();
+    if (count > 0) {
+      // Try pressing Escape to close overlays
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+
+      // If still visible, click the backdrop
+      if (await overlays.first().isVisible().catch(() => false)) {
+        await overlays.first().click({ force: true });
+        await page.waitForTimeout(500);
+      }
+      console.log('✓ Overlays dismissed');
+    }
+  } catch (error) {
+    console.log('No overlays to dismiss');
+  }
+
+  // Wait for overlays to disappear
+  await page.waitForSelector('.cdk-overlay-backdrop', { state: 'hidden', timeout: 3000 }).catch(() => {
+    console.log('No overlay backdrops found or already hidden');
+  });
 }
 
 export default globalSetup;

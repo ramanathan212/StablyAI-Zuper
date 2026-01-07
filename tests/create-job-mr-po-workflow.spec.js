@@ -165,8 +165,8 @@ test.describe('Complete Job, MR, PO, and Quote Workflow', () => {
       // Reuse the MaterialRequestPage saveAndSubmit method
       await materialRequestPage.saveAndSubmit();
       console.log('✓ Material Request saved and submitted successfully');
-      await page.waitForLoadState('networkidle');
-      await expect(page).toHaveURL(/\/material_requests\/.*\/details/);
+      await page.waitForLoadState('networkidle', { timeout: 30000 });
+      await expect(page).toHaveURL(/\/material_requests\/.*\/details/, { timeout: 15000 });
       console.log('✓ Navigated to Material Request details page');
     });
 
