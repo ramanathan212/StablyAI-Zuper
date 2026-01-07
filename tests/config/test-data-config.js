@@ -1,6 +1,29 @@
 // Environment-based test data configuration
 // This allows using environment variables in CI while keeping local defaults
 
+/**
+ * Generate a dynamic due date string for job creation
+ * Returns a date 7-30 days in the future in the format expected by the date picker
+ * Examples: "January 31,", "February 15,", "March 5,"
+ */
+const getDynamicDueDate = () => {
+  const today = new Date();
+  // Add 7-30 days to today to ensure we get a future date
+  const daysToAdd = 15; // Selects a date 15 days from now
+  const futureDate = new Date(today.getTime() + (daysToAdd * 24 * 60 * 60 * 1000));
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const month = monthNames[futureDate.getMonth()];
+  const day = futureDate.getDate();
+
+  // Return in the format expected by the date picker button: "Month Day,"
+  return `${month} ${day},`;
+};
+
 export const getTestData = () => ({
   // Login credentials - use env vars in CI, fallback to local values
   login: {
@@ -17,9 +40,9 @@ export const getTestData = () => ({
     workNumber: '123456789098',
     leadTime: '3',
     products: [
-      { name: '#TS - 001', sku: 'SKU127' },
-      { name: '#T2 - 002', sku: 'SKU234' },
-      { name: '#T3 - 003', sku: 'SKU567' }
+      { name: '#T1 - 001 -', sku: 'SKU127' },
+      { name: '#T2 - 002 -', sku: 'SKU234' },
+      { name: '#T3 - 003 -', sku: 'SKU567' }
     ],
     billingAddress: {
       search: 'turya',
@@ -36,6 +59,7 @@ export const getTestData = () => ({
 
   // Material Request details
   materialRequest: {
+    mrtitle: 'MR for Job - #',
     title: `MR Test ${Date.now()}`,
     remarks: 'test MR remark',
     jobSearch: 'Validation UAT -15/10',
@@ -75,6 +99,7 @@ export const getTestData = () => ({
     lastName: 'Testing',
     organization: 'ACME Corporation',
     email: `UATcustomertesting${Date.now()}@gmail.com`,
+    accountManager: 'James Smith',
     serviceAddress: {
       search: 'walmart',
       select: 'Walmart Park, Avenida Manuel',
@@ -90,12 +115,40 @@ export const getTestData = () => ({
     contact: 'John Smith'
   },
 
+  // Job creation details
+  job: {
+    title: `Test Job ${Date.now()}`,
+    dueDate: getDynamicDueDate(), // Dynamic date 15 days in the future
+    organization: 'ACME Corporation',
+    products: ['#T1 - 001 - Monitor', '#T2 - 002 - Keyboard', '#T4 - 004 - Mobile'],
+    customFieldValue: '10',
+    expectedVerification: {
+      category: 'Installation Services',
+      assignee: 'Vignesh Sam',
+      status: 'NEW',
+      organization: 'ACME Corporation'
+    }
+  },
+
   // Job clone details
   jobClone: {
     searchText: 'Job 1',
     jobNumber: 'Sofy AI1926',
     assignedUser: 'ramanathan',
     loopCount: 3 // Number of times to clone the job
+  },
+
+  // Quote details
+  quote: {
+    organization: 'ACME Corporation',
+    title: 'Quote for UAT validation',
+    products: ['#T1 - 001 - Monitor', '#T2 - 002 - Keyboard', '#T4 - 004 - Mobile']
+  },
+
+  // Material Request from Job
+  materialRequestFromJob: {
+    products: ['#T1 - 001 - Monitor', 'Product Image #T2 - 002 -', 'Product Image #T4 - 004 -'],
+    verifyProducts: ['T1 - 001 - Monitor', 'T2 - 002 - Keyboard', 'T4 - 004 - Mobile']
   },
 
   // Parts & Services details

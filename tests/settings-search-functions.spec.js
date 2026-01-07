@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { test, expect } from './fixtures/cache-fixtures.js';
 import { SettingsPage } from './pages/SettingsPage.js';
 
 test.describe('Settings Search Functionality', () => {
@@ -61,7 +61,7 @@ test.describe('Settings Search Functionality', () => {
     console.log('='.repeat(80) + '\n');
   });
 
-  test('Verify search results for different categories', async () => {
+  test('Verify search results for different categories', async ({ autoClearCache }) => {
     // Helper function to track step execution
     const executeStep = async (stepName, stepFunction) => {
       const stepStart = new Date();

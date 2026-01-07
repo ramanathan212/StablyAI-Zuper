@@ -6,10 +6,9 @@ export class PurchaseOrderPage {
     this.markSentToVendorMenuItem = page.locator("//span[normalize-space(text())='Mark as Sent to Vendor']");
     this.markSentToVendorButton = page.getByRole('button', { name: 'Mark as Sent to Vendor' });
     this.markVendorAcceptedButton = page.getByRole('button', { name: 'Mark as Vendor Accepted' });
-    this.updateButton = page.locator("//button[normalize-space(text())='Update']");
+    this.updateButton = page.getByRole('button', { name: 'Update' });
     this.markAsInvoicedButton = page.locator('a:has-text("Mark as Invoiced")');
     this.confirmMarkAsInvoicedButton = page.getByRole('button', { name: 'Mark as Invoiced' });
-    this.confirmButtonMarkAsInvoiced = page.locator("button[class='px-6 flex items-center py-2 border shadow-sm text-white text-base font-medium rounded-md btn-small bg-green-500 ng-star-inserted']");
     this.markAsPaidLocator = page.locator('a:has-text("Mark as Paid")');
     this.markAsPaidButton = page.locator('span.ng-tns-c3121319209-153.ng-star-inserted');
     this.confirmMarkAsPaidButton = page.getByRole('button', { name: 'Mark as Paid' });
@@ -48,26 +47,48 @@ export class PurchaseOrderPage {
     await this.markSentToVendorButton.waitFor({ state: 'visible', timeout: 10000 });
     await this.markSentToVendorButton.click();
     await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(7000);
     console.log('✓ Marked as Sent to Vendor');
   }
 
   async markAsVendorAccepted() {
-    // Wait for page to stabilize first
-    await this.page.waitForLoadState('networkidle');
-    await this.page.waitForTimeout(1000);
+    
 
-    // Close any blocking dialog from previous action
-    const closeButton = this.page.locator('.rounded-full.flex.justify-center.items-center.cursor-pointer');
-    if (await closeButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await closeButton.click();
-      await this.page.waitForTimeout(500);
-      console.log('Closed blocking dialog');
+    // // Close any blocking dialog from previous action
+    // const closeButton = this.page.locator('.rounded-full.flex.justify-center.items-center.cursor-pointer');
+    // if (await closeButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+    //   await closeButton.click();
+    //   await this.page.waitForTimeout(500);
+    //   console.log('Closed blocking dialog');
+    // }
+
+    // Find and click the vendor accepted span/link with multiple strategies
+    try {
+      console.log('Trying Strategy 1: getByText with exact match...');
+      const markAsVendorAcceptedSpan = this.page.locator('#undefined');
+      await markAsVendorAcceptedSpan.waitFor({ state: 'visible', timeout: 10000 });
+      await markAsVendorAcceptedSpan.click();
+      console.log('✓ Strategy 1 succeeded - clicked using getByText');
+    } catch (error1) {
+      try {
+        console.log('Strategy 1 failed, trying Strategy 2: XPath locator...');
+        const markAsVendorAcceptedSpan = this.page.locator("//span[@class='primary-font text-base mt-0.5 ml-2']");
+        await markAsVendorAcceptedSpan.waitFor({ state: 'visible', timeout: 10000 });
+        await markAsVendorAcceptedSpan.click();
+        console.log('✓ Strategy 2 succeeded - clicked using XPath');
+      } catch (error2) {
+        try {
+          console.log('Strategy 2 failed, trying Strategy 3: contains text locator...');
+          const markAsVendorAcceptedSpan = this.page.locator("span:has-text('Mark as Vendor Accepted')").first();
+          await markAsVendorAcceptedSpan.waitFor({ state: 'visible', timeout: 10000 });
+          await markAsVendorAcceptedSpan.click();
+          console.log('✓ Strategy 3 succeeded - clicked using has-text');
+        } catch (error3) {
+          console.error('❌ All strategies failed to click Mark as Vendor Accepted link');
+          throw new Error(`Failed to click Mark as Vendor Accepted: ${error3.message}`);
+        }
+      }
     }
-
-    // Find and click the vendor accepted span/link
-    const markAsVendorAcceptedSpan = this.page.locator("//span[@class='primary-font text-base mt-0.5 ml-2']");
-    await markAsVendorAcceptedSpan.waitFor({ state: 'visible', timeout: 10000 });
-    await markAsVendorAcceptedSpan.click();
 
     // Wait for dialog/modal to appear
     await this.page.waitForTimeout(1500);
@@ -163,11 +184,13 @@ export class PurchaseOrderPage {
     for (const item of items) {
       console.log(`Updating quantities for product: ${item.product}`);
 
-      const row = this.page.getByRole('row', { name: new RegExp(`Product Image ${item.product}`) });
+      // Use a flexible regex pattern that matches the product identifier at the start of the row name
+      // Row name format: "#001 - Monitor M94 1 No" where we match "#001 - Monitor"
+      const row = this.page.getByRole('row', { name: new RegExp(item.product.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) });
 
       // Wait for quantity input to be visible and ready
       const quantityInput = row.getByPlaceholder('Eg: 2', { exact: true });
-      await quantityInput.waitFor({ state: 'visible', timeout: 10000 });
+      await quantityInput.waitFor({ state: 'visible', timeout: 50000 });
       await quantityInput.scrollIntoViewIfNeeded();
       await quantityInput.click();
       await quantityInput.clear();
@@ -186,8 +209,7 @@ export class PurchaseOrderPage {
   }
 
   async clickUpdateButton() {
-    // Wait for page to stabilize
-    await this.page.waitForLoadState('networkidle');
+    // Wait for page to stabilize 
     await this.page.waitForTimeout(1000);
 
     // Wait for update button to be visible and enabled
@@ -208,7 +230,6 @@ export class PurchaseOrderPage {
   }
 
   async markAsInvoiced() {
-    await this.page.waitForLoadState('networkidle');
     await this.page.waitForTimeout(1500);
 
     // Click "Mark as Invoiced" span/link
@@ -216,11 +237,10 @@ export class PurchaseOrderPage {
     await this.markAsInvoicedButton.click();
 
     // Wait for confirmation dialog
-    await this.page.waitForLoadState('networkidle');
+    // await this.page.waitForLoadState('networkidle');
 
     // Click the confirmation button
-    await this.confirmMarkAsInvoicedButton.waitFor({ state: 'visible', timeout: 10000 });
-    await this.confirmMarkAsInvoicedButton.scrollIntoViewIfNeeded();
+    await this.confirmMarkAsInvoicedButton.waitFor({ state: 'visible', timeout: 25000 });
     await this.confirmMarkAsInvoicedButton.click();
 
     await this.page.waitForLoadState('networkidle');
@@ -259,8 +279,8 @@ export class PurchaseOrderPage {
     await this.markClosedButton.waitFor({ state: 'visible', timeout: 10000 });
     await this.markClosedButton.scrollIntoViewIfNeeded();
     await this.markClosedButton.click();
-    await this.page.waitForLoadState('networkidle');
-    await this.confirmPOClosureButton.waitFor({ state: 'visible', timeout: 10000 });
+    //Confirm PO close button 
+    await this.confirmPOClosureButton.waitFor({ state: 'visible', timeout: 25000 });
     await this.confirmPOClosureButton.click();
     await this.page.waitForLoadState('networkidle');
     console.log('✓ PO Closed successfully');

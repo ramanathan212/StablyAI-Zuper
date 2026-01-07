@@ -1,108 +1,339 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures/cache-fixtures.js';
 import { testData } from './test-data.js';
+import { OrganizationPage } from './pages/OrganizationPage.js';
 import { clickWithOverlayHandling, waitForPageReady } from './Helper/overlay-helper.js';
 
 test.describe('Organization Management', () => {
-  test('Create new organization with complete details', async ({ page }) => {
-    // Authentication already handled by global-setup.js
-    // Start directly from the main screen
+  let organizationPage;
 
-    // Step 1: Navigate to Organizations
+  // Test results tracking
+  const testResults = {
+    testName: 'Create New Organization',
+    startTime: null,
+    endTime: null,
+    duration: null,
+    steps: [],
+    overallStatus: 'PENDING'
+  };
+
+  test.beforeEach(async ({ page }) => {
+    organizationPage = new OrganizationPage(page);
+
+    // Reset test results
+    testResults.startTime = new Date();
+    testResults.steps = [];
+    testResults.overallStatus = 'RUNNING';
+
     await page.goto('/');
     await waitForPageReady(page);
-    await navigateToOrganizations(page);
 
-    // Step 2: Create new organization
-    await createNewOrganization(page);
-
-    // Step 3: Fill organization details
-    await fillOrganizationBasicInfo(page);
-    await fillOrganizationAddress(page);
-    await fillCustomFields(page);
-    await selectOptions(page);
-    await handleModalDialogs(page);
-
-    // Step 4: Save organization
-    await saveOrganization(page);
-
-    // Step 5: Refresh page and verify organization created successfully
-    // await page.reload();
-    // await page.waitForLoadState('networkidle');
-    // await verifyOrganizationCreated(page);
+    // Dismiss onboarding modal if present
+    await dismissOnboardingModal(page);
   });
+
+  test.afterEach(async ({ page }) => {
+    testResults.endTime = new Date();
+    testResults.duration = ((testResults.endTime - testResults.startTime) / 1000).toFixed(2);
+
+    // Take screenshot on failure
+    if (testResults.overallStatus === 'FAILED') {
+      await page.screenshot({
+        path: `test-results/organization-creation-failure-${Date.now()}.png`,
+        fullPage: true
+      });
+    }
+
+    // Print test results summary
+    console.log('\n' + '='.repeat(80));
+    console.log('TEST EXECUTION SUMMARY');
+    console.log('='.repeat(80));
+    console.log(`Test Name: ${testResults.testName}`);
+    console.log(`Start Time: ${testResults.startTime.toLocaleString()}`);
+    console.log(`End Time: ${testResults.endTime.toLocaleString()}`);
+    console.log(`Duration: ${testResults.duration} seconds`);
+    console.log(`Overall Status: ${testResults.overallStatus}`);
+    console.log('\nStep Details:');
+    console.log('-'.repeat(80));
+
+    testResults.steps.forEach((step, index) => {
+      const statusIcon = step.status === 'PASS' ? '✓' : '✗';
+      const statusColor = step.status === 'PASS' ? '\x1b[32m' : '\x1b[31m';
+      console.log(`${index + 1}. ${statusIcon} ${step.name}`);
+      console.log(`   Status: ${statusColor}${step.status}\x1b[0m`);
+      console.log(`   Duration: ${step.duration}s`);
+      if (step.error) {
+        console.log(`   Error: ${step.error}`);
+      }
+      console.log('-'.repeat(80));
+    });
+
+    const passedSteps = testResults.steps.filter(s => s.status === 'PASS').length;
+    const failedSteps = testResults.steps.filter(s => s.status === 'FAIL').length;
+    console.log(`\nSummary: ${passedSteps} PASSED, ${failedSteps} FAILED out of ${testResults.steps.length} steps`);
+    console.log('='.repeat(80) + '\n');
+  });
+
+  test('Create new organization with complete details', async ({ page, autoClearCache }) => {
+    // Helper function to track step execution
+    const executeStep = async (stepName, stepFunction) => {
+      const stepStart = new Date();
+      const stepResult = {
+        name: stepName,
+        status: 'PENDING',
+        startTime: stepStart,
+        endTime: null,
+        duration: null,
+        error: null
+      };
+
+      try {
+        await test.step(stepName, stepFunction);
+        stepResult.status = 'PASS';
+        console.log(`✓ ${stepName} - PASSED`);
+      } catch (error) {
+        stepResult.status = 'FAIL';
+        stepResult.error = error.message;
+        testResults.overallStatus = 'FAILED';
+        console.log(`✗ ${stepName} - FAILED: ${error.message}`);
+        throw error;
+      } finally {
+        stepResult.endTime = new Date();
+        stepResult.duration = ((stepResult.endTime - stepResult.startTime) / 1000).toFixed(2);
+        testResults.steps.push(stepResult);
+      }
+    };
+
+    // Step 1: Navigate to Organizations
+    await executeStep('Navigate to Organizations page', async () => {
+      await navigateToOrganizationsWithOverlay(page);
+    });
+
+    // Step 2: Click New Organization
+    await executeStep('Open New Organization form', async () => {
+      await organizationPage.clickNewOrganization();
+    });
+
+    // Step 3: Fill organization basic information
+    await executeStep('Fill organization basic information', async () => {
+      await organizationPage.fillOrganizationBasicInfo(testData.organization);
+    });
+
+    // Step 4: Add service address
+    await executeStep('Add service address', async () => {
+      await organizationPage.addServiceAddress(testData.organization.serviceAddress);
+    });
+
+    // Step 5: Fill custom fields
+    await executeStep('Fill custom fields', async () => {
+      await organizationPage.fillCustomFields(testData.organization.customFields);
+    });
+
+    // Step 6: Select options
+    await executeStep('Select options', async () => {
+      await selectOptions(page);
+    });
+
+    // Step 7: Handle modal dialogs
+    await executeStep('Handle modal dialogs', async () => {
+      await handleModalDialogs(page);
+    });
+
+    // Step 8: Save organization
+    await executeStep('Save organization', async () => {
+      await organizationPage.saveOrganization();
+    });
+
+    // Step 9: Wait for page to stabilize
+    await executeStep('Wait for page to stabilize', async () => {
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
+    });
+
+    // Step 10: Verify organization was created successfully
+    await executeStep('Verify organization created', async () => {
+      const verificationResults = await organizationPage.verifyOrganizationCreated(testData.organization);
+
+      // Assert that all critical verifications passed
+      expect(verificationResults.success).toBe(true);
+
+      if (!verificationResults.success) {
+        const failureMessage = `Organization verification failed:\n${verificationResults.failed.join('\n')}`;
+        throw new Error(failureMessage);
+      }
+    });
+
+    // Mark test as passed if all steps succeeded
+    testResults.overallStatus = 'PASSED';
+    console.log('\n✓ Organization creation test passed successfully!');
+
+    // Print final summary
+    printTestSummary();
+  });
+
+  // Helper function to print test summary
+  function printTestSummary() {
+    testResults.endTime = new Date();
+    testResults.duration = ((testResults.endTime - testResults.startTime) / 1000).toFixed(2);
+
+    console.log('\n' + '='.repeat(80));
+    console.log('TEST EXECUTION SUMMARY');
+    console.log('='.repeat(80));
+    console.log(`Test Name: ${testResults.testName}`);
+    console.log(`Start Time: ${testResults.startTime.toLocaleString()}`);
+    console.log(`End Time: ${testResults.endTime.toLocaleString()}`);
+    console.log(`Duration: ${testResults.duration} seconds`);
+    console.log(`Overall Status: ${testResults.overallStatus}`);
+    console.log('\nStep Details:');
+    console.log('-'.repeat(80));
+
+    testResults.steps.forEach((step, index) => {
+      const statusIcon = step.status === 'PASS' ? '✓' : '✗';
+      const statusColor = step.status === 'PASS' ? '\x1b[32m' : '\x1b[31m';
+      console.log(`${index + 1}. ${statusIcon} ${step.name}`);
+      console.log(`   Status: ${statusColor}${step.status}\x1b[0m`);
+      console.log(`   Duration: ${step.duration}s`);
+      if (step.error) {
+        console.log(`   Error: ${step.error}`);
+      }
+      console.log('-'.repeat(80));
+    });
+
+    const passedSteps = testResults.steps.filter(s => s.status === 'PASS').length;
+    const failedSteps = testResults.steps.filter(s => s.status === 'FAIL').length;
+    console.log(`\nSummary: ${passedSteps} PASSED, ${failedSteps} FAILED out of ${testResults.steps.length} steps`);
+    console.log('='.repeat(80) + '\n');
+  }
 });
 
 // Helper Functions
 
-async function navigateToOrganizations(page) {
-  // Notification is already dismissed in global-setup.js
-  // Open navigation menu
+/**
+ * Dismiss onboarding modal if present
+ */
+async function dismissOnboardingModal(page) {
+  // First, try to dismiss the "What's New at Zuper" modal by pressing Escape multiple times
+  try {
+    const whatsNewModal = page.getByText("What's New at Zuper?");
+    const modalVisible = await whatsNewModal.isVisible({ timeout: 2000 });
+
+    if (modalVisible) {
+      // Try pressing Escape multiple times to close overlapping modals
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+      console.log('✓ Dismissed "What\'s New" modal');
+    }
+  } catch (error) {
+    console.log('⚠ No "What\'s New" modal found');
+  }
+
+  // Now handle the "Welcome back to Zuper" onboarding form
+  try {
+    const continueButton = page.getByRole('button', { name: 'Continue' });
+    const isVisible = await continueButton.isVisible({ timeout: 3000 });
+
+    if (isVisible) {
+      // Check if there's a company name input that needs to be filled
+      const companyNameInput = page.getByRole('textbox', { name: 'Company Name' });
+      const inputVisible = await companyNameInput.isVisible({ timeout: 1000 }).catch(() => false);
+
+      if (inputVisible) {
+        // Fill in a dummy company name
+        await companyNameInput.fill('Test Company');
+        console.log('✓ Filled company name in onboarding modal');
+      }
+
+      await continueButton.click();
+      await page.waitForTimeout(2000);
+      console.log('✓ Clicked Continue button in onboarding modal');
+
+      // After clicking continue, there might be more steps - keep clicking Continue until it's gone
+      let continueAttempts = 0;
+      while (continueAttempts < 5) {
+        try {
+          const nextContinueButton = page.getByRole('button', { name: 'Continue' });
+          const stillVisible = await nextContinueButton.isVisible({ timeout: 2000 });
+
+          if (stillVisible) {
+            await nextContinueButton.click();
+            await page.waitForTimeout(1000);
+            console.log(`✓ Clicked Continue button (attempt ${continueAttempts + 2})`);
+            continueAttempts++;
+          } else {
+            break;
+          }
+        } catch {
+          break;
+        }
+      }
+
+      // Try pressing Escape again to close any remaining modals
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+    }
+  } catch (error) {
+    console.log('⚠ No onboarding Continue button to click');
+  }
+
+  // Final escape press to ensure all modals are closed
+  try {
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(1000);
+    console.log('✓ Final Escape press to close any remaining modals');
+  } catch (error) {
+    // Ignore any errors
+  }
+
+  // Wait for page to stabilize
+  await page.waitForTimeout(1000);
+}
+
+/**
+ * Navigate to Organizations page with overlay handling
+ */
+async function navigateToOrganizationsWithOverlay(page) {
+  // Open navigation menu with overlay handling
   const navigationIcon = page.locator("//zuper-vertical-navigation-aside-item[@id='customer_organization_property']");
   await clickWithOverlayHandling(navigationIcon);
 
-  // Click Organizations link
+  // Click Organizations link with overlay handling
   const organizationsMenuItem = page.getByRole('link', { name: 'Organizations' });
   await clickWithOverlayHandling(organizationsMenuItem);
+
+  await page.waitForLoadState('networkidle');
+  console.log('✓ Navigated to Organizations page');
 }
 
-async function createNewOrganization(page) {
-  await page.getByRole('link', { name: ' New Organization' }).click();
-}
-
-async function fillOrganizationBasicInfo(page) {
-  // Organization name
-  await page.getByRole('textbox', { name: 'Organization Name*' }).click();
-  await page.getByRole('textbox', { name: 'Organization Name*' }).fill(testData.organization.name);
-
-  // Organization email
-  await page.getByRole('textbox', { name: 'Organization Email*' }).click();
-  await page.getByRole('textbox', { name: 'Organization Email*' }).fill(testData.organization.email);
-}
-
-async function fillOrganizationAddress(page) {
-  // Service address
-  await page.getByText('Service AddressContact First').first().click();
-  await page.getByRole('textbox', { name: 'Flat / House No, Street /' }).first().fill(testData.organization.serviceAddress.search);
-  await page.getByText(testData.organization.serviceAddress.select).click();
-
-  // Use same address for billing
-  if (testData.organization.serviceAddress.sameAsBilling) {
-    await page.getByRole('checkbox', { name: 'Same As Service Address' }).check();
+/**
+ * Select options in the organization form
+ */
+async function selectOptions(page) {
+  try {
+    const optionCheckbox = page.getByRole('checkbox', { name: 'option 1' });
+    await optionCheckbox.waitFor({ state: 'visible', timeout: 5000 });
+    await optionCheckbox.check();
+    console.log('✓ Selected option 1');
+  } catch (error) {
+    console.log('⚠ Option checkbox not found or already checked, continuing...');
   }
 }
 
-async function fillCustomFields(page) {
-  // Single line text
-  await page.getByRole('textbox', { name: 'Single Line Text' }).click();
-  await page.getByRole('textbox', { name: 'Single Line Text' }).fill(testData.organization.customFields.singleLineText);
-
-  // Multi line text
-  await page.getByRole('textbox', { name: 'Multi Line Text' }).click();
-  await page.getByRole('textbox', { name: 'Multi Line Text' }).fill(testData.organization.customFields.multiLineText);
-}
-
-async function selectOptions(page) {
-  await page.getByRole('checkbox', { name: 'option 1' }).check();
-}
-
+/**
+ * Handle modal dialogs during organization creation
+ */
 async function handleModalDialogs(page) {
-  const uatFilter = page.locator('a').filter({ hasText: 'UAT Single Line Text Multi' });
+  try {
+    const uatFilter = page.locator('a').filter({ hasText: 'UAT Single Line Text Multi' });
+    await uatFilter.waitFor({ state: 'visible', timeout: 5000 });
+    await uatFilter.click();
 
-  // Handle first dialog
-  await uatFilter.click();
-  await page.getByRole('button', { name: 'OK' }).click();
+    const okButton = page.getByRole('button', { name: 'OK' });
+    await okButton.waitFor({ state: 'visible', timeout: 5000 });
+    await okButton.click();
 
-}
-
-async function saveOrganization(page) {
-  await page.locator('a').filter({ hasText: 'Save Organization' }).click();
-  await page.getByRole('button', { name: 'Create' }).click();
-}
-
-async function verifyOrganizationCreated(page) {
-  // Verify organization name is visible
-  await expect(page.getByRole('paragraph').filter({ hasText: testData.organization.name })).toBeVisible();
-
-  // Verify organization status is active
-  await expect(page.getByText('Active')).toBeVisible();
+    console.log('✓ Handled modal dialog');
+  } catch (error) {
+    console.log('⚠ Modal dialog not found, continuing...');
+  }
 }

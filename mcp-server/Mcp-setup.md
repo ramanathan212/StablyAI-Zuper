@@ -53,8 +53,8 @@ Add this configuration to your Claude Desktop config file:
       "args": ["/Users/zuper/Playwrite-Automation/mcp-server/index.js"],
       "env": {
         "COMPANY_NAME": "zuper-pro",
-        "LOGIN_EMAIL": "your-email@example.com",
-        "LOGIN_PASSWORD": "your-password"
+        "LOGIN_EMAIL": "vignesh.s@zuper.co",
+        "LOGIN_PASSWORD": "Vicky@123"
       }
     }
   }
@@ -67,7 +67,7 @@ Add this configuration to your Claude Desktop config file:
 
 The server communicates via stdio and follows the Model Context Protocol specification. Configure your MCP client to run:
 ```bash
-node /path/to/mcp-server/index.js
+node /Users/zuper/Playwrite-Automation/mcp-server/index.js
 ```
 
 ## Available Tools

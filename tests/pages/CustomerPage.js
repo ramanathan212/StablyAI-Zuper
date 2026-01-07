@@ -15,6 +15,12 @@ export class CustomerPage {
     this.searchOrganizationsInput = page.getByPlaceholder('Search Organizations ...');
     this.chooseOrganizationButton = page.getByRole('button', { name: 'Choose Organization' });
     this.emailInput = page.getByRole('textbox', { name: 'Email *' });
+
+    // Account Manager locators
+    this.clickAccountManagerInput = page.locator('#account_manager input[type="text"]');
+    this.pickAccountManagerOption = page.getByRole('option', { name: 'James Smith zuper.admin@' });
+    
+    // Primary details section locator - out of form fields
     this.primaryDetailsSection = page.getByText('Primary DetailsFirst Name *');
 
     // Address locators
@@ -126,6 +132,24 @@ export class CustomerPage {
   }
 
   /**
+   * Fill email address
+   */
+  async selectAccountManager(accountManager) {
+    await this.clickAccountManagerInput.waitFor({ state: 'visible', timeout: 10000 });
+    await this.clickAccountManagerInput.click();
+    await this.clickAccountManagerInput.fill(accountManager);
+    await this.page.waitForTimeout(1000);
+
+    await this.pickAccountManagerOption.waitFor({ state: 'visible', timeout: 10000 });
+    await this.pickAccountManagerOption.click();
+    console.log(`✓ Filled account manager: ${accountManager}`);
+
+    // Click outside to close any tooltips
+    await this.primaryDetailsSection.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
    * Fill service address
    */
   async fillServiceAddress(addressData) {
@@ -230,47 +254,198 @@ export class CustomerPage {
 
   /**
    * Verify customer was created by checking email visibility
+   * @param {string} email - Customer email to verify
+   * @returns {Object} Verification results with pass/fail status
    */
   async verifyCustomerCreated(email) {
-    const emailLocator = this.emailVerification(email);
-    await emailLocator.waitFor({ state: 'visible', timeout: 15000 });
-    const isVisible = await emailLocator.isVisible();
-    console.log(`✓ Customer email verified: ${email}`);
-    return isVisible;
+    const verificationResults = {
+      checks: [],
+      success: true
+    };
+
+    // Verification 1: URL should redirect to customer detail page
+    const urlCheck = {
+      name: 'URL Redirect Verification',
+      description: 'URL redirected to customer/contact detail page',
+      status: 'PENDING',
+      error: null
+    };
+
+    try {
+      const currentUrl = this.page.url();
+      if (currentUrl.includes('/contacts/') || currentUrl.includes('/contact/') || currentUrl.includes('/customers/')) {
+        urlCheck.status = 'PASS';
+        console.log('✓ URL verification passed');
+      } else {
+        urlCheck.status = 'FAIL';
+        urlCheck.error = 'URL did not redirect to customer detail page';
+        verificationResults.success = false;
+        console.log('✗ URL verification failed');
+      }
+    } catch (error) {
+      urlCheck.status = 'FAIL';
+      urlCheck.error = `URL verification error: ${error.message}`;
+      verificationResults.success = false;
+      console.log('✗ URL verification failed with error');
+    }
+    verificationResults.checks.push(urlCheck);
+
+    // Verification 2: Customer email should be visible
+    const emailCheck = {
+      name: 'Customer Email Visibility',
+      description: `Customer email "${email}" is visible`,
+      status: 'PENDING',
+      error: null
+    };
+
+    try {
+      const emailLocator = this.emailVerification(email);
+      await emailLocator.waitFor({ state: 'visible', timeout: 15000 });
+      const isVisible = await emailLocator.isVisible();
+      if (isVisible) {
+        emailCheck.status = 'PASS';
+        console.log(`✓ Customer email verified: ${email}`);
+      } else {
+        emailCheck.status = 'FAIL';
+        emailCheck.error = `Customer email "${email}" is not visible`;
+        verificationResults.success = false;
+        console.log('✗ Customer email verification failed');
+      }
+    } catch (error) {
+      emailCheck.status = 'FAIL';
+      emailCheck.error = `Customer email verification error: ${error.message}`;
+      verificationResults.success = false;
+      console.log('✗ Customer email verification failed');
+    }
+    verificationResults.checks.push(emailCheck);
+
+    // Print summary
+    this.printVerificationSummary(verificationResults, 'Customer Creation Basic Verification');
+
+    return verificationResults;
   }
 
   /**
    * Verify detailed customer information
+   * @param {Object} customerData - Customer data used to create the customer
+   * @returns {Object} Verification results with pass/fail status
    */
   async verifyCustomerDetails(customerData) {
+    const verificationResults = {
+      checks: [],
+      success: true
+    };
+
+    // Verification 1: Created by user
+    const createdByCheck = {
+      name: 'Created By User Verification',
+      description: 'Customer created by user is visible',
+      status: 'PENDING',
+      error: null
+    };
+
     try {
-      // Verify created by user
       const createdBy = this.createdByDefinition.filter({ hasText: 'Vignesh Sam' });
       if (await createdBy.count() > 0) {
         await createdBy.click();
+        createdByCheck.status = 'PASS';
         console.log('✓ Verified created by user');
+      } else {
+        createdByCheck.status = 'WARNING';
+        createdByCheck.error = 'Created by user not found';
+        console.log('⚠ Created by user not found');
       }
+    } catch (error) {
+      createdByCheck.status = 'WARNING';
+      createdByCheck.error = `Created by verification error: ${error.message}`;
+      console.log('⚠ Created by user verification warning');
+    }
+    verificationResults.checks.push(createdByCheck);
 
-      // Verify active status
+    // Verification 2: Active status
+    const activeStatusCheck = {
+      name: 'Active Status Verification',
+      description: 'Customer status is "Active"',
+      status: 'PENDING',
+      error: null
+    };
+
+    try {
       if (await this.activeStatusSpan.isVisible()) {
         await this.activeStatusSpan.click();
+        activeStatusCheck.status = 'PASS';
         console.log('✓ Verified active status');
+      } else {
+        activeStatusCheck.status = 'FAIL';
+        activeStatusCheck.error = 'Active status not visible';
+        verificationResults.success = false;
+        console.log('✗ Active status not visible');
       }
+    } catch (error) {
+      activeStatusCheck.status = 'FAIL';
+      activeStatusCheck.error = `Active status verification error: ${error.message}`;
+      verificationResults.success = false;
+      console.log('✗ Active status verification failed');
+    }
+    verificationResults.checks.push(activeStatusCheck);
 
-      // Verify address
+    // Verification 3: Service address
+    const addressCheck = {
+      name: 'Service Address Verification',
+      description: 'Service address is visible',
+      status: 'PENDING',
+      error: null
+    };
+
+    try {
       const addressText = this.page.getByText('705 Pike St, Seattle ,');
       if (await addressText.count() > 0 && await addressText.isVisible()) {
         await addressText.click();
+        addressCheck.status = 'PASS';
         console.log('✓ Verified address');
+      } else {
+        addressCheck.status = 'WARNING';
+        addressCheck.error = 'Service address not found';
+        console.log('⚠ Service address not found');
       }
+    } catch (error) {
+      addressCheck.status = 'WARNING';
+      addressCheck.error = `Address verification error: ${error.message}`;
+      console.log('⚠ Address verification warning');
+    }
+    verificationResults.checks.push(addressCheck);
 
-      // Verify organization link
+    // Verification 4: Organization link
+    const orgLinkCheck = {
+      name: 'Organization Link Verification',
+      description: `Organization link "${customerData.organization}" is visible`,
+      status: 'PENDING',
+      error: null
+    };
+
+    try {
       const orgLink = this.page.getByRole('link', { name: customerData.organization });
       await orgLink.waitFor({ state: 'visible', timeout: 10000 });
       await orgLink.click();
+      orgLinkCheck.status = 'PASS';
       console.log(`✓ Verified organization link: ${customerData.organization}`);
+    } catch (error) {
+      orgLinkCheck.status = 'FAIL';
+      orgLinkCheck.error = `Organization link not found: ${error.message}`;
+      verificationResults.success = false;
+      console.log(`✗ Organization link verification failed`);
+    }
+    verificationResults.checks.push(orgLinkCheck);
 
-      // Verify organization addresses
+    // Verification 5: Organization addresses
+    const orgAddressCheck = {
+      name: 'Organization Addresses Verification',
+      description: 'Organization addresses are accessible',
+      status: 'PENDING',
+      error: null
+    };
+
+    try {
       const orgAddressesButton = this.page.getByRole('button', { name: 'Organization Addresses' });
       await orgAddressesButton.waitFor({ state: 'visible', timeout: 10000 });
       await orgAddressesButton.click();
@@ -278,25 +453,80 @@ export class CustomerPage {
       const pikeStText = this.page.getByText('Pike St').nth(1);
       if (await pikeStText.count() > 0) {
         await pikeStText.click();
+        orgAddressCheck.status = 'PASS';
         console.log('✓ Verified organization addresses');
+      } else {
+        orgAddressCheck.status = 'WARNING';
+        orgAddressCheck.error = 'Organization addresses not found in expected location';
+        console.log('⚠ Organization addresses not found');
       }
-
-      // Close modal if open
-      try {
-        await this.page.getByText('Getting things ready Dashboard Projects Request Jobs Group Schedule Group').press('Escape');
-      } catch (error) {
-        // Modal might not be present
-      }
-
-      // Verify customer details section is visible
-      await this.customerDetailsSection.waitFor({ state: 'visible', timeout: 10000 });
-      console.log('✓ Customer details section verified');
-
-      return true;
     } catch (error) {
-      console.log(`⚠ Some customer details verification failed: ${error.message}`);
-      return false;
+      orgAddressCheck.status = 'WARNING';
+      orgAddressCheck.error = `Organization addresses verification error: ${error.message}`;
+      console.log('⚠ Organization addresses verification warning');
     }
+    verificationResults.checks.push(orgAddressCheck);
+
+    // Close modal if open
+    try {
+      await this.page.getByText('Getting things ready Dashboard Projects Request Jobs Group Schedule Group').press('Escape');
+    } catch (error) {
+      // Modal might not be present
+    }
+
+    // Verification 6: Customer details section
+    const detailsSectionCheck = {
+      name: 'Customer Details Section Verification',
+      description: 'Customer details section is visible',
+      status: 'PENDING',
+      error: null
+    };
+
+    try {
+      await this.customerDetailsSection.waitFor({ state: 'visible', timeout: 10000 });
+      detailsSectionCheck.status = 'PASS';
+      console.log('✓ Customer details section verified');
+    } catch (error) {
+      detailsSectionCheck.status = 'FAIL';
+      detailsSectionCheck.error = `Customer details section not visible: ${error.message}`;
+      verificationResults.success = false;
+      console.log('✗ Customer details section verification failed');
+    }
+    verificationResults.checks.push(detailsSectionCheck);
+
+    // Print summary
+    this.printVerificationSummary(verificationResults, 'Customer Details Verification');
+
+    return verificationResults;
+  }
+
+  /**
+   * Print verification summary
+   * @param {Object} verificationResults - Verification results object
+   * @param {string} title - Title for the summary
+   */
+  printVerificationSummary(verificationResults, title) {
+    console.log(`\n=== ${title} Summary ===`);
+
+    const passedChecks = verificationResults.checks.filter(c => c.status === 'PASS');
+    const failedChecks = verificationResults.checks.filter(c => c.status === 'FAIL');
+    const warningChecks = verificationResults.checks.filter(c => c.status === 'WARNING');
+
+    console.log(`Total Checks: ${verificationResults.checks.length}`);
+    console.log(`Passed: ${passedChecks.length}`);
+    passedChecks.forEach(check => console.log(`  ✓ [PASS] ${check.description}`));
+
+    if (warningChecks.length > 0) {
+      console.log(`\nWarnings: ${warningChecks.length}`);
+      warningChecks.forEach(check => console.log(`  ⚠ [WARNING] ${check.description} - ${check.error}`));
+    }
+
+    if (failedChecks.length > 0) {
+      console.log(`\nFailed: ${failedChecks.length}`);
+      failedChecks.forEach(check => console.log(`  ✗ [FAIL] ${check.description} - ${check.error}`));
+    }
+
+    console.log('================================================\n');
   }
 
   /**
@@ -307,6 +537,7 @@ export class CustomerPage {
     await this.fillPrimaryDetails(customerData);
     await this.selectOrganization(customerData.organization);
     await this.fillEmailAddress(customerData.email);
+    await this.selectAccountManager(customerData.accountManager);
     await this.fillServiceAddress(customerData.serviceAddress);
 
     if (customerData.serviceAddress.sameAsBilling) {

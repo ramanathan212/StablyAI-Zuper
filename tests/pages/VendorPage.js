@@ -67,114 +67,117 @@ export class VendorPage {
 
   async addProducts(products) {
     await this.addProductsLink.click();
+    await this.page.waitForTimeout(1000);
 
+    // Wait for the product table to be loaded
+    await this.page.waitForSelector('input[type="checkbox"]', { timeout: 10000 });
+
+    // Select products by checking checkboxes
     for (const product of products) {
-      const checkbox = this.page.getByRole('checkbox', { name: new RegExp(`Product Image ${product.name}`) });
-      await checkbox.check();
-    }
+      // Extract product code (e.g., "#T1 - 001 -" from the name)
+      const productCode = product.name.trim();
 
-    await this.nextButton.click();
+      let found = false;
 
-    for (const product of products) {
-      const region = this.page.getByRole('region', { name: new RegExp(`Product Image ${product.name}`) });
-      const skuInput = region.getByPlaceholder('Eg:');
-      await skuInput.click();
-      await skuInput.fill(product.sku);
-    }
-
-    await this.addItemButton.click();
-  }
-
-  async addBillingAddress(addressData) {
-    await this.addBillingAddressLink.click();
-    await this.page.waitForTimeout(2000);
-
-    // Try multiple strategies to interact with the address form
-    let addressAdded = false;
-
-    // Strategy 1: Try to use the search address field directly (visible in screenshot)
-    try {
-      const searchAddressInput = this.page.getByRole('textbox', { name: /search address/i });
-      if (await searchAddressInput.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await searchAddressInput.click();
-        await searchAddressInput.fill(addressData.search || 'turya');
-        await this.page.waitForTimeout(2000);
-
-        // Try to click on the first suggestion
-        const firstSuggestion = this.page.locator('.pac-item, .address-suggestion').first();
-        if (await firstSuggestion.isVisible({ timeout: 3000 }).catch(() => false)) {
-          await firstSuggestion.click();
-          addressAdded = true;
-        }
-      }
-    } catch (error) {
-      console.log('Search address input not found, trying map...');
-    }
-
-    // Strategy 2: Try clicking on the map if search didn't work
-    if (!addressAdded) {
+      // Strategy 1: Try to find the row containing the product code and click its checkbox
       try {
-        // Try different map selectors
-        const mapSelectors = [
-          '.gm-style',
-          'div[role="region"][aria-label*="Map"]',
-          '.map-container',
-          'canvas.gm-style',
-          '.gm-style > div'
-        ];
+        // Find the row that contains the product code text
+        const row = this.page.locator('tr').filter({ hasText: productCode });
+        const checkbox = row.locator('input[type="checkbox"]').first();
 
-        for (const selector of mapSelectors) {
-          const mapElement = this.page.locator(selector).first();
-          if (await mapElement.isVisible({ timeout: 5000 }).catch(() => false)) {
-            await mapElement.click({ position: { x: 100, y: 100 } });
-            await this.page.waitForTimeout(2000);
-            addressAdded = true;
-            console.log(`✓ Clicked on map using selector: ${selector}`);
+        // Check if the row exists
+        const count = await row.count();
+        if (count > 0) {
+          await checkbox.waitFor({ state: 'visible', timeout: 5000 });
+          await checkbox.check();
+          console.log(`✓ Selected product: ${product.name}`);
+          found = true;
+        }
+      } catch (error) {
+        console.log(`Strategy 1 failed for ${product.name}: ${error.message}`);
+      }
+
+      // Strategy 2: If not found, try searching all checkboxes
+      if (!found) {
+        const checkboxes = await this.page.getByRole('checkbox').all();
+
+        for (const checkbox of checkboxes) {
+          // Get the closest table row
+          const row = checkbox.locator('xpath=ancestor::tr[1]');
+          const rowText = await row.textContent().catch(() => '');
+
+          // Check if the row contains the product code
+          if (rowText.includes(productCode)) {
+            await checkbox.waitFor({ state: 'visible', timeout: 10000 });
+            await checkbox.check();
+            console.log(`✓ Selected product: ${product.name}`);
+            found = true;
             break;
           }
         }
-      } catch (error) {
-        console.log('Map click failed:', error.message);
       }
+
+      if (!found) {
+        // Debug: Log all available rows with product information
+        console.log(`\nDEBUG: Could not find checkbox for product: ${product.name}`);
+        console.log('Available products in table:');
+        const rows = await this.page.locator('tr').all();
+        for (let i = 0; i < Math.min(rows.length, 10); i++) {
+          const rowText = await rows[i].textContent().catch(() => 'N/A');
+          console.log(`  [${i}] Row text: "${rowText.substring(0, 150)}..."`);
+        }
+        throw new Error(`Could not find checkbox for product: ${product.name}`);
+      }
+
+      await this.page.waitForTimeout(500);
     }
 
-    // Strategy 3: Fill address fields manually if both above failed
-    if (!addressAdded) {
-      console.log('Trying to fill address fields manually...');
-      try {
-        // Fill street address
-        const streetInput = this.page.getByRole('textbox', { name: /street|address/i }).first();
-        if (await streetInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-          await streetInput.fill('123 Test Street');
-        }
+    await this.nextButton.click();
+    await this.page.waitForTimeout(1000);
 
-        // Click on Test St, Waconia, MN, USA address suggestion
-        await this.page.getByText('Test St, Waconia, MN, USA').click();
-    
+    // Fill SKU for each product using index-based approach
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
 
-        // Fill city
-        const cityInput = this.page.getByRole('textbox', { name: /city/i }).first();
-        if (await cityInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-          await cityInput.fill('Test City');
-        }
+      // Get all SKU inputs and use the index
+      const allSkuInputs = this.page.getByPlaceholder('Eg:');
+      const skuInput = allSkuInputs.nth(i);
 
-        addressAdded = true;
-      } catch (error) {
-        console.log('Manual address fill failed:', error.message);
-      }
+      await skuInput.waitFor({ state: 'visible', timeout: 10000 });
+      await skuInput.click();
+      await skuInput.fill(product.sku);
+      console.log(`✓ Filled SKU for ${product.name}: ${product.sku}`);
     }
 
-    // Wait a bit for form to update
+    await this.addItemButton.click();
+    await this.page.waitForTimeout(1000);
+    console.log('✓ Products added successfully');
+  }
+
+  async addBillingAddress() {
+    await this.addBillingAddressLink.click();
     await this.page.waitForTimeout(2000);
+
+    // Fill street address to trigger autocomplete
+    const streetInput = this.page.getByRole('textbox', { name: /street|address/i }).first();
+    await streetInput.waitFor({ state: 'visible', timeout: 10000 });
+    await streetInput.click();
+    await streetInput.fill('123 Test Street');
+    await this.page.waitForTimeout(1000);
+
+    // Click on the address suggestion
+    const addressSuggestion = this.page.getByText('Test St, Waconia, MN, USA');
+    await addressSuggestion.waitFor({ state: 'visible', timeout: 10000 });
+    await addressSuggestion.click();
+    await this.page.waitForTimeout(1000);
 
     // Click Add button
     await this.addButton.waitFor({ state: 'visible', timeout: 10000 });
     await this.addButton.click();
 
-    // Wait for the add operation to complete and modal to close
+    // Wait for the operation to complete
     await this.page.waitForLoadState('networkidle');
-    await this.page.waitForTimeout(2000);
-
+    await this.page.waitForTimeout(1000);
     console.log('✓ Billing address added');
   }
 

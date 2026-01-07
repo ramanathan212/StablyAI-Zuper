@@ -10,8 +10,8 @@ export class MaterialRequestPage {
     this.addJobQuoteLink = page.locator('a').filter({ hasText: 'Add Job / Quote' });
     this.addButton = page.getByRole('button', { name: 'Add' });
     this.saveAndSubmitButtonClick = page.getByRole('button', { name: 'Save & Submit' });
-    this.saveAndSubmitButton = page.getByText('Save & Submit');
     this.markSubmittedButton = page.getByRole('button', { name: 'Mark as Submitted' });
+    this.saveSubmitLink = page.locator("//a[contains(text(), 'Save & Submit')]");
     this.nextButton = page.getByRole('button', { name: 'Next' });
     this.createPOButton = page.getByRole('button', { name: 'Create Purchase Order' });
   }
@@ -219,9 +219,16 @@ export class MaterialRequestPage {
   }
 
   async saveAndSubmit() {
+    // Import expect for assertions
+    const { expect } = await import('@playwright/test');
+
     // Wait for page to stabilize after adding products
     await this.page.waitForLoadState('networkidle');
     await this.page.waitForTimeout(2000);
+
+    // Store current URL before submission to verify navigation
+    const urlBeforeSubmission = this.page.url();
+    console.log(`Current URL before submission: ${urlBeforeSubmission}`);
 
     // Try multiple strategies to find and click Save & Submit
     let saveButtonClicked = false;
@@ -248,6 +255,7 @@ export class MaterialRequestPage {
           await element.scrollIntoViewIfNeeded();
           await element.click();
           saveButtonClicked = true;
+          console.log('✓ Clicked initial Save & Submit button/link');
           break;
         }
       }
@@ -255,44 +263,49 @@ export class MaterialRequestPage {
       console.log('Save & Submit link not found, trying alternative approach...');
     }
 
-    // Strategy 2: If link not found, try the button directly
-    if (!saveButtonClicked) {
-      try {
-        await this.saveAndSubmitButtonClick.waitFor({ state: 'visible', timeout: 10000 });
-        await this.saveAndSubmitButtonClick.scrollIntoViewIfNeeded();
-        await this.saveAndSubmitButtonClick.click();
-        saveButtonClicked = true;
-        console.log('✓ Clicked Save & Submit button directly');
-      } catch (error) {
-        console.log('Direct button click failed');
-      }
-    }
-
     if (!saveButtonClicked) {
       throw new Error('Could not find Save & Submit button/link. Please check if the form is complete.');
     }
 
-    // Wait for popup/dialog to appear
+    // Wait for confirmation dialog/popup to appear
     await this.page.waitForTimeout(2000);
+    console.log('Waiting for confirmation dialog...');
 
-    // Step 2: Click the Save & Submit button in the popup/dialog
+    // Step 2: Click the Save & Submit button in the confirmation popup/dialog
+    // Wait for navigation after clicking the confirmation button
     try {
-      await this.saveAndSubmitButtonClick.waitFor({ state: 'visible', timeout: 15000 });
-      await this.saveAndSubmitButtonClick.scrollIntoViewIfNeeded();
-      await this.saveAndSubmitButtonClick.click();
-      console.log('✓ Material Request submitted successfully');
+      await Promise.all([
+        this.page.waitForURL('**/material_requests/**/details**', { timeout: 15000 }),
+        this.saveAndSubmitButtonClick.click()
+      ]);
+      console.log('✓ Clicked confirmation button and navigation completed');
     } catch (error) {
-      // Try alternative selectors for the confirmation button
-      const confirmButton = this.page.locator('button:has-text("Save & Submit"), button:has-text("Submit"), button.btn-primary').last();
-      if (await confirmButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await confirmButton.click();
-        console.log('✓ Material Request submitted using alternative button');
-      } else {
-        throw new Error('Could not find confirmation button in dialog');
-      }
+      throw new Error(`Failed to click confirmation button or navigate: ${error.message}`);
     }
 
+    // Wait for page to stabilize after submission
     await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(1000);
+
+    // Verify URL changed to details page
+    const urlAfterSubmission = this.page.url();
+    console.log(`URL after submission: ${urlAfterSubmission}`);
+
+    // Verify we navigated to the details page
+    if (urlAfterSubmission.includes('/material_requests/') && urlAfterSubmission.includes('/details')) {
+      console.log('✓ Successfully navigated to Material Request details page');
+      console.log('✓ Material Request submitted successfully');
+
+      // Additional verification: Check for "Submitted" status on the page
+      try {
+        await expect(this.page.locator('text=Submitted').first()).toBeVisible({ timeout: 10000 });
+        console.log('✓ Confirmed "Submitted" status is visible on the page');
+      } catch (error) {
+        console.log('⚠️  Warning: Could not verify "Submitted" status visibility');
+      }
+    } else {
+      throw new Error(`Expected URL to contain '/material_requests/' and '/details', but got: ${urlAfterSubmission}`);
+    }
   }
 
   async verifyMaterialRequestCreated() {
@@ -375,5 +388,111 @@ export class MaterialRequestPage {
   async getMRNumber() {
     const titleElement = this.page.locator('h1, .mr-title');
     return await titleElement.textContent();
+  }
+
+  async clickOpenlatestMR() {
+    // Wait for the Material Requests list to load
+    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(2000);
+
+    // Click the first MR link in the list using regex pattern to match any MR
+    // This will select the first Material Request regardless of job number
+    const latestMRLink = this.page.locator('a').filter({ hasText: /MR for Job - #\s*\d+\s*-/ }).first();
+    await latestMRLink.waitFor({ state: 'visible', timeout: 10000 });
+    await latestMRLink.click();
+    console.log('✓ Clicked on the latest Material Request link');
+
+    // Wait for MR details page to load
+    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(2000);
+  }
+
+  async openMRFromJob(jobNumber = null) {
+    // Wait for page to stabilize
+    await this.page.waitForTimeout(2000);
+    await this.page.waitForLoadState('networkidle');
+
+    // Get the current URL to determine context
+    const currentUrl = this.page.url();
+    console.log(`Current page URL: ${currentUrl}`);
+
+    // Check if we're on an MR details page by looking at the actual visible page
+    const isOnMRDetailsPage = currentUrl.includes('/material_requests/') &&
+                               !currentUrl.includes('/material_requests/new') &&
+                               !currentUrl.endsWith('/material_requests');
+
+    // Check if Material Requests section is visible on current page (would be on Job page)
+    const hasMRSection = await this.page.getByText(/Material Requests \(\d+\)/i).isVisible({ timeout: 2000 }).catch(() => false);
+
+    if (isOnMRDetailsPage && !hasMRSection) {
+      // We're already on MR details page and not on a Job page with MR section
+      console.log('✓ Already on Material Request details page, no navigation needed');
+      return;
+    }
+
+    if (!hasMRSection) {
+      // We're not on Job page with MR section, so we must already be on the MR page
+      console.log('✓ No Material Requests section visible - assuming already on MR page');
+      return;
+    }
+
+    console.log('Material Requests section found - navigating from Job page to MR...');
+
+    // The Material Requests section is on the right sidebar of Job details page
+    // Try multiple selectors to find and click the Material Requests section
+    const mrSectionSelectors = [
+      { name: 'Text with count', locator: this.page.getByText(/Material Requests \(\d+\)/i) },
+      { name: 'Exact text Material Requests', locator: this.page.getByText('Material Requests', { exact: false }) },
+      { name: 'XPath contains text', locator: this.page.locator("//text()[contains(., 'Material Requests')]").first() },
+      { name: 'Label with Material Requests', locator: this.page.locator('label, span, div').filter({ hasText: /Material Requests/i }).first() },
+      { name: 'Any element with MR text', locator: this.page.locator('*:has-text("Material Requests")').first() }
+    ];
+
+    let mrSection = null;
+    let successfulSelector = null;
+
+    // Try each selector until one works
+    for (const selector of mrSectionSelectors) {
+      try {
+        const element = selector.locator;
+
+        if (await element.isVisible({ timeout: 3000 }).catch(() => false)) {
+          console.log(`✓ Found Material Requests section using: ${selector.name}`);
+          mrSection = element;
+          successfulSelector = selector.name;
+          break;
+        } else {
+          console.log(`✗ Not visible with selector: ${selector.name}`);
+        }
+      } catch (error) {
+        console.log(`✗ Failed with selector: ${selector.name} - ${error.message}`);
+        continue;
+      }
+    }
+
+    if (!mrSection) {
+      throw new Error('Could not find Material Requests section on Job details page. Make sure you are on a Job details page with Material Requests.');
+    }
+
+    // Scroll into view and click to expand
+    await mrSection.scrollIntoViewIfNeeded();
+    await mrSection.waitFor({ state: 'visible', timeout: 10000 });
+    await mrSection.click();
+    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(1500);
+    console.log(`✓ Clicked Material Requests section using: ${successfulSelector}`);
+
+    // Now find and click the MR link
+    const mrPattern = jobNumber
+      ? new RegExp(`MR for Job.*${jobNumber}`, 'i')
+      : /MR for Job/i;
+
+    console.log(`Looking for MR link with pattern: ${mrPattern}`);
+
+    const mrSelector = this.page.getByRole('link').filter({ hasText: mrPattern }).first();
+    await mrSelector.waitFor({ state: 'visible', timeout: 10000 });
+    await mrSelector.click();
+    await this.page.waitForLoadState('networkidle');
+    console.log('✓ Successfully opened Material Request from Job details page');
   }
 }

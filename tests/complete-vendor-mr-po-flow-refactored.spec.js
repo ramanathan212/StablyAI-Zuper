@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures/cache-fixtures.js';
 import { VendorPage } from './pages/VendorPage.js';
 import { MaterialRequestPage } from './pages/MaterialRequestPage.js';
 import { PurchaseOrderPage } from './pages/PurchaseOrderPage.js';
@@ -64,7 +64,7 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
     console.log('='.repeat(80) + '\n');
   });
 
-  test('should complete full vendor, material request, and purchase order workflow', async ({ page }) => {
+  test('should complete full vendor, material request, and purchase order workflow', async ({ page, autoClearCache }) => {
     // Helper function to track step execution
     const executeStep = async (stepName, stepFunction) => {
       const stepStart = new Date();
@@ -116,7 +116,7 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
       await vendorPage.vendorWorkNumberInput.fill(testData.vendor.workNumber);
 
       // Add billing address
-      await vendorPage.addBillingAddress(testData.vendor.billingAddress);
+      await vendorPage.addBillingAddress();
 
       // Add bank details
       await vendorPage.addBankDetails(testData.vendor.bankDetails);

@@ -64,8 +64,13 @@ export async function clickWithOverlayHandling(locator, options = {}) {
  * @param {import('@playwright/test').Page} page - Playwright page object
  */
 export async function waitForPageReady(page) {
-  // Wait for network to be idle
-  await page.waitForLoadState('networkidle');
+  // Wait for network to be idle with a timeout
+  try {
+    await page.waitForLoadState('networkidle', { timeout: 30000 });
+  } catch (error) {
+    console.log('⚠ Network idle timeout, proceeding with domcontentloaded');
+    await page.waitForLoadState('domcontentloaded');
+  }
 
   // Wait for any overlays to disappear
   await waitForOverlayToDisappear(page);

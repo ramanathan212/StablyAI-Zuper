@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures/cache-fixtures.js';
 import { AssetPage } from './pages/AssetPage.js';
 import { testData } from './config/test-data-config.js';
 
@@ -65,7 +65,7 @@ test.describe('Asset Management', () => {
     console.log('='.repeat(80) + '\n');
   });
 
-  test('Create new asset with organization and contact', async () => {
+  test('Create new asset with organization and contact', async ({ autoClearCache }) => {
     // Helper function to track step execution
     const executeStep = async (stepName, stepFunction) => {
       const stepStart = new Date();
