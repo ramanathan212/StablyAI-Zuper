@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices, stablyReporter } from '@stablyai/playwright-test';
 
 // Environment configuration
 const ENV = process.env.TEST_ENV || 'uat'; // default to uat
@@ -20,9 +20,13 @@ export default defineConfig({
   workers: 1,
   reporter: [
     ['html'],
-    ['list']
+    ['list'],
+    stablyReporter({
+      apiKey: process.env.STABLY_API_KEY,
+      projectId: process.env.STABLY_PROJECT_ID,
+    }),
   ],
-  globalSetup: './tests/global-setup.js',
+  // globalSetup: './tests/global-setup.js', // Disabled for MCP cloud browser testing
   use: {
     baseURL: BASE_URLS[ENV],
     trace: 'on-first-retry',
@@ -30,7 +34,7 @@ export default defineConfig({
     video: 'retain-on-failure',
     actionTimeout: 15000,
     navigationTimeout: 60000, // Increased to 60 seconds for slow page loads
-    storageState: 'tests/.auth/user.json',
+    // storageState: 'tests/.auth/user.json', // Disabled - tests handle their own auth
 
     // Cache and state management options
     launchOptions: {
@@ -52,6 +56,14 @@ export default defineConfig({
   },
 
   projects: [
+    {
+      name: 'mcp-isolated',
+      testMatch: '**/navigate-to-quotes.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: undefined, // Don't use stored auth - test handles its own login
+      },
+    },
     {
       name: 'chromium',
       use: {
