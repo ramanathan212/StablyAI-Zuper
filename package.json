@@ -13,6 +13,12 @@
     "test:playwright": "npx playwright test",
     "test:clean": "npm run clear-cache && npx playwright test",
     "test:fresh": "npm run clear-cache -- --auth && npx playwright test",
+    "test:dev": "TEST_ENV=development npx playwright test",
+    "test:staging": "TEST_ENV=staging npx playwright test",
+    "test:uat": "TEST_ENV=uat npx playwright test",
+    "test:dev:ui": "TEST_ENV=development npx playwright test --ui",
+    "test:staging:ui": "TEST_ENV=staging npx playwright test --ui",
+    "test:uat:ui": "TEST_ENV=uat npx playwright test --ui",
     "create-jobs": "node tests/create-bulk-jobs.js",
     "create-jobs-custom": "node tests/create-bulk-jobs-custom.js",
     "fetch-template": "node tests/utils/fetch-job-template.js",
@@ -27,7 +33,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@playwright/mcp": "^0.0.53",
+    "@playwright/mcp": "^0.0.61",
     "@playwright/test": "^1.56.1",
     "playwright": "^1.56.1"
   }

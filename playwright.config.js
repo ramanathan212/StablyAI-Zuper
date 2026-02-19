@@ -1,5 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 
+// Environment configuration
+const ENV = process.env.TEST_ENV || 'uat'; // default to uat
+const BASE_URLS = {
+  development: 'https://developmentv3.zuperpro.com/v2',
+  staging: 'https://staging.zuperpro.com',
+  uat: 'https://uat.zuperpro.com'
+};
+
 export default defineConfig({
   testDir: './tests',
   timeout: 180000, // Increased to 3 minutes for slow-loading pages
@@ -16,7 +24,7 @@ export default defineConfig({
   ],
   globalSetup: './tests/global-setup.js',
   use: {
-    baseURL: 'https://uat.zuperpro.com',
+    baseURL: BASE_URLS[ENV],
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

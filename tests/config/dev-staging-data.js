@@ -11,8 +11,8 @@ export const getDevStagingData = () => ({
 
   // Environment URLs
   urls: {
-    development: 'https://developmentv3.zuperpro.com/v7',
-    staging: 'https://staging.zuperpro.com/v7' // Update if different
+    development: 'https://developmentv3.zuperpro.com/v2',
+    staging: 'https://staging.zuperpro.com/' // Update if different
   },
 
   // Vendor details

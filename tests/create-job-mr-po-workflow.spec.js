@@ -165,7 +165,7 @@ test.describe('Complete Job, MR, PO, and Quote Workflow', () => {
       // Reuse the MaterialRequestPage saveAndSubmit method
       await materialRequestPage.saveAndSubmit();
       console.log('✓ Material Request saved and submitted successfully');
-      await page.waitForLoadState('networkidle', { timeout: 30000 });
+      await page.waitForLoadState('load', { timeout: 30000 });
       await expect(page).toHaveURL(/\/material_requests\/.*\/details/, { timeout: 15000 });
       console.log('✓ Navigated to Material Request details page');
     });
@@ -181,7 +181,7 @@ test.describe('Complete Job, MR, PO, and Quote Workflow', () => {
       const jobLinkPromise = page.waitForEvent('popup');
       await page.getByRole('link', { name: testData.job.title, exact: true }).click();
       const jobDetailsPage = await jobLinkPromise;
-      await jobDetailsPage.waitForLoadState('networkidle');
+      await jobDetailsPage.waitForLoadState('load');
 
       await expect(jobDetailsPage.locator('span').filter({ hasText: 'Waiting for MR' }).first()).toBeVisible();
 
@@ -247,30 +247,81 @@ test.describe('Complete Job, MR, PO, and Quote Workflow', () => {
       // await expect(poPage.locator('span').filter({ hasText: 'Closed' }).first()).toBeVisible();
     });
 
-    // // Step 19: Verify MR status after PO completion
-    // await executeStep('Verify material request status after PO completion', async () => {
-    //   const mrPagePromise = poPage.waitForEvent('popup');
-    //   await poPage.getByRole('link', { name: /MR for Job/, exact: true }).click();
-    //   mrPage = await mrPagePromise;
-    //   await mrPage.waitForLoadState('networkidle');
-
-    //   await expect(mrPage.getByRole('link', { name: testData.job.title, exact: true })).toBeVisible();
-    // });
-
     // Step 17: Navigate to job and update status to Completed
     await executeStep('Update job status to Completed', async () => {
-      // Navigate back to job from PO page
-      const jobLinkPromise = poPage.waitForEvent('popup');
-      await poPage.getByRole('link', { name: testData.job.title, exact: true }).click();
-      const jobDetailsPage = await jobLinkPromise;
-      await jobDetailsPage.waitForLoadState('networkidle');
+      // Navigate to job - After PO close, we need to navigate to the job
+      // The most reliable way is to go through the sidebar or use stored job URL
+      let jobPage = poPage;
 
-      // Update job status to Completed using JobPage methods
-      const jobPageObj = new JobPage(jobDetailsPage);
-      await jobPageObj.updateJobStatus('Completed', true);
+      // Wait for page to settle
+      await poPage.waitForTimeout(1000);
 
+      console.log('Current URL:', poPage.url());
+
+      // Navigate using sidebar - click Jobs in sidebar, then find our job
+      console.log('Looking for job link on page...');
+
+      // Try multiple strategies to navigate to job
+      let navigated = false;
+
+      // Strategy 1: Try clicking job link if it exists on current page
+      const jobLinks = await poPage.locator(`a[href*="/jobs/"]`).filter({ hasText: testData.job.title }).all();
+      console.log(`Found ${jobLinks.length} job links with job title`);
+
+      for (const link of jobLinks) {
+        try {
+          const href = await link.getAttribute('href');
+          if (href && href.includes('/jobs/') && href.includes('details')) {
+            console.log(`Found job link with href: ${href}`);
+
+            // Job link on PO/MR page might not be clickable, so navigate directly
+            const baseUrl = new URL(poPage.url()).origin;
+            const fullJobUrl = href.startsWith('http') ? href : `${baseUrl}${href}`;
+            console.log(`Navigating directly to: ${fullJobUrl}`);
+
+            await poPage.goto(fullJobUrl);
+            await poPage.waitForLoadState('load', { timeout: 20000 });
+            await poPage.waitForTimeout(1000); // Wait a bit more for dynamic content
+
+            const newUrl = poPage.url();
+            console.log(`URL after navigation: ${newUrl}`);
+            if (newUrl.includes('/jobs/') && newUrl.includes('details')) {
+              console.log('Successfully navigated to job page');
+              navigated = true;
+              break;
+            }
+          }
+        } catch (e) {
+          console.log(`Failed to navigate to job: ${e.message}`);
+        }
+      }
+
+      // Strategy 2: If not navigated, use sidebar navigation
+      if (!navigated) {
+        console.log('Job link click failed, using sidebar navigation...');
+        // Click sidebar Jobs menu
+        await poPage.click('a[href="/jobs"]', { timeout: 10000 });
+        await poPage.waitForLoadState('load');
+        await poPage.waitForTimeout(1000);
+
+        // Search for our job and click it
+        await poPage.getByRole('link', { name: testData.job.title }).first().click();
+        await poPage.waitForLoadState('load');
+      }
+      await expect(jobPage.getByRole('link', { name: 'Jobs' })).toBeVisible();
+      await jobPage.locator('a').filter({ hasText: 'Remove All' }).click();
+      await jobPage.getByRole('button', { name: 'Remove' }).click();
+      await expect(jobPage.getByRole('heading', { name: 'Add Service Task' })).toBeVisible();
+      await jobPage.getByText('Status History', { exact: true }).click();
+      await jobPage.getByRole('combobox').click();
+      await jobPage.getByRole('option', { name: 'Completed' }).click();
+      await jobPage.getByRole('radio', { name: 'Is floor cleaned? * Yes' }).check();
+      await jobPage.locator('[id="Is electricity available?_0"]').check();
+      await jobPage.getByRole('radio', { name: 'Yes' }).nth(2).check();
+      await jobPage.getByRole('radio', { name: 'Yes' }).nth(3).check();
+      await jobPage.getByRole('button', { name: 'Update', exact: true }).click();
       // Verify status was updated
-      await expect(jobDetailsPage.locator('span').filter({ hasText: 'Completed' }).first()).toBeVisible();
+      await expect(jobPage.locator('span').filter({ hasText: 'Completed' }).first()).toBeVisible();
 
       console.log('✓ Job status updated to Completed successfully');
     });
@@ -279,4 +330,14 @@ test.describe('Complete Job, MR, PO, and Quote Workflow', () => {
     testResults.overallStatus = 'PASSED';
     console.log('\n✓ Complete workflow test passed successfully!');
   });
-});
+  });
+
+  // // Step 19: Verify MR status after PO completion
+    // await executeStep('Verify material request status after PO completion', async () => {
+    //   const mrPagePromise = poPage.waitForEvent('popup');
+    //   await poPage.getByRole('link', { name: /MR for Job/, exact: true }).click();
+    //   mrPage = await mrPagePromise;
+    //   await mrPage.waitForLoadState('networkidle');
+
+    //   await expect(mrPage.getByRole('link', { name: testData.job.title, exact: true })).toBeVisible();
+    // });

@@ -9,7 +9,7 @@
 const getDynamicDueDate = () => {
   const today = new Date();
   // Add 7-30 days to today to ensure we get a future date
-  const daysToAdd = 15; // Selects a date 15 days from now
+  const daysToAdd = 1; // Selects a date 1 days from now
   const futureDate = new Date(today.getTime() + (daysToAdd * 24 * 60 * 60 * 1000));
 
   const monthNames = [

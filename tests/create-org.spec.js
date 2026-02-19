@@ -211,17 +211,30 @@ test.describe('Organization Management', () => {
  * Dismiss onboarding modal if present
  */
 async function dismissOnboardingModal(page) {
-  // First, try to dismiss the "What's New at Zuper" modal by pressing Escape multiple times
+  // Try pressing Escape multiple times first to close any overlays
+  for (let i = 0; i < 3; i++) {
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(500);
+  }
+
+  // First, try to dismiss the "What's New at Zuper" modal
   try {
     const whatsNewModal = page.getByText("What's New at Zuper?");
     const modalVisible = await whatsNewModal.isVisible({ timeout: 2000 });
 
     if (modalVisible) {
-      // Try pressing Escape multiple times to close overlapping modals
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(500);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(500);
+      // Try clicking outside the modal or clicking close button
+      try {
+        const closeButton = page.locator('button[aria-label*="Close"], button[class*="close"]').first();
+        if (await closeButton.isVisible({ timeout: 1000 })) {
+          await closeButton.click();
+          await page.waitForTimeout(500);
+        }
+      } catch (error) {
+        // If no close button, try pressing Escape
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(500);
+      }
       console.log('✓ Dismissed "What\'s New" modal');
     }
   } catch (error) {
@@ -276,17 +289,31 @@ async function dismissOnboardingModal(page) {
     console.log('⚠ No onboarding Continue button to click');
   }
 
-  // Final escape press to ensure all modals are closed
-  try {
+  // Final escape presses to ensure all modals are closed
+  for (let i = 0; i < 5; i++) {
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(1000);
-    console.log('✓ Final Escape press to close any remaining modals');
+    await page.waitForTimeout(300);
+  }
+  console.log('✓ Final Escape presses to close any remaining modals');
+
+  // Try clicking on backdrop to dismiss any remaining overlays
+  try {
+    const backdrops = page.locator('.cdk-overlay-backdrop, .modal-backdrop, [class*="backdrop"]');
+    const count = await backdrops.count();
+    for (let i = 0; i < count; i++) {
+      try {
+        await backdrops.nth(i).click({ timeout: 1000, force: true });
+        await page.waitForTimeout(300);
+      } catch (error) {
+        // Continue if click fails
+      }
+    }
   } catch (error) {
-    // Ignore any errors
+    // Ignore if no backdrops found
   }
 
   // Wait for page to stabilize
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 }
 
 /**
@@ -302,6 +329,10 @@ async function navigateToOrganizationsWithOverlay(page) {
   await clickWithOverlayHandling(organizationsMenuItem);
 
   await page.waitForLoadState('networkidle');
+
+  // Dismiss any modals that appear after navigation
+  await dismissOnboardingModal(page);
+
   console.log('✓ Navigated to Organizations page');
 }
 

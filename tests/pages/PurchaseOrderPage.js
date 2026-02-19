@@ -46,7 +46,7 @@ export class PurchaseOrderPage {
     // Wait for confirmation button to be visible
     await this.markSentToVendorButton.waitFor({ state: 'visible', timeout: 10000 });
     await this.markSentToVendorButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
     await this.page.waitForTimeout(7000);
     console.log('✓ Marked as Sent to Vendor');
   }
@@ -64,11 +64,11 @@ export class PurchaseOrderPage {
 
     // Find and click the vendor accepted span/link with multiple strategies
     try {
-      console.log('Trying Strategy 1: getByText with exact match...');
-      const markAsVendorAcceptedSpan = this.page.locator('#undefined');
+      console.log('Trying Strategy 1: has-text selector...');
+      const markAsVendorAcceptedSpan = this.page.locator("span:has-text('Mark as Vendor Accepted')").first();
       await markAsVendorAcceptedSpan.waitFor({ state: 'visible', timeout: 10000 });
       await markAsVendorAcceptedSpan.click();
-      console.log('✓ Strategy 1 succeeded - clicked using getByText');
+      console.log('✓ Strategy 1 succeeded - clicked using has-text');
     } catch (error1) {
       try {
         console.log('Strategy 1 failed, trying Strategy 2: XPath locator...');
@@ -78,11 +78,11 @@ export class PurchaseOrderPage {
         console.log('✓ Strategy 2 succeeded - clicked using XPath');
       } catch (error2) {
         try {
-          console.log('Strategy 2 failed, trying Strategy 3: contains text locator...');
-          const markAsVendorAcceptedSpan = this.page.locator("span:has-text('Mark as Vendor Accepted')").first();
+          console.log('Strategy 2 failed, trying Strategy 3: XPath with text...');
+          const markAsVendorAcceptedSpan = this.page.locator("//span[normalize-space(text())='Mark as Vendor Accepted']");
           await markAsVendorAcceptedSpan.waitFor({ state: 'visible', timeout: 10000 });
           await markAsVendorAcceptedSpan.click();
-          console.log('✓ Strategy 3 succeeded - clicked using has-text');
+          console.log('✓ Strategy 3 succeeded - clicked using XPath with text');
         } catch (error3) {
           console.error('❌ All strategies failed to click Mark as Vendor Accepted link');
           throw new Error(`Failed to click Mark as Vendor Accepted: ${error3.message}`);
@@ -127,7 +127,7 @@ export class PurchaseOrderPage {
       }
     }
 
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
     console.log('✓ Marked as Vendor Accepted');
   }
 
@@ -225,7 +225,7 @@ export class PurchaseOrderPage {
 
     // Click update button
     await this.updateButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
     console.log('✓ Update button clicked successfully');
   }
 
@@ -243,12 +243,12 @@ export class PurchaseOrderPage {
     await this.confirmMarkAsInvoicedButton.waitFor({ state: 'visible', timeout: 25000 });
     await this.confirmMarkAsInvoicedButton.click();
 
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
     console.log('✓ Marked as Invoiced');
   }
 
   async markAsPaid() {
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
 
     // Click the mark as paid span/link
     await this.markAsPaidLocator.waitFor({ state: 'visible', timeout: 10000 });
@@ -270,19 +270,19 @@ export class PurchaseOrderPage {
     await this.confirmMarkAsPaidButton.scrollIntoViewIfNeeded();
     await this.confirmMarkAsPaidButton.click();
 
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
     console.log('✓ Marked as Paid with remark: Payment confirmed');
   } 
 
   async markAsClosed() {
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
     await this.markClosedButton.waitFor({ state: 'visible', timeout: 10000 });
     await this.markClosedButton.scrollIntoViewIfNeeded();
     await this.markClosedButton.click();
     //Confirm PO close button 
     await this.confirmPOClosureButton.waitFor({ state: 'visible', timeout: 25000 });
     await this.confirmPOClosureButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
     console.log('✓ PO Closed successfully');
   }
 
