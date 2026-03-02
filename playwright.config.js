@@ -26,7 +26,7 @@ export default defineConfig({
       projectId: process.env.STABLY_PROJECT_ID,
     }),
   ],
-  // globalSetup: './tests/global-setup.js', // Temporarily disabled for Stably MCP browser
+  // globalSetup: './tests/global-setup.js', // Disabled - use test-level auth
   use: {
     baseURL: BASE_URLS[ENV],
     trace: 'on-first-retry',
