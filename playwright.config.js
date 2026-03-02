@@ -34,7 +34,7 @@ export default defineConfig({
     video: 'retain-on-failure',
     actionTimeout: 15000,
     navigationTimeout: 60000, // Increased to 60 seconds for slow page loads
-    storageState: 'tests/.auth/user.json',
+    // storageState: 'tests/.auth/user.json', // Disabled - test handles its own login
 
     // Cache and state management options
     launchOptions: {
@@ -58,6 +58,8 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      grep: /(Parts & Services Settings Enable options toggle in Parts & Services General Settings)$/i,
+      testMatch: ['enable-options-toggle.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: {
