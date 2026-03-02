@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices, stablyReporter } from '@stablyai/playwright-test';
 
 // Environment configuration
 const ENV = process.env.TEST_ENV || 'uat'; // default to uat
@@ -20,9 +20,13 @@ export default defineConfig({
   workers: 1,
   reporter: [
     ['html'],
-    ['list']
+    ['list'],
+    stablyReporter({
+      apiKey: process.env.STABLY_API_KEY,
+      projectId: process.env.STABLY_PROJECT_ID,
+    }),
   ],
-  globalSetup: './tests/global-setup.js',
+  // globalSetup: './tests/global-setup.js', // Disabled - use test-level auth
   use: {
     baseURL: BASE_URLS[ENV],
     trace: 'on-first-retry',
