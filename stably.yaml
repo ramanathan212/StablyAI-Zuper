@@ -1,0 +1,15 @@
+# Stably Configuration
+# Documentation: https://docs.stably.ai
+
+# Scheduled test runs
+schedules:
+  # Daily UAT regression tests (weekdays at 9 AM UTC)
+  daily-uat:
+    cron: "0 9 * * 1-5"
+    stablyTestArgs: "--project chromium"
+    # timezone: "America/Los_Angeles"  # Uncomment to use a specific timezone
+
+  # Weekly full browser matrix (Sundays at 2 AM UTC)
+  weekly-full:
+    cron: "0 2 * * 0"
+    # Runs all projects by default when no stablyTestArgs specified
