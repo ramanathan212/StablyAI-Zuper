@@ -26,7 +26,7 @@ export default defineConfig({
       projectId: process.env.STABLY_PROJECT_ID,
     }),
   ],
-  // globalSetup: './tests/global-setup.js', // Disabled for MCP cloud browser testing
+  // globalSetup: './tests/global-setup.js', // Disabled - use test-level auth
   use: {
     baseURL: BASE_URLS[ENV],
     trace: 'on-first-retry',
@@ -34,7 +34,7 @@ export default defineConfig({
     video: 'retain-on-failure',
     actionTimeout: 15000,
     navigationTimeout: 60000, // Increased to 60 seconds for slow page loads
-    // storageState: 'tests/.auth/user.json', // Disabled - tests handle their own auth
+    // storageState: 'tests/.auth/user.json', // Disabled - test handles its own login
 
     // Cache and state management options
     launchOptions: {
@@ -66,6 +66,8 @@ export default defineConfig({
     },
     {
       name: 'chromium',
+      grep: /(Parts & Services Settings Enable options toggle in Parts & Services General Settings)$/i,
+      testMatch: ['enable-options-toggle.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: {

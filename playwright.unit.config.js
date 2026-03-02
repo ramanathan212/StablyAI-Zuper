@@ -1,4 +1,4 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig } from '@stablyai/playwright-test';
 
 export default defineConfig({
   testDir: './tests/unit',
