@@ -58,6 +58,8 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      grep: /(Parts & Services Settings Enable options toggle in Parts & Services General Settings)$/i,
+      testMatch: ['enable-options-toggle.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: {
