@@ -57,6 +57,14 @@ export default defineConfig({
 
   projects: [
     {
+      name: 'mcp-isolated',
+      testMatch: '**/navigate-to-quotes.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: undefined, // Don't use stored auth - test handles its own login
+      },
+    },
+    {
       name: 'chromium',
       grep: /(Parts & Services Settings Enable options toggle in Parts & Services General Settings)$/i,
       testMatch: ['enable-options-toggle.spec.ts'],
