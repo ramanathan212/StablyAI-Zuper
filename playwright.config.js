@@ -34,7 +34,7 @@ export default defineConfig({
     video: 'retain-on-failure',
     actionTimeout: 15000,
     navigationTimeout: 60000, // Increased to 60 seconds for slow page loads
-    storageState: 'tests/.auth/user.json',
+    // storageState: 'tests/.auth/user.json', // Disabled - test handles its own login
 
     // Cache and state management options
     launchOptions: {
