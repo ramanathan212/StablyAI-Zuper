@@ -68,8 +68,6 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      grep: /(Parts & Services Settings Enable options toggle in Parts & Services General Settings)$/i,
-      testMatch: ['enable-options-toggle.spec.js'],
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: {
@@ -82,32 +80,6 @@ export default defineConfig({
             '--disable-gpu-shader-disk-cache',
             '--media-cache-size=0',
             '--aggressive-cache-discard',
-          ]
-        },
-      },
-    },
-    {
-      name: 'firefox',
-      use: {
-        ...devices['Desktop Firefox'],
-        launchOptions: {
-          firefoxUserPrefs: {
-            'browser.cache.disk.enable': false,
-            'browser.cache.memory.enable': false,
-            'browser.cache.offline.enable': false,
-            'network.http.use-cache': false,
-          }
-        },
-      },
-    },
-    {
-      name: 'webkit',
-      use: {
-        ...devices['Desktop Safari'],
-        launchOptions: {
-          args: [
-            '--disable-cache',
-            '--disable-application-cache',
           ]
         },
       },
