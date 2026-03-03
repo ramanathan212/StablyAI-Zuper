@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #e2e8f0; padding: 32px; width: 820px; }
+  .card { background: #1e293b; border-radius: 12px; padding: 24px; margin-bottom: 16px; border: 1px solid #334155; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #f8fafc; }
+  .header .badge { background: #22c55e; color: #052e16; font-size: 13px; font-weight: 700; padding: 6px 16px; border-radius: 20px; }
+  .meta { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 8px; }
+  .meta-item { font-size: 13px; color: #94a3b8; }
+  .meta-item span { color: #cbd5e1; font-weight: 600; }
+  .stats { display: flex; gap: 12px; }
+  .stat { flex: 1; background: #0f172a; border-radius: 8px; padding: 16px; text-align: center; border: 1px solid #334155; }
+  .stat .value { font-size: 28px; font-weight: 800; }
+  .stat .label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+  .stat.green .value { color: #22c55e; }
+  .stat.red .value { color: #ef4444; }
+  .stat.blue .value { color: #3b82f6; }
+  .stat.yellow .value { color: #eab308; }
+  .test-row { display: flex; align-items: center; padding: 14px 16px; background: #0f172a; border-radius: 8px; margin-bottom: 8px; border: 1px solid #334155; }
+  .test-id { background: #334155; color: #94a3b8; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 4px; margin-right: 14px; min-width: 58px; text-align: center; }
+  .test-info { flex: 1; }
+  .test-name { font-size: 14px; font-weight: 600; color: #f1f5f9; margin-bottom: 3px; }
+  .test-flow { font-size: 11px; color: #64748b; line-height: 1.4; }
+  .test-meta { display: flex; align-items: center; gap: 16px; }
+  .test-time { font-size: 13px; color: #94a3b8; font-weight: 500; }
+  .test-status { font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 4px; }
+  .test-status.pass { background: #052e16; color: #22c55e; border: 1px solid #166534; }
+  .section-title { font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
+  .perf-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 13px; }
+  .perf-row:last-child { border-bottom: none; }
+  .perf-label { color: #94a3b8; }
+  .perf-value { color: #cbd5e1; font-weight: 600; }
+  .perf-value.good { color: #22c55e; }
+  .footer { text-align: center; font-size: 11px; color: #475569; margin-top: 8px; }
+  .pass-rate-bar { background: #0f172a; border-radius: 8px; height: 8px; margin-top: 12px; overflow: hidden; }
+  .pass-rate-fill { background: linear-gradient(90deg, #22c55e, #4ade80); height: 100%; border-radius: 8px; width: 100%; }
+  .env-tags { display: flex; gap: 8px; margin-top: 8px; }
+  .env-tag { font-size: 11px; padding: 3px 10px; border-radius: 4px; background: #1e3a5f; color: #60a5fa; border: 1px solid #2563eb33; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <h1>Test Execution Report</h1>
+    <div class="badge">ALL PASSED</div>
+  </div>
+  <div class="meta">
+    <div class="meta-item">Project: <span>mcp-isolated</span></div>
+    <div class="meta-item">Date: <span>2026-03-03</span></div>
+    <div class="meta-item">Browser: <span>Desktop Chrome</span></div>
+    <div class="meta-item">Duration: <span>1m 18s</span></div>
+  </div>
+  <div class="env-tags">
+    <div class="env-tag">UAT - uat.zuperpro.com</div>
+    <div class="env-tag">DEV - developmentv3.zuperpro.com</div>
+  </div>
+  <div class="pass-rate-bar"><div class="pass-rate-fill"></div></div>
+</div>
+<div class="card">
+  <div class="stats">
+    <div class="stat blue"><div class="value">2</div><div class="label">Total Tests</div></div>
+    <div class="stat green"><div class="value">2</div><div class="label">Passed</div></div>
+    <div class="stat red"><div class="value">0</div><div class="label">Failed</div></div>
+    <div class="stat yellow"><div class="value">0</div><div class="label">Blocked</div></div>
+    <div class="stat green"><div class="value">100%</div><div class="label">Pass Rate</div></div>
+  </div>
+</div>
+<div class="card">
+  <div class="section-title">Test Cases</div>
+  <div class="test-row">
+    <div class="test-id">TC-001</div>
+    <div class="test-info">
+      <div class="test-name">Create new job with quick create organization and customer</div>
+      <div class="test-flow">Login &#8594; Jobs &#8594; New Job &#8594; Fill Details &#8594; Quick Create Org &#8594; Quick Create Contact &#8594; Custom Fields &#8594; Submit &#8594; Verify</div>
+    </div>
+    <div class="test-meta">
+      <div class="test-time">52.8s</div>
+      <div class="test-status pass">PASS</div>
+    </div>
+  </div>
+  <div class="test-row">
+    <div class="test-id">TC-002</div>
+    <div class="test-info">
+      <div class="test-name">Login and navigate to Quotes page</div>
+      <div class="test-flow">Login &#8594; Dismiss Dialogs &#8594; Sidebar Hover &#8594; Quotes Module &#8594; Verify URL, Title &amp; Table</div>
+    </div>
+    <div class="test-meta">
+      <div class="test-time">20.3s</div>
+      <div class="test-status pass">PASS</div>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="section-title">Performance &amp; Issues</div>
+  <div class="perf-row"><div class="perf-label">TC-001 Response Time</div><div class="perf-value good">52.8s (limit: 180s)</div></div>
+  <div class="perf-row"><div class="perf-label">TC-002 Response Time</div><div class="perf-value good">20.3s (limit: 180s)</div></div>
+  <div class="perf-row"><div class="perf-label">Critical / Major / Minor Issues</div><div class="perf-value good">0 / 0 / 0</div></div>
+  <div class="perf-row"><div class="perf-label">Security Checks</div><div class="perf-value good">Session isolation, cache disabled, unique test data</div></div>
+</div>
+<div class="footer">Generated by Stably AI Agent &bull; Zuper Pro QA &bull; 2026-03-03</div>
+</body>
+</html>

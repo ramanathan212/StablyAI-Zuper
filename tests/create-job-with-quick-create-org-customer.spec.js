@@ -57,16 +57,35 @@ test.describe('Job Creation with Quick Create Organization and Customer', () => 
 
     // Step 2: Handle any dialogs that appear after login
     await test.step('Handle post-login dialogs', async () => {
-      // Dismiss timezone change dialog if present
-      const cancelButton = page.getByRole('button', { name: 'Cancel' });
-      if (await cancelButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await cancelButton.click();
+      // Wait for dialogs to fully render
+      await page.waitForTimeout(2000);
+
+      // Dismiss notification permission dialog FIRST (it appears on top)
+      const noThanksButton = page.getByRole('button', { name: 'No, thanks' });
+      if (await noThanksButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await noThanksButton.click();
+        await noThanksButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+        await page.waitForTimeout(500);
       }
 
-      // Dismiss notification permission dialog if present
-      const noThanksButton = page.getByRole('button', { name: 'No, thanks' });
-      if (await noThanksButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await noThanksButton.click();
+      // Dismiss timezone change dialog if present
+      const timezoneHeading = page.getByRole('heading', { name: 'Your timezone has changed' });
+      if (await timezoneHeading.isVisible({ timeout: 3000 }).catch(() => false)) {
+        const cancelButton = page.getByRole('button', { name: 'Cancel' });
+        await cancelButton.click();
+        await timezoneHeading.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+        await page.waitForTimeout(500);
+      }
+
+      // Dismiss any remaining overlay backdrops
+      const overlay = page.locator('.cdk-overlay-backdrop');
+      for (let i = 0; i < 3; i++) {
+        if (await overlay.first().isVisible({ timeout: 1000 }).catch(() => false)) {
+          await page.keyboard.press('Escape');
+          await page.waitForTimeout(1000);
+        } else {
+          break;
+        }
       }
 
       // Wait for page to stabilize
@@ -97,17 +116,26 @@ test.describe('Job Creation with Quick Create Organization and Customer', () => 
 
     // Step 5: Fill Job basic details
     await test.step('Fill Job basic details', async () => {
+      // Dismiss notification dialog if it reappeared
+      const noThanksBtn = page.getByRole('button', { name: 'No, thanks' });
+      if (await noThanksBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await noThanksBtn.click();
+        await noThanksBtn.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+        await page.waitForTimeout(500);
+      }
+
       // Enter job title
       const jobTitleInput = page.getByRole('textbox', { name: 'Job Title *' });
       await jobTitleInput.waitFor({ state: 'visible', timeout: 10000 });
       await jobTitleInput.fill(jobData.title);
 
-      // Select Job Category
-      const primaryDetailsSection = page.locator('a').filter({ hasText: 'Primary Details Job Category' });
-      await primaryDetailsSection.click();
+      // Select Job Category - click the combobox to open dropdown
+      const categoryCombobox = page.getByRole('combobox', { name: 'Choose a Job Category' });
+      await categoryCombobox.waitFor({ state: 'visible', timeout: 10000 });
+      await categoryCombobox.click();
 
       const categoryOption = page.getByRole('option', { name: jobData.category });
-      await categoryOption.waitFor({ state: 'visible', timeout: 5000 });
+      await categoryOption.waitFor({ state: 'visible', timeout: 10000 });
       await categoryOption.click();
     });
 
@@ -148,9 +176,8 @@ test.describe('Job Creation with Quick Create Organization and Customer', () => 
       await createOrgButton.waitFor({ state: 'visible', timeout: 5000 });
       await createOrgButton.click();
 
-      // Verify organization was created - wait for success indicator
-      const orgSection = page.locator('region').filter({ hasText: quickCreateOrgData.name });
-      await expect(orgSection.first()).toBeVisible({ timeout: 15000 });
+      // Verify organization was created - wait for org name to appear on the page
+      await expect(page.getByText(quickCreateOrgData.name).first()).toBeVisible({ timeout: 15000 });
     });
 
     // Step 7: Quick Create Contact/Customer
@@ -173,12 +200,14 @@ test.describe('Job Creation with Quick Create Organization and Customer', () => 
       const emailInput = page.getByRole('textbox', { name: 'Email*' });
       await emailInput.fill(quickCreateCustomerData.email);
 
-      // Select Account Manager
-      const accountManagerDropdown = page.locator('.ng-select-typeahead.ng-select-searchable.ng-select-clearable.ng-select.ng-select-single.ng-untouched.ng-pristine.ng-invalid').locator('input').first();
-      await accountManagerDropdown.click();
+      // Select Account Manager - find the combobox input by its label context
+      const accountManagerContainer = page.getByText('Account Manager*', { exact: true }).locator('..');
+      const accountManagerInput = accountManagerContainer.locator('input').first();
+      await accountManagerInput.waitFor({ state: 'visible', timeout: 5000 });
+      await accountManagerInput.click();
 
       const accountManagerOption = page.getByRole('option', { name: 'James Smith' });
-      await accountManagerOption.waitFor({ state: 'visible', timeout: 5000 });
+      await accountManagerOption.waitFor({ state: 'visible', timeout: 10000 });
       await accountManagerOption.click();
 
       // Create and choose contact
@@ -201,8 +230,12 @@ test.describe('Job Creation with Quick Create Organization and Customer', () => 
       const dueDateInput = page.getByRole('textbox', { name: 'Due Date' });
       await dueDateInput.click();
 
-      // Select a date in the future (10th of current month or next available)
-      const dateButton = page.getByRole('button', { name: /March 10/ });
+      // Select a date in the future (15th of current month)
+      const now = new Date();
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+      const monthName = monthNames[now.getMonth()];
+      const dateButton = page.getByRole('button', { name: new RegExp(`${monthName} 15`) });
       await dateButton.waitFor({ state: 'visible', timeout: 5000 });
       await dateButton.click();
     });

@@ -43,30 +43,35 @@ test.describe('Navigate to Quotes Module', () => {
     await test.step('Wait for dashboard and dismiss popups', async () => {
       await expect(page).toHaveURL(/dashboard/, { timeout: 30000 });
 
-      // Wait a moment for any modals to appear
+      // Wait for dialogs to fully render
       await page.waitForTimeout(2000);
 
-      // Dismiss timezone dialog if it appears - look for the specific heading
+      // Dismiss notification permission dialog FIRST (it appears on top)
+      const noThanksButton = page.getByRole('button', { name: 'No, thanks' });
+      if (await noThanksButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await noThanksButton.click();
+        await noThanksButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+        await page.waitForTimeout(500);
+      }
+
+      // Dismiss timezone dialog if present
       const timezoneDialog = page.getByRole('heading', { name: 'Your timezone has changed' });
       if (await timezoneDialog.isVisible({ timeout: 3000 }).catch(() => false)) {
         const cancelButton = page.getByRole('button', { name: 'Cancel' });
         await cancelButton.click();
-        // Wait for dialog to close
         await timezoneDialog.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
-      }
-
-      // Dismiss "No, thanks" notification if present
-      const noThanksButton = page.getByRole('button', { name: 'No, thanks' });
-      if (await noThanksButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await noThanksButton.click();
         await page.waitForTimeout(500);
       }
 
       // Dismiss any remaining overlay backdrops
       const overlay = page.locator('.cdk-overlay-backdrop');
-      if (await overlay.first().isVisible({ timeout: 1000 }).catch(() => false)) {
-        await page.keyboard.press('Escape');
-        await page.waitForTimeout(1000);
+      for (let i = 0; i < 3; i++) {
+        if (await overlay.first().isVisible({ timeout: 1000 }).catch(() => false)) {
+          await page.keyboard.press('Escape');
+          await page.waitForTimeout(1000);
+        } else {
+          break;
+        }
       }
     });
 

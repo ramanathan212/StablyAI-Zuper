@@ -60,7 +60,8 @@ export default defineConfig({
   projects: [
     {
       name: 'mcp-isolated',
-      testMatch: '**/navigate-to-quotes.spec.js',
+      grep: /(Job Creation with Quick Create Organization and Customer Create new job with quick create organization and customer|Navigate to Quotes Module should login and navigate to Quotes page)$/i,
+      testMatch: ['create-job-with-quick-create-org-customer.spec.js', 'navigate-to-quotes.spec.js'],
       use: {
         ...devices['Desktop Chrome'],
         storageState: undefined, // Don't use stored auth - test handles its own login
