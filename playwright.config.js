@@ -5,6 +5,7 @@ const ENV = process.env.TEST_ENV || 'uat'; // default to uat
 const BASE_URLS = {
   development: 'https://developmentv3.zuperpro.com/v2',
   staging: 'https://staging.zuperpro.com',
+  stagingv3: 'https://stagingv3.zuperpro.com',
   uat: 'https://uat.zuperpro.com'
 };
 
