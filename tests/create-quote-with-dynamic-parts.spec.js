@@ -94,14 +94,14 @@ test.describe('Create Quote with Dynamic Parts', () => {
     // Step 7: Select Organization
     await test.step('Select Organization', async () => {
       await page.getByRole('textbox', { name: 'Choose Organization' }).click();
-      
+
       // Wait for organization dialog and select first organization
       await page.getByRole('radio', { name: 'Aircon Company T' }).waitFor({ state: 'visible' });
       await page.getByRole('radio', { name: 'Aircon Company T' }).click();
-      
+
       // Confirm selection
       await page.getByRole('button', { name: 'Choose Organization' }).click();
-      
+
       // Verify organization is selected
       await expect(page.getByRole('textbox', { name: 'Choose Organization' })).toHaveValue('Aircon Company T');
     });
@@ -110,33 +110,33 @@ test.describe('Create Quote with Dynamic Parts', () => {
     await test.step('Add custom line item with dynamic part', async () => {
       // Click Add button in Parts & Services section (use locator that targets button with menu trigger)
       await page.locator('button[aria-haspopup="menu"]').filter({ hasText: 'Add' }).click();
-      
+
       // Select Custom Line Item
       await page.getByRole('menuitem', { name: 'Custom Line Item' }).waitFor({ state: 'visible' });
       await page.getByRole('menuitem', { name: 'Custom Line Item' }).click();
-      
+
       // Wait for dialog to appear
       await page.getByRole('heading', { name: 'Create New Line Item' }).waitFor({ state: 'visible' });
-      
+
       // Fill ID field (required)
       await page.getByRole('textbox', { name: 'Eg: P001' }).fill(partId);
-      
+
       // Select Type as Product
       await page.getByRole('combobox', { name: 'Type' }).click();
       await page.getByRole('option', { name: 'Product' }).click();
-      
+
       // Fill Name field (required) with dynamic timestamp
       await page.getByRole('textbox', { name: 'Eg: Carton Box' }).fill(partName);
-      
+
       // Fill Unit Selling Price (required)
       await page.getByPlaceholder('Unit Selling Price').fill('1500');
-      
+
       // Fill Quantity (required)
       await page.getByPlaceholder('Eg: 2').fill('1');
-      
+
       // Click Create to add the line item
       await page.getByRole('button', { name: 'Create' }).click();
-      
+
       // Verify line item was added - check that Parts & Services count is 1
       await expect(page.locator('text=Parts & Services').locator('..').getByText('1')).toBeVisible();
     });
@@ -145,7 +145,7 @@ test.describe('Create Quote with Dynamic Parts', () => {
     await test.step('Save quote as draft', async () => {
       // Click Save as Draft button
       await page.locator('#undefined').click();
-      
+
       // Confirm in dialog
       await page.getByRole('button', { name: 'Save as Draft' }).waitFor({ state: 'visible' });
       await page.getByRole('button', { name: 'Save as Draft' }).click();

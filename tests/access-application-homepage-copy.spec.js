@@ -9,30 +9,30 @@ const test = base;
  * - Create a new job
  */
 test('[Stably team testing] Access application homepage - Copy', async ({ page, context, agent }, testInfo) => {
-  var VARS: Record<string, any> = {};
+  var VARS = {};
 
   await test.step("Go to https://uat.zuperpro.com and login", async () => {
     await page.goto('https://uat.zuperpro.com');
-    
+
     // Wait for the login page to fully load
     await page.getByText("Company Name").first().waitFor({ state: 'visible' });
-    
+
     // Enter company name
     await page.getByRole('textbox', { name: 'Company Name' }).describe('Company Name textbox').fill('Zuper-pro');
     await page.getByRole('button', { name: 'Continue' }).describe('Continue button').click();
-    
+
     // Enter credentials
     await page.getByRole('textbox', { name: 'Email address' }).describe('Email address textbox').fill('vignesh.s@zuper.co');
     await page.getByRole('textbox', { name: 'Password Forgot password?' }).describe('Password textbox').fill('Vicky@123');
     await page.getByRole('button', { name: 'Login', exact: true }).describe('Login button').click();
-    
+
     // Dismiss notification dialog if present
     try {
       await page.getByRole('button', { name: 'No, thanks' }).describe('No thanks button').click({ timeout: 5000 });
     } catch {
       // Notification dialog may not appear
     }
-    
+
     // Dismiss timezone dialog if present
     try {
       await page.getByRole('button', { name: 'Cancel' }).describe('Cancel button').click({ timeout: 5000 });
@@ -44,13 +44,13 @@ test('[Stably team testing] Access application homepage - Copy', async ({ page, 
   await test.step("Navigate to Jobs and create New Job", async () => {
     // Click on Jobs menu in sidebar
     await page.locator('#job_group mat-icon').describe('Jobs menu icon').click();
-    
+
     // Click on Jobs link
     await page.getByRole('link', { name: 'Jobs', exact: true }).describe('Jobs link').click();
-    
+
     // Click New Job button
     await page.getByRole('link', { name: ' New Job' }).describe('New Job link').click();
-    
+
     // Verify we're on the New Job page
     await expect(page).toHaveURL(/.*\/jobs\/new/);
   });
@@ -72,7 +72,7 @@ test('[Stably team testing] Access application homepage - Copy', async ({ page, 
   await test.step("Fill in job details and create the job", async () => {
     // Generate unique job title with timestamp
     const jobTitle = `Test Job Created by Stably ${Date.now()}`;
-    
+
     // Enter job title
     await page.getByRole('textbox', { name: 'Job Title *' }).describe('Job Title textbox').fill(jobTitle);
 
