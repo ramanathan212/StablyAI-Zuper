@@ -65,6 +65,14 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         storageState: undefined, // Don't use stored auth - test handles its own login
       },
+      stably: {
+        notifications: {
+          slack: {
+            channelName: 'qa-automation-stably-report',
+            notifyOnResult: 'all',
+          },
+        },
+      },
     },
     {
       name: 'chromium',
