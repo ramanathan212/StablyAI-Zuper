@@ -28,7 +28,8 @@ export class LoginPage {
     await this.passwordInput.fill(password);
     await this.loginButton.click();
 
-    // Wait for navigation to complete
+    // Wait for redirect to dashboard to confirm login succeeded
+    await this.page.waitForURL('**/dashboard', { timeout: 30000 });
     await this.page.waitForLoadState('networkidle');
   }
 

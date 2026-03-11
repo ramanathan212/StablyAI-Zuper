@@ -62,8 +62,8 @@ export const getTestData = () => ({
     mrtitle: 'MR for Job - #',
     title: `MR Test ${Date.now()}`,
     remarks: 'test MR remark',
-    jobSearch: 'Validation UAT -15/10',
-    jobNumber: '5275',
+    jobSearch: 'ls-Job2',
+    jobNumber: '5962',
     products: ['#004 - Mobile', '#001 - Monitor', '#002 - Keyboard']
   },
 

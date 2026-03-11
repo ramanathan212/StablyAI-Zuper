@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures/cache-fixtures.js';
+import { LoginPage } from './pages/LoginPage.js';
 import { VendorPage } from './pages/VendorPage.js';
 import { MaterialRequestPage } from './pages/MaterialRequestPage.js';
 import { PurchaseOrderPage } from './pages/PurchaseOrderPage.js';
@@ -23,6 +24,11 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
     vendorPage = new VendorPage(page);
     materialRequestPage = new MaterialRequestPage(page);
     purchaseOrderPage = new PurchaseOrderPage(page);
+
+    // Login before each test
+    const loginPage = new LoginPage(page);
+    await loginPage.login(testData.login.companyName, testData.login.email, testData.login.password);
+    await loginPage.dismissOnboarding();
 
     // Reset test results
     testResults.startTime = new Date();

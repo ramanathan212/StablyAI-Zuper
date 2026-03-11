@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures/cache-fixtures.js';
+import { LoginPage } from './pages/LoginPage.js';
 import { testData } from './test-data.js';
 import { CustomerPage } from './pages/CustomerPage.js';
 
@@ -74,29 +75,32 @@ test.describe('Customer Management', () => {
       }
     };
 
-    // Initialize CustomerPage
+    // Initialize pages
+    const loginPage = new LoginPage(page);
     const customerPage = new CustomerPage(page);
 
-    // Authentication already handled by global-setup.js
-    // Start directly from the main screen
+    // Step 1: Login (after cache is cleared by autoClearCache fixture)
+    await executeStep('Login', async () => {
+      await loginPage.login(testData.login.companyName, testData.login.email, testData.login.password);
+      await loginPage.dismissOnboarding();
+    });
 
-    // Step 1: Navigate to Contacts
+    // Step 2: Navigate to Contacts
     await executeStep('Navigate to Contacts page', async () => {
-      await page.goto('/');
       await customerPage.navigateToContacts();
     });
 
-    // Step 2: Create new contact
+    // Step 3: Create new contact
     await executeStep('Click New Contact', async () => {
       await customerPage.clickNewContact();
     });
 
-    // Step 3: Fill and save customer using the page object
+    // Step 4: Fill and save customer using the page object
     await executeStep('Fill and save customer details', async () => {
       await customerPage.createCustomer(testData.customer);
     });
 
-    // Step 4: Verify customer created successfully
+    // Step 5: Verify customer created successfully
     await executeStep('Verify customer creation', async () => {
       const verificationResults = await customerPage.verifyCustomerCreated(testData.customer.email);
 
@@ -110,7 +114,7 @@ test.describe('Customer Management', () => {
       }
     });
 
-    // Step 5: Verify detailed customer information
+    // Step 6: Verify detailed customer information
     await executeStep('Verify customer details', async () => {
       const detailsVerification = await customerPage.verifyCustomerDetails(testData.customer);
 
@@ -124,7 +128,7 @@ test.describe('Customer Management', () => {
       }
     });
 
-    // Step 6: Final assertion on customer details section
+    // Step 7: Final assertion on customer details section
     await executeStep('Final customer details section check', async () => {
       await expect(customerPage.customerDetailsSection).toBeVisible();
     });

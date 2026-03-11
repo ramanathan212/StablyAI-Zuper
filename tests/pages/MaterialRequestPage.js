@@ -168,7 +168,7 @@ export class MaterialRequestPage {
       throw new Error('Could not find search input in Add Job/Quote dialog');
     }
 
-    await searchInput.click();
+    await searchInput.click({ force: true });
     await searchInput.fill(jobSearch);
     await searchInput.press('Enter');
 
@@ -206,8 +206,10 @@ export class MaterialRequestPage {
     await this.page.waitForTimeout(3000);
 
     for (const productName of products) {
-      const checkbox = this.page.getByRole('checkbox', { name: `Product Image ${productName}` });
-      await checkbox.waitFor({ state: 'visible', timeout: 35000 });
+      // Find the row containing the product name and check its checkbox
+      const row = this.page.locator('tr').filter({ hasText: productName });
+      await row.waitFor({ state: 'visible', timeout: 35000 });
+      const checkbox = row.locator('input[type="checkbox"]').first();
       await checkbox.scrollIntoViewIfNeeded();
       await checkbox.check();
     }
@@ -327,7 +329,7 @@ export class MaterialRequestPage {
     await expect(this.page.getByText('Vignesh Sam').first()).toBeVisible();
     await expect(this.page.getByText('Vignesh Sam').nth(1)).toBeVisible();
     await expect(this.page.getByText('test MR remark')).toBeVisible();
-    await expect(this.page.getByRole('link', { name: 'Validation UAT -15/' })).toBeVisible();
+    await expect(this.page.getByRole('link', { name: /ls-Job2|5962/ })).toBeVisible();
 
     console.log('✓ Material Request details verified successfully');
   }

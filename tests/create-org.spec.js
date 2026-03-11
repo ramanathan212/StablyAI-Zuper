@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures/cache-fixtures.js';
 import { testData } from './test-data.js';
+import { LoginPage } from './pages/LoginPage.js';
 import { OrganizationPage } from './pages/OrganizationPage.js';
 import { clickWithOverlayHandling, waitForPageReady } from './Helper/overlay-helper.js';
 
@@ -24,7 +25,11 @@ test.describe('Organization Management', () => {
     testResults.steps = [];
     testResults.overallStatus = 'RUNNING';
 
-    await page.goto('/');
+    // Login before each test
+    const loginPage = new LoginPage(page);
+    await loginPage.login(testData.login.companyName, testData.login.email, testData.login.password);
+    await loginPage.dismissOnboarding();
+
     await waitForPageReady(page);
 
     // Dismiss onboarding modal if present
@@ -207,39 +212,6 @@ test.describe('Organization Management', () => {
 
 // Helper Functions
 
-/**
- * Dismiss onboarding modal if present
- */
-async function dismissOnboardingModal(page) {
-  // Try pressing Escape multiple times first to close any overlays
-  for (let i = 0; i < 3; i++) {
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(500);
-  }
-
-  // First, try to dismiss the "What's New at Zuper" modal
-  try {
-    const whatsNewModal = page.getByText("What's New at Zuper?");
-    const modalVisible = await whatsNewModal.isVisible({ timeout: 2000 });
-
-    if (modalVisible) {
-      // Try clicking outside the modal or clicking close button
-      try {
-        const closeButton = page.locator('button[aria-label*="Close"], button[class*="close"]').first();
-        if (await closeButton.isVisible({ timeout: 1000 })) {
-          await closeButton.click();
-          await page.waitForTimeout(500);
-        }
-      } catch (error) {
-        // If no close button, try pressing Escape
-        await page.keyboard.press('Escape');
-        await page.waitForTimeout(500);
-      }
-      console.log('✓ Dismissed "What\'s New" modal');
-    }
-  } catch (error) {
-    console.log('⚠ No "What\'s New" modal found');
-  }
 
   // Now handle the "Welcome back to Zuper" onboarding form
   try {
@@ -289,13 +261,6 @@ async function dismissOnboardingModal(page) {
     console.log('⚠ No onboarding Continue button to click');
   }
 
-  // Final escape presses to ensure all modals are closed
-  for (let i = 0; i < 5; i++) {
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
-  }
-  console.log('✓ Final Escape presses to close any remaining modals');
-
   // Try clicking on backdrop to dismiss any remaining overlays
   try {
     const backdrops = page.locator('.cdk-overlay-backdrop, .modal-backdrop, [class*="backdrop"]');
@@ -314,7 +279,6 @@ async function dismissOnboardingModal(page) {
 
   // Wait for page to stabilize
   await page.waitForTimeout(2000);
-}
 
 /**
  * Navigate to Organizations page with overlay handling
