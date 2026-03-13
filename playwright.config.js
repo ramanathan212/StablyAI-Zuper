@@ -86,5 +86,27 @@ export default defineConfig({
         },
       },
     },
+    {
+      name: 'webkit',
+      testMatch: '**/create-job-and-add-notes.spec.js',
+      use: {
+        ...devices['Desktop Safari'],
+      },
+    },
+    {
+      name: 'firefox',
+      testMatch: '**/create-job-and-add-notes.spec.js',
+      use: {
+        ...devices['Desktop Firefox'],
+      },
+    },
+    {
+      name: 'edge',
+      testMatch: '**/create-job-and-add-notes.spec.js',
+      use: {
+        ...devices['Desktop Edge'],
+        channel: 'msedge',
+      },
+    },
   ],
 });

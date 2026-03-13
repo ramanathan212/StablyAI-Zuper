@@ -1,0 +1,43 @@
+name: Stably Cross-Browser Tests
+
+on:
+  pull_request:
+
+# Required permissions for the stably-runner-action
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  stably-tests-webkit:
+    name: Stably Tests - WebKit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stably Runner Action
+        uses: stablyai/stably-runner-action@v4
+        with:
+          project-id: ${{ secrets.STABLY_PROJECT_ID }}
+          playwright-project-name: webkit
+          api-key: ${{ secrets.STABLY_API_KEY }}
+
+  stably-tests-firefox:
+    name: Stably Tests - Firefox
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stably Runner Action
+        uses: stablyai/stably-runner-action@v4
+        with:
+          project-id: ${{ secrets.STABLY_PROJECT_ID }}
+          playwright-project-name: firefox
+          api-key: ${{ secrets.STABLY_API_KEY }}
+
+  stably-tests-edge:
+    name: Stably Tests - Edge
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stably Runner Action
+        uses: stablyai/stably-runner-action@v4
+        with:
+          project-id: ${{ secrets.STABLY_PROJECT_ID }}
+          playwright-project-name: edge
+          api-key: ${{ secrets.STABLY_API_KEY }}
