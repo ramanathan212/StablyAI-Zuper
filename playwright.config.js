@@ -68,8 +68,8 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      grep: /(Complete Vendor, MR, and PO Flow should complete full vendor, material request, and purchase order workflow)$/i,
-      testMatch: ['complete-vendor-mr-po-flow-refactored.spec.js'],
+      grep: /(Quick Create Deployment Check - March 4 Create new job with quick create organization, contact, and property)$/i,
+      testMatch: ['quick-create-deployment-check.spec.js'],
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: {
