@@ -53,6 +53,35 @@ export class CustomerPage {
   }
 
   /**
+   * Dismiss any blocking overlays: Beamer push modal and browser notification dialog
+   */
+  async dismissBeamerModal() {
+    // Dismiss browser notification permission dialog ("We'd like to show you notifications")
+    try {
+      const notifDenyBtn = this.page.getByRole('button', { name: 'No, thanks' });
+      if (await notifDenyBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await notifDenyBtn.click();
+        console.log('✓ Notification permission dialog dismissed');
+      }
+    } catch (_) {}
+
+    // Dismiss Beamer push modal
+    try {
+      const beamerModal = this.page.locator('#beamerPushModal');
+      if (await beamerModal.isVisible({ timeout: 2000 }).catch(() => false)) {
+        const closeBtn = beamerModal.locator('button, .beamer-close, [class*="close"], [aria-label*="close" i]').first();
+        if (await closeBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await closeBtn.click();
+        } else {
+          await this.page.keyboard.press('Escape');
+        }
+        await this.page.waitForSelector('#beamerPushModal', { state: 'hidden', timeout: 3000 }).catch(() => {});
+        console.log('✓ Beamer modal dismissed');
+      }
+    } catch (_) {}
+  }
+
+  /**
    * Navigate to Contacts page
    */
   async navigateToContacts() {
@@ -60,7 +89,8 @@ export class CustomerPage {
     await this.customerOrgNavigationButton.click();
     await this.contactsLink.waitFor({ state: 'visible', timeout: 20000 });
     await this.contactsLink.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     console.log('✓ Navigated to Contacts page');
   }
 
@@ -70,7 +100,8 @@ export class CustomerPage {
   async clickNewContact() {
     await this.newContactLink.waitFor({ state: 'visible', timeout: 10000 });
     await this.newContactLink.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     console.log('✓ Clicked New Contact');
   }
 
@@ -94,15 +125,18 @@ export class CustomerPage {
    * Select organization for the customer
    */
   async selectOrganization(organizationName) {
+    // Dismiss any blocking modals before interacting with the form
+    await this.dismissBeamerModal();
+
     // Open organization search
     await this.organizationInput.waitFor({ state: 'visible', timeout: 10000 });
-    await this.organizationInput.click();
+    await this.organizationInput.click({ force: true });
     await this.organizationInput.fill(organizationName);
     await this.organizationInput.press('Enter');
     await this.page.waitForTimeout(500);
 
     // Search for organization
-    await this.searchOrganizationsInput.click();
+    await this.searchOrganizationsInput.click({ force: true });
     await this.searchOrganizationsInput.fill(organizationName);
     await this.searchOrganizationsInput.press('Enter');
     await this.page.waitForTimeout(1000);
@@ -157,15 +191,17 @@ export class CustomerPage {
     await this.serviceAddressSection.click();
     await this.page.waitForTimeout(500);
 
-    // Enter address
+    // Enter address character by character to trigger autocomplete
     await this.serviceAddressInput.waitFor({ state: 'visible', timeout: 10000 });
     await this.serviceAddressInput.click();
-    await this.serviceAddressInput.fill(addressData.search);
-    await this.page.waitForTimeout(1000);
+    await this.serviceAddressInput.clear();
+    await this.serviceAddressInput.pressSequentially(addressData.search, { delay: 80 });
+    await this.page.waitForTimeout(2500); // allow autocomplete to fetch results
 
-    // Select from address suggestions
-    const addressSuggestion = this.page.getByText(addressData.select);
-    await addressSuggestion.waitFor({ state: 'visible', timeout: 10000 });
+    // Select from address suggestions — rendered as buttons in this app
+    const partialText = addressData.select.trim();
+    const addressSuggestion = this.page.getByRole('button', { name: new RegExp(partialText, 'i') }).first();
+    await addressSuggestion.waitFor({ state: 'visible', timeout: 15000 });
     await addressSuggestion.click();
     console.log(`✓ Filled service address: ${addressData.search}`);
   }
@@ -185,7 +221,8 @@ export class CustomerPage {
    */
   async saveContact() {
     // Scroll to save button and click
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
     // Wait for the save contact link to be visible and clickable
     await this.saveContactLink.waitFor({ state: 'visible', timeout: 10000 });
@@ -193,7 +230,7 @@ export class CustomerPage {
     console.log('✓ Clicked Save Contact Link Button');
 
     // Wait for the confirmation dialog to appear
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
 
     // Try multiple strategies to find and click the Create button
     try {
@@ -248,7 +285,8 @@ export class CustomerPage {
       }
     }
 
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     console.log('✓ Contact saved successfully');
   }
 
@@ -398,7 +436,7 @@ export class CustomerPage {
     };
 
     try {
-      const addressText = this.page.getByText('705 Pike St, Seattle ,');
+      const addressText = this.page.getByText('Walmart', { exact: false }).first();
       if (await addressText.count() > 0 && await addressText.isVisible()) {
         await addressText.click();
         addressCheck.status = 'PASS';

@@ -2,8 +2,7 @@ import { test as base } from '@playwright/test';
 import { createCacheUtils } from '../utils/cache-utils.js';
 
 /**
- * Extended test fixture with cache clearing capabilities
- * Use this in your tests to get automatic cache clearing functionality
+ * Extended test fixture with cache clearing and automatic popup handling.
  */
 export const test = base.extend({
   /**
@@ -16,8 +15,8 @@ export const test = base.extend({
   },
 
   /**
-   * Auto-clear cache before each test
-   * Tests using this will have cache cleared automatically before running
+   * Auto-clear cache AND start the background popup handler before each test.
+   * Tests using this will have cache cleared and popups auto-dismissed automatically.
    * Usage: async ({ page, autoClearCache }) => { ... }
    */
   autoClearCache: async ({ page }, use) => {

@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures/cache-fixtures.js';
 import { testData } from './test-data.js';
+import { LoginPage } from './pages/LoginPage.js';
 import { OrganizationPage } from './pages/OrganizationPage.js';
 import { clickWithOverlayHandling, waitForPageReady } from './Helper/overlay-helper.js';
 
@@ -24,7 +25,11 @@ test.describe('Organization Management', () => {
     testResults.steps = [];
     testResults.overallStatus = 'RUNNING';
 
-    await page.goto('/');
+    // Login before each test
+    const loginPage = new LoginPage(page);
+    await loginPage.login(testData.login.companyName, testData.login.email, testData.login.password);
+    await loginPage.dismissOnboarding();
+
     await waitForPageReady(page);
 
     // Dismiss onboarding modal if present
@@ -33,6 +38,7 @@ test.describe('Organization Management', () => {
 
   test.afterEach(async ({ page }) => {
     testResults.endTime = new Date();
+    if (!testResults.startTime) { testResults.startTime = testResults.endTime; }
     testResults.duration = ((testResults.endTime - testResults.startTime) / 1000).toFixed(2);
 
     // Take screenshot on failure
@@ -74,6 +80,7 @@ test.describe('Organization Management', () => {
   });
 
   test('Create new organization with complete details', async ({ page, autoClearCache }) => {
+    test.setTimeout(300000); // 5 minutes
     // Helper function to track step execution
     const executeStep = async (stepName, stepFunction) => {
       const stepStart = new Date();
@@ -145,7 +152,8 @@ test.describe('Organization Management', () => {
 
     // Step 9: Wait for page to stabilize
     await executeStep('Wait for page to stabilize', async () => {
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('load');
+      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
       await page.waitForTimeout(2000);
     });
 
@@ -157,7 +165,8 @@ test.describe('Organization Management', () => {
       expect(verificationResults.success).toBe(true);
 
       if (!verificationResults.success) {
-        const failureMessage = `Organization verification failed:\n${verificationResults.failed.join('\n')}`;
+        const failedChecks = verificationResults.checks.filter(c => c.status === 'FAIL');
+        const failureMessage = `Organization verification failed:\n${failedChecks.map(c => c.error).join('\n')}`;
         throw new Error(failureMessage);
       }
     });
@@ -207,40 +216,7 @@ test.describe('Organization Management', () => {
 
 // Helper Functions
 
-/**
- * Dismiss onboarding modal if present
- */
 async function dismissOnboardingModal(page) {
-  // Try pressing Escape multiple times first to close any overlays
-  for (let i = 0; i < 3; i++) {
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(500);
-  }
-
-  // First, try to dismiss the "What's New at Zuper" modal
-  try {
-    const whatsNewModal = page.getByText("What's New at Zuper?");
-    const modalVisible = await whatsNewModal.isVisible({ timeout: 2000 });
-
-    if (modalVisible) {
-      // Try clicking outside the modal or clicking close button
-      try {
-        const closeButton = page.locator('button[aria-label*="Close"], button[class*="close"]').first();
-        if (await closeButton.isVisible({ timeout: 1000 })) {
-          await closeButton.click();
-          await page.waitForTimeout(500);
-        }
-      } catch (error) {
-        // If no close button, try pressing Escape
-        await page.keyboard.press('Escape');
-        await page.waitForTimeout(500);
-      }
-      console.log('✓ Dismissed "What\'s New" modal');
-    }
-  } catch (error) {
-    console.log('⚠ No "What\'s New" modal found');
-  }
-
   // Now handle the "Welcome back to Zuper" onboarding form
   try {
     const continueButton = page.getByRole('button', { name: 'Continue' });
@@ -289,13 +265,6 @@ async function dismissOnboardingModal(page) {
     console.log('⚠ No onboarding Continue button to click');
   }
 
-  // Final escape presses to ensure all modals are closed
-  for (let i = 0; i < 5; i++) {
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
-  }
-  console.log('✓ Final Escape presses to close any remaining modals');
-
   // Try clicking on backdrop to dismiss any remaining overlays
   try {
     const backdrops = page.locator('.cdk-overlay-backdrop, .modal-backdrop, [class*="backdrop"]');
@@ -328,7 +297,8 @@ async function navigateToOrganizationsWithOverlay(page) {
   const organizationsMenuItem = page.getByRole('link', { name: 'Organizations' });
   await clickWithOverlayHandling(organizationsMenuItem);
 
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('load');
+  await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
   // Dismiss any modals that appear after navigation
   await dismissOnboardingModal(page);

@@ -147,9 +147,14 @@ export class JobPage {
     await this.jobTitleInput.click();
     await this.jobTitleInput.fill(jobData.title);
     await this.page.waitForTimeout(500);
+    // Wait for any page-level loading spinners to disappear before opening the dropdown
+    await this.page.locator('text=Loading').waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+
+    // Open the Job Category dropdown
     await this.clickCategoryButton.waitFor({ state: 'visible', timeout: 10000 });
     await this.clickCategoryButton.click();
-    await this.categoryOption.waitFor({ state: 'visible', timeout: 10000 });
+
+    await this.categoryOption.waitFor({ state: 'visible', timeout: 20000 });
     await this.categoryOption.click();
     await this.page.waitForTimeout(500);
 

@@ -19,11 +19,12 @@ export class MaterialRequestPage {
   async navigateToMaterialRequests() {
     // Direct navigation to material requests page
     await this.page.goto('/material_requests');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
   }
 
   async clickNewMaterialRequest() {
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
     await this.page.waitForTimeout(2000);
 
     // Helper function to try finding and clicking the button
@@ -85,7 +86,7 @@ export class MaterialRequestPage {
       const currentUrl = this.page.url();
       const baseUrl = currentUrl.split('/material_requests')[0];
       await this.page.goto(`${baseUrl}/material_requests/new`);
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForLoadState('load');
       await this.page.waitForTimeout(2000);
 
       // Check if we successfully landed on the new MR page
@@ -100,7 +101,7 @@ export class MaterialRequestPage {
       throw new Error('Could not find or navigate to New Material Request page after multiple attempts. Please check if you have permission to create Material Requests.');
     }
 
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
     console.log('✓ Successfully on New Material Request page');
   }
 
@@ -168,12 +169,12 @@ export class MaterialRequestPage {
       throw new Error('Could not find search input in Add Job/Quote dialog');
     }
 
-    await searchInput.click();
+    await searchInput.click({ force: true });
     await searchInput.fill(jobSearch);
     await searchInput.press('Enter');
 
     // Wait for search results to load
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
     await this.page.waitForTimeout(2000);
 
     // Wait for results and select the job
@@ -206,16 +207,19 @@ export class MaterialRequestPage {
     await this.page.waitForTimeout(3000);
 
     for (const productName of products) {
-      const checkbox = this.page.getByRole('checkbox', { name: `Product Image ${productName}` });
-      await checkbox.waitFor({ state: 'visible', timeout: 35000 });
+      // Find the row containing the product name and check its checkbox
+      const row = this.page.locator('tr').filter({ hasText: productName });
+      await row.waitFor({ state: 'visible', timeout: 35000 });
+      const checkbox = row.locator('input[type="checkbox"]').first();
       await checkbox.scrollIntoViewIfNeeded();
       await checkbox.check();
     }
     await this.addButton.click();
 
     // Wait for the modal to close and page to stabilize
-    await this.page.waitForLoadState('networkidle');
-    await this.page.waitForTimeout(5000);
+    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    await this.page.waitForTimeout(3000);
   }
 
   async saveAndSubmit() {
@@ -223,7 +227,7 @@ export class MaterialRequestPage {
     const { expect } = await import('@playwright/test');
 
     // Wait for page to stabilize after adding products
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
     await this.page.waitForTimeout(2000);
 
     // Store current URL before submission to verify navigation
@@ -284,7 +288,7 @@ export class MaterialRequestPage {
     }
 
     // Wait for page to stabilize after submission
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
     await this.page.waitForTimeout(1000);
 
     // Verify URL changed to details page
@@ -327,7 +331,7 @@ export class MaterialRequestPage {
     await expect(this.page.getByText('Vignesh Sam').first()).toBeVisible();
     await expect(this.page.getByText('Vignesh Sam').nth(1)).toBeVisible();
     await expect(this.page.getByText('test MR remark')).toBeVisible();
-    await expect(this.page.getByRole('link', { name: 'Validation UAT -15/' })).toBeVisible();
+    await expect(this.page.getByRole('link', { name: /ls-Job2|5962/ })).toBeVisible();
 
     console.log('✓ Material Request details verified successfully');
   }
@@ -341,7 +345,8 @@ export class MaterialRequestPage {
 
   async createPOFromMR(vendorName) {
       // Wait for page to fully load before starting PO creation
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     await this.page.waitForTimeout(2000);
     // Click the button to start PO creation
     await this.page.getByRole('button').nth(4).click();
@@ -368,7 +373,8 @@ export class MaterialRequestPage {
 
     // Click Create Purchase Order button
     await this.page.getByRole('button', { name: 'Create Purchase Order' }).click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
     // Click Purchase Orders to view created PO
     await this.page.waitForTimeout(1000);
@@ -377,12 +383,26 @@ export class MaterialRequestPage {
   async openPurchaseOrder() {
     await this.page.getByRole('button', { name: 'Purchase Orders (1)' }).click();
 
-    const page1Promise = this.page.waitForEvent('popup');
-    await this.page.getByRole('link', { name: /^PO for/ }).click();
-    const page1 = await page1Promise;
-    await page1.waitForLoadState('networkidle');
+    // Get the PO link href and navigate directly (avoids unstable popup windows)
+    const poLink = this.page.getByRole('link', { name: /^PO for/ }).first();
+    await poLink.waitFor({ state: 'visible', timeout: 10000 });
+    const poHref = await poLink.getAttribute('href');
 
-    return page1;
+    if (poHref) {
+      await this.page.goto(poHref);
+    } else {
+      // Fallback: click and handle popup
+      const page1Promise = this.page.waitForEvent('popup');
+      await poLink.click();
+      const page1 = await page1Promise;
+      await page1.waitForLoadState('load');
+      await page1.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+      return page1;
+    }
+
+    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    return this.page;
   }
 
   async getMRNumber() {

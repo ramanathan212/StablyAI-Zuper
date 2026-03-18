@@ -16,20 +16,20 @@ test.describe('Parts & Services Settings', () => {
    */
   test('Enable options toggle in Parts & Services General Settings', async ({ page, agent }) => {
     // Step 1: Login to Staging V3 environment
-    await page.goto('https://stagingv3.zuperpro.com/login');
+    await page.goto('https://uat.zuperpro.com/login');
 
     // Enter company name
-    await page.getByRole('textbox', { name: 'Company Name' }).fill('sofyaizuper');
+    await page.getByRole('textbox', { name: 'Company Name' }).fill('zuper-pro');
     await page.getByRole('button', { name: 'Continue' }).click();
 
     // Wait for credentials form to appear
     const loginEmailInput = page.locator('input[type="email"], [name="email"], input[placeholder*="email" i]').first();
     await loginEmailInput.waitFor({ state: 'visible', timeout: 30000 });
-    await loginEmailInput.fill('ramanathan.m@zuper.co');
+    await loginEmailInput.fill('vignesh.s@zuper.co');
 
     const passwordInput = page.locator('input[type="password"]').first();
     await passwordInput.waitFor({ state: 'visible', timeout: 10000 });
-    await passwordInput.fill('Test@123');
+    await passwordInput.fill('Vicky@123');
 
     await page.getByRole('button', { name: 'Login', exact: true }).click();
 
@@ -55,7 +55,7 @@ test.describe('Parts & Services Settings', () => {
     }
 
     // Step 2: Navigate directly to Parts & Services General Settings
-    await page.goto('https://stagingv3.zuperpro.com/settings_new/products/configuration');
+    await page.goto('https://uat.zuperpro.com/settings_new/products/configuration');
     await page.waitForURL('**/products/configuration', { timeout: 15000 });
 
     // Step 3: Enable the "Enable Options?" toggle
@@ -85,7 +85,7 @@ test.describe('Parts & Services Settings', () => {
     await expect(enableOptionsYes).toBeVisible({ timeout: 5000 });
 
     // Step 4: Navigate to Parts & Services module
-    await page.goto('https://stagingv3.zuperpro.com/products');
+    await page.goto('https://uat.zuperpro.com/products');
     await page.waitForURL('**/products**', { timeout: 15000 });
 
     // Step 5: Click "New Part/Service" to create a new part
@@ -119,7 +119,7 @@ test.describe('Parts & Services Settings', () => {
     }
     await categoryDropdown.waitFor({ state: 'visible', timeout: 10000 });
     await categoryDropdown.click();
-    await page.getByText('Main Product', { exact: true }).click();
+    await page.getByText('Installation', { exact: true }).click();
 
     // Fill Unit Selling Price (required field)
     const unitSellingPriceInput = page.getByRole('spinbutton', { name: /Unit Selling Price/i });

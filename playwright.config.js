@@ -31,6 +31,7 @@ export default defineConfig({
   // globalSetup: './tests/global-setup.js', // Disabled - use test-level auth
   use: {
     baseURL: BASE_URLS[ENV],
+    headless: true,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -82,6 +83,32 @@ export default defineConfig({
             '--disable-gpu-shader-disk-cache',
             '--media-cache-size=0',
             '--aggressive-cache-discard',
+          ]
+        },
+      },
+    },
+    {
+      name: 'firefox',
+      use: {
+        ...devices['Desktop Firefox'],
+        launchOptions: {
+          firefoxUserPrefs: {
+            'browser.cache.disk.enable': false,
+            'browser.cache.memory.enable': false,
+            'browser.cache.offline.enable': false,
+            'network.http.use-cache': false,
+          }
+        },
+      },
+    },
+    {
+      name: 'webkit',
+      use: {
+        ...devices['Desktop Safari'],
+        launchOptions: {
+          args: [
+            '--disable-cache',
+            '--disable-application-cache',
           ]
         },
       },

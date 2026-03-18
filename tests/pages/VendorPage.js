@@ -1,3 +1,6 @@
+import { LoginPage } from './LoginPage.js';
+import { testData } from '../test-data.js';
+
 export class VendorPage {
   constructor(page) {
     this.page = page;
@@ -28,10 +31,29 @@ export class VendorPage {
     this.createVendorButton = page.getByRole('button', { name: 'Create Vendor' });
   }
 
+  // Auto-heal: detect if redirected to login and re-authenticate
+  async _reLoginIfNeeded() {
+    const url = this.page.url();
+    if (url.includes('/login')) {
+      console.log('⚠️  Session expired — auto-healing: re-logging in...');
+      const loginPage = new LoginPage(this.page);
+      await loginPage.login(testData.login.companyName, testData.login.email, testData.login.password);
+      await loginPage.dismissOnboarding();
+      console.log('✓ Re-login successful');
+      return true;
+    }
+    return false;
+  }
+
   async navigateToVendors() {
-    // Direct navigation to vendors page
     await this.page.goto('/vendors');
     await this.page.waitForLoadState('domcontentloaded');
+
+    // Auto-heal: if redirected to login, re-authenticate and retry
+    if (await this._reLoginIfNeeded()) {
+      await this.page.goto('/vendors');
+      await this.page.waitForLoadState('domcontentloaded');
+    }
 
     // Check if timezone cancel button exists and click it if visible
     try {
@@ -45,10 +67,14 @@ export class VendorPage {
       console.log('No timezone dialog to dismiss, continuing...');
     }
 
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
   }
 
   async clickNewVendor() {
+    // Auto-heal: if session expired before clicking New Vendor, re-login and re-navigate
+    if (await this._reLoginIfNeeded()) {
+      await this.navigateToVendors();
+    }
     await this.newVendorButton.click();
   }
 
@@ -176,7 +202,7 @@ export class VendorPage {
     await this.addButton.click();
 
     // Wait for the operation to complete
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
     await this.page.waitForTimeout(1000);
     console.log('✓ Billing address added');
   }
@@ -195,12 +221,6 @@ export class VendorPage {
       throw new Error('Add Bank Details link is not visible');
     }
 
-    // // Close attachment modal if it appears
-    // const backdrop = this.page.locator('.cdk-overlay-backdrop');
-    // if (await backdrop.isVisible({ timeout: 2000 }).catch(() => false)) {
-    //   await backdrop.click();
-    // }
-
     await this.accountNameInput.fill(bankData.accountName);
     await this.accountNumberInput.click();
     await this.accountNumberInput.fill(bankData.accountNumber);
@@ -216,7 +236,8 @@ export class VendorPage {
   async saveVendor() {
     await this.saveVendorLink.click();
     await this.createVendorButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
   }
 
   async getSuccessMessage() {

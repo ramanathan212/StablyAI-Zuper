@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures/cache-fixtures.js';
+import { LoginPage } from './pages/LoginPage.js';
 import { VendorPage } from './pages/VendorPage.js';
 import { MaterialRequestPage } from './pages/MaterialRequestPage.js';
 import { PurchaseOrderPage } from './pages/PurchaseOrderPage.js';
@@ -24,6 +25,11 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
     materialRequestPage = new MaterialRequestPage(page);
     purchaseOrderPage = new PurchaseOrderPage(page);
 
+    // Login before each test
+    const loginPage = new LoginPage(page);
+    await loginPage.login(testData.login.companyName, testData.login.email, testData.login.password);
+    await loginPage.dismissOnboarding();
+
     // Reset test results
     testResults.startTime = new Date();
     testResults.steps = [];
@@ -32,6 +38,9 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
 
   test.afterEach(async () => {
     testResults.endTime = new Date();
+    if (!testResults.startTime) {
+      testResults.startTime = testResults.endTime;
+    }
     testResults.duration = ((testResults.endTime - testResults.startTime) / 1000).toFixed(2);
 
     // Print test results summary
@@ -65,6 +74,7 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
   });
 
   test('should complete full vendor, material request, and purchase order workflow', async ({ page, autoClearCache }) => {
+    test.setTimeout(600000); // 10 minutes for the full 5-step workflow
     // Helper function to track step execution
     const executeStep = async (stepName, stepFunction) => {
       const stepStart = new Date();
@@ -163,7 +173,8 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
       // Open the created purchase order
       poPage = await materialRequestPage.openPurchaseOrder();
 
-      // Verify PO was created
+      // Verify PO was created - wait for URL to match before asserting
+      await poPage.waitForURL(/\/purchase_order\/.*\/details/, { timeout: 30000 });
       await expect(poPage).toHaveURL(/\/purchase_order\/.*\/details/);
     });
 
