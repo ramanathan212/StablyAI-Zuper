@@ -44,18 +44,17 @@ test.describe('Quick Create Deployment Check - March 4', () => {
       }
     };
 
-    /** Dismiss CDK overlays specifically so normal clicks work */
+    /** Dismiss CDK overlays and navigation overlays so normal clicks work */
     const clearOverlays = async () => {
-      // Remove ALL backdrop overlays via JS - most reliable approach
       await page.evaluate(() => {
         document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
-        // Also remove any transparent backdrop that might be blocking
         document.querySelectorAll('.cdk-overlay-transparent-backdrop').forEach(el => el.remove());
+        document.querySelectorAll('.zuper-vertical-navigation-aside-overlay').forEach(el => el.remove());
       });
       await page.waitForTimeout(500);
-      // Double-check and remove any that reappeared
       await page.evaluate(() => {
         document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+        document.querySelectorAll('.zuper-vertical-navigation-aside-overlay').forEach(el => el.remove());
       });
       await page.waitForTimeout(300);
     };
@@ -122,6 +121,9 @@ test.describe('Quick Create Deployment Check - March 4', () => {
       const jobTitleInput = page.getByRole('textbox', { name: 'Job Title *' }).describe('Job Title input');
       await jobTitleInput.waitFor({ state: 'visible', timeout: 10000 });
       await jobTitleInput.fill(jobName);
+
+      // Clear navigation overlay before interacting with form
+      await clearOverlays();
 
       // Select Job Category
       const categoryCombo = page.getByRole('combobox', { name: 'Choose a Job Category' }).describe('Job Category combobox');
@@ -296,7 +298,7 @@ test.describe('Quick Create Deployment Check - March 4', () => {
       await dueDateInput.scrollIntoViewIfNeeded();
       await dueDateInput.click();
 
-      const dateButton = page.getByRole('button', { name: /March 10,/ }).describe('March 10 date button');
+      const dateButton = page.getByRole('button', { name: /March 15,/ }).describe('March 15 date button');
       await dateButton.waitFor({ state: 'visible', timeout: 5000 });
       await dateButton.click();
     });
