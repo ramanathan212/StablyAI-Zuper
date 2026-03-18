@@ -61,7 +61,6 @@ export default defineConfig({
   projects: [
     {
       name: 'mcp-isolated',
-      testMatch: '**/navigate-to-quotes.spec.js',
       use: {
         ...devices['Desktop Chrome'],
         storageState: undefined, // Don't use stored auth - test handles its own login
