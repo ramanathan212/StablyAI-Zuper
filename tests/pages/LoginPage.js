@@ -19,18 +19,25 @@ export class LoginPage {
 
   async login(companyName, email, password) {
     await this.navigate();
-    await this.companyNameInput.click();
+    // Wait for the login form to be ready (app shows a loading screen first)
+    await this.companyNameInput.waitFor({ state: 'visible', timeout: 30000 });
     await this.companyNameInput.fill(companyName);
-    await this.continueButton.click();
-    await this.emailInput.click();
+    // Use JS click to bypass banner overlay that intercepts Playwright's synthetic clicks
+    await this.page.evaluate(() => {
+      const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Continue');
+      if (btn) btn.click();
+    });
+    await this.emailInput.waitFor({ state: 'visible', timeout: 15000 });
     await this.emailInput.fill(email);
-    await this.passwordInput.click();
     await this.passwordInput.fill(password);
-    await this.loginButton.click();
+    await this.page.evaluate(() => {
+      const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Login');
+      if (btn) btn.click();
+    });
 
     // Wait for redirect to dashboard to confirm login succeeded
     await this.page.waitForURL('**/dashboard', { timeout: 30000 });
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
   }
 
   async dismissOnboarding() {

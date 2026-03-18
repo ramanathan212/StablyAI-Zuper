@@ -84,6 +84,10 @@ export const getTestData = () => ({
     serviceAddress: {
       search: 'turya',
       select: 'Turyaa Chennai, Rajiv Gandhi',
+      street: '123 Rajiv Gandhi Salai',
+      city: 'Chennai',
+      state: 'Tamil Nadu',
+      zipcode: '600041',
       sameAsBilling: true
     },
     customFields: {
@@ -102,7 +106,7 @@ export const getTestData = () => ({
     accountManager: 'James Smith',
     serviceAddress: {
       search: 'walmart',
-      select: 'Walmart Park, Avenida Manuel',
+      select: 'Walmart',
       sameAsBilling: true
     }
   },

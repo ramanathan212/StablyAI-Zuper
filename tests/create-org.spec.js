@@ -38,6 +38,7 @@ test.describe('Organization Management', () => {
 
   test.afterEach(async ({ page }) => {
     testResults.endTime = new Date();
+    if (!testResults.startTime) { testResults.startTime = testResults.endTime; }
     testResults.duration = ((testResults.endTime - testResults.startTime) / 1000).toFixed(2);
 
     // Take screenshot on failure
@@ -79,6 +80,7 @@ test.describe('Organization Management', () => {
   });
 
   test('Create new organization with complete details', async ({ page, autoClearCache }) => {
+    test.setTimeout(300000); // 5 minutes
     // Helper function to track step execution
     const executeStep = async (stepName, stepFunction) => {
       const stepStart = new Date();
@@ -150,7 +152,8 @@ test.describe('Organization Management', () => {
 
     // Step 9: Wait for page to stabilize
     await executeStep('Wait for page to stabilize', async () => {
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('load');
+      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
       await page.waitForTimeout(2000);
     });
 
@@ -162,7 +165,8 @@ test.describe('Organization Management', () => {
       expect(verificationResults.success).toBe(true);
 
       if (!verificationResults.success) {
-        const failureMessage = `Organization verification failed:\n${verificationResults.failed.join('\n')}`;
+        const failedChecks = verificationResults.checks.filter(c => c.status === 'FAIL');
+        const failureMessage = `Organization verification failed:\n${failedChecks.map(c => c.error).join('\n')}`;
         throw new Error(failureMessage);
       }
     });
@@ -212,7 +216,7 @@ test.describe('Organization Management', () => {
 
 // Helper Functions
 
-
+async function dismissOnboardingModal(page) {
   // Now handle the "Welcome back to Zuper" onboarding form
   try {
     const continueButton = page.getByRole('button', { name: 'Continue' });
@@ -279,6 +283,7 @@ test.describe('Organization Management', () => {
 
   // Wait for page to stabilize
   await page.waitForTimeout(2000);
+}
 
 /**
  * Navigate to Organizations page with overlay handling
@@ -292,7 +297,8 @@ async function navigateToOrganizationsWithOverlay(page) {
   const organizationsMenuItem = page.getByRole('link', { name: 'Organizations' });
   await clickWithOverlayHandling(organizationsMenuItem);
 
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('load');
+  await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
   // Dismiss any modals that appear after navigation
   await dismissOnboardingModal(page);

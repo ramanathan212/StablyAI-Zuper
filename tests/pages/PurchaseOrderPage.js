@@ -1,9 +1,10 @@
 export class PurchaseOrderPage {
   constructor(page) {
     this.page = page;
+    this.notificationDenyButton = page.getByRole('button', { name: 'No, thanks' });
     this.markSubmittedButton = page.getByRole('button', { name: 'Mark as Submitted' });
     this.moreActionsLink = page.locator('a').filter({ hasText: 'More Actions' });
-    this.markSentToVendorMenuItem = page.locator("//span[normalize-space(text())='Mark as Sent to Vendor']");
+    this.markSentToVendorMenuItem = page.locator("span:has-text('Send to Vendor'), //span[normalize-space(text())='Mark as Sent to Vendor']").first();
     this.markSentToVendorButton = page.getByRole('button', { name: 'Mark as Sent to Vendor' });
     this.markVendorAcceptedButton = page.getByRole('button', { name: 'Mark as Vendor Accepted' });
     this.updateButton = page.getByRole('button', { name: 'Update' });
@@ -16,29 +17,69 @@ export class PurchaseOrderPage {
     this.confirmPOClosureButton = page.getByRole('button', { name: 'Mark as Closed' });
   }
 
+  async _dismissNotificationDialog() {
+    try {
+      if (await this.notificationDenyButton.isVisible({ timeout: 3000 })) {
+        await this.notificationDenyButton.click();
+        console.log('✓ Dismissed notification dialog');
+      }
+    } catch (_) {}
+  }
+
   async markAsSubmitted() {
+    await this.page.waitForLoadState('load');
+    await this._dismissNotificationDialog();
     const markAsSubmittedSpan = this.page.locator("//span[normalize-space(text())='Mark as Submitted']");
+    await markAsSubmittedSpan.waitFor({ state: 'visible', timeout: 15000 });
     await markAsSubmittedSpan.click();
+    await this.markSubmittedButton.waitFor({ state: 'visible', timeout: 10000 });
     await this.markSubmittedButton.click();
-    await this.page.waitForTimeout(1000);
+    await this.page.waitForLoadState('load');
   }
 
   async markAsSentToVendor() {
     // Wait for page to load and More Actions link to be visible
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
+    await this._dismissNotificationDialog();
     await this.page.waitForTimeout(1500);
 
-    await this.moreActionsLink.waitFor({ state: 'visible', timeout: 10000 });
-    await this.moreActionsLink.scrollIntoViewIfNeeded();
-    await this.moreActionsLink.click();
+    // Re-query the locator right before clicking to avoid stale DOM reference
+    await this.page.locator('a').filter({ hasText: 'More Actions' }).first().waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.locator('a').filter({ hasText: 'More Actions' }).first().click();
 
-    // Wait for dropdown menu to appear (reduced from 10s to 2s)
+    // Wait for dropdown menu to appear
     await this.page.waitForTimeout(2000);
 
-    // Wait for menu item to be visible
-    await this.markSentToVendorMenuItem.waitFor({ state: 'visible', timeout: 15000 });
-    await this.markSentToVendorMenuItem.scrollIntoViewIfNeeded();
-    await this.markSentToVendorMenuItem.click();
+    // Try multiple selectors for "Send to Vendor" / "Mark as Sent to Vendor" menu item
+    const sentToVendorSelectors = [
+      "span:has-text('Send to Vendor')",
+      "a:has-text('Send to Vendor')",
+      "li:has-text('Send to Vendor')",
+      "//span[normalize-space(text())='Mark as Sent to Vendor']",
+      "span:has-text('Mark as Sent to Vendor')",
+      "//a[contains(text(),'Sent to Vendor')]",
+    ];
+
+    let clicked = false;
+    for (const selector of sentToVendorSelectors) {
+      try {
+        const el = this.page.locator(selector).first();
+        if (await el.isVisible({ timeout: 5000 }).catch(() => false)) {
+          await el.scrollIntoViewIfNeeded();
+          await el.click();
+          clicked = true;
+          console.log(`✓ Clicked Sent to Vendor using: ${selector}`);
+          break;
+        }
+      } catch (_) { continue; }
+    }
+
+    if (!clicked) {
+      // Debug: log what's visible in the dropdown
+      const allMenuItems = await this.page.locator('span, a, li').filter({ hasText: /Vendor|Sent|Submitted/ }).allTextContents().catch(() => []);
+      console.log('Available menu items:', allMenuItems.slice(0, 10));
+      throw new Error('Could not find Mark as Sent to Vendor menu item');
+    }
 
     // Wait for confirmation dialog
     await this.page.waitForTimeout(1000);
@@ -47,7 +88,7 @@ export class PurchaseOrderPage {
     await this.markSentToVendorButton.waitFor({ state: 'visible', timeout: 10000 });
     await this.markSentToVendorButton.click();
     await this.page.waitForLoadState('load');
-    await this.page.waitForTimeout(7000);
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     console.log('✓ Marked as Sent to Vendor');
   }
 
@@ -305,13 +346,10 @@ export class PurchaseOrderPage {
   async openLinkedMR() {
     const page2Promise = this.page.waitForEvent('popup');
 
-    // Try to find MR link dynamically using title regex, fallback to name
-    try {
-      await this.page.getByTitle(/^MR Test/).click();
-    } catch (error) {
-      // Fallback: Try finding by role and name
-      await this.page.getByRole('link', { name: /^MR/, exact: false }).click();
-    }
+    // Find MR link by role (works regardless of exact MR title prefix)
+    const mrLink = this.page.getByRole('link', { name: /^MR/, exact: false });
+    await mrLink.first().waitFor({ state: 'visible', timeout: 10000 });
+    await mrLink.first().click();
 
     const page2 = await page2Promise;
 

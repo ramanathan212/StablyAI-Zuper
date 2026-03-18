@@ -24,8 +24,8 @@ test.describe('Customer Management', () => {
     console.log(`Test: ${testResults.testName}`);
     console.log(`Status: ${testResults.overallStatus}`);
     console.log(`Duration: ${testResults.duration}s`);
-    console.log(`Start Time: ${testResults.startTime.toISOString()}`);
-    console.log(`End Time: ${testResults.endTime.toISOString()}`);
+    console.log(`Start Time: ${testResults.startTime?.toISOString() ?? 'N/A'}`);
+    console.log(`End Time: ${testResults.endTime?.toISOString() ?? 'N/A'}`);
     console.log('\nTest Steps:');
     console.log('-'.repeat(80));
 

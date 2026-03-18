@@ -67,7 +67,7 @@ export class VendorPage {
       console.log('No timezone dialog to dismiss, continuing...');
     }
 
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
   }
 
   async clickNewVendor() {
@@ -202,7 +202,7 @@ export class VendorPage {
     await this.addButton.click();
 
     // Wait for the operation to complete
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
     await this.page.waitForTimeout(1000);
     console.log('✓ Billing address added');
   }
@@ -236,7 +236,8 @@ export class VendorPage {
   async saveVendor() {
     await this.saveVendorLink.click();
     await this.createVendorButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
   }
 
   async getSuccessMessage() {

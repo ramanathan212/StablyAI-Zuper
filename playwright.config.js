@@ -21,10 +21,12 @@ export default defineConfig({
   reporter: [
     ['html'],
     ['list'],
-    stablyReporter({
-      apiKey: process.env.STABLY_API_KEY,
-      projectId: process.env.STABLY_PROJECT_ID,
-    }),
+    ...(process.env.STABLY_API_KEY
+      ? [stablyReporter({
+          apiKey: process.env.STABLY_API_KEY,
+          projectId: process.env.STABLY_PROJECT_ID,
+        })]
+      : []),
   ],
   // globalSetup: './tests/global-setup.js', // Disabled - use test-level auth
   use: {

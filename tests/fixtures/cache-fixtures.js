@@ -1,6 +1,5 @@
 import { test as base } from '@playwright/test';
 import { createCacheUtils } from '../utils/cache-utils.js';
-import { PopupHandler } from '../utils/popup-handler.js';
 
 /**
  * Extended test fixture with cache clearing and automatic popup handling.
@@ -24,13 +23,7 @@ export const test = base.extend({
     const cacheUtils = createCacheUtils(page);
     await cacheUtils.clearAllCache();
     console.log('🧹 Auto cache clearing completed before test');
-
-    const popupHandler = new PopupHandler(page);
-    popupHandler.start();
-
     await use();
-
-    popupHandler.stop();
   },
 });
 
