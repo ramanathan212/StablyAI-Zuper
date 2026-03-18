@@ -69,8 +69,8 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      grep: /(Parts & Services Settings Enable options toggle in Parts & Services General Settings)$/i,
-      testMatch: ['enable-options-toggle.spec.js'],
+      grep: /(Quick Create Deployment Check - March 4 Create new job with quick create organization, contact, and property)$/i,
+      testMatch: ['quick-create-deployment-check.spec.js'],
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: {
