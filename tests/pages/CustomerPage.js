@@ -82,10 +82,52 @@ export class CustomerPage {
   }
 
   /**
+   * Dismiss all overlays, modals, and backdrops that may block interaction
+   */
+  async dismissAllOverlays() {
+    // Dismiss "Trial Period Ending Soon" modal
+    try {
+      const trialModal = this.page.locator('text=Trial Period Ending Soon');
+      if (await trialModal.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await this.page.keyboard.press('Escape');
+        await this.page.waitForTimeout(500);
+        console.log('✓ Trial period modal dismissed');
+      }
+    } catch (_) {}
+
+    // Dismiss notification dialog
+    try {
+      const noThanksBtn = this.page.getByRole('button', { name: 'No, thanks' });
+      if (await noThanksBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await noThanksBtn.click();
+        await this.page.waitForTimeout(500);
+        console.log('✓ Notification dialog dismissed');
+      }
+    } catch (_) {}
+
+    // Dismiss CDK overlay backdrops by clicking them
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await backdrop.click({ force: true });
+        await this.page.waitForTimeout(500);
+      }
+    } catch (_) {}
+
+    // Final Escape to close any remaining modals
+    await this.page.keyboard.press('Escape');
+    await this.page.waitForTimeout(300);
+  }
+
+  /**
    * Navigate to Contacts page
    */
   async navigateToContacts() {
     await this.customerOrgNavigationButton.waitFor({ state: 'visible', timeout: 20000 });
+
+    // Dismiss any remaining overlays before clicking navigation
+    await this.dismissAllOverlays();
+
     await this.customerOrgNavigationButton.click();
     await this.contactsLink.waitFor({ state: 'visible', timeout: 20000 });
     await this.contactsLink.click();
@@ -220,12 +262,15 @@ export class CustomerPage {
    * Save the contact/customer
    */
   async saveContact() {
-    // Scroll to save button and click
+    // Scroll to top and wait for page to stabilize before saving
+    await this.page.evaluate(() => window.scrollTo(0, 0));
     await this.page.waitForLoadState('load');
     await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    await this.page.waitForTimeout(1000);
 
     // Wait for the save contact link to be visible and clickable
     await this.saveContactLink.waitFor({ state: 'visible', timeout: 10000 });
+    await this.saveContactLink.scrollIntoViewIfNeeded();
     await this.saveContactLink.click();
     console.log('✓ Clicked Save Contact Link Button');
 

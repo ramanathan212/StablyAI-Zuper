@@ -22,7 +22,7 @@ export class JobPage {
     this.clickCategoryButton = page.getByText('Choose a Job Category', { exact: true });
     this.categoryOption = page.getByText('Installation Services', { exact: true });   
     this.customFieldTextInput = page.getByRole('textbox', { name: 'Text Input *' });
-    this.createBtn = page.locator('button:has-text("Create")');
+    this.createBtn = page.getByRole('button', { name: 'Create', exact: true });
     this.lineItemsButton = page.getByRole('button', { name: 'Line Items' });
   }
 
@@ -34,9 +34,27 @@ export class JobPage {
       return;
     }
 
-    // Wait for page to stabilize
-    await this.page.waitForLoadState('networkidle');
+    // Wait for page to stabilize (use timeout to avoid hanging on persistent connections)
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     await this.page.waitForTimeout(1000);
+
+    // Dismiss any overlays that might block navigation
+    await this.page.keyboard.press('Escape');
+    await this.page.waitForTimeout(300);
+    try {
+      const noThanksBtn = this.page.getByRole('button', { name: 'No, thanks' });
+      if (await noThanksBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await noThanksBtn.click();
+        await this.page.waitForTimeout(500);
+      }
+    } catch (_) {}
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await backdrop.click({ force: true });
+        await this.page.waitForTimeout(500);
+      }
+    } catch (_) {}
 
     // Try clicking the Jobs Group menu first
     try {
@@ -47,20 +65,20 @@ export class JobPage {
       // Click the Jobs link
       await this.jobsLink.waitFor({ state: 'visible', timeout: 10000 });
       await this.jobsLink.click();
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
       console.log('✓ Navigated to Jobs page via sidebar');
     } catch (error) {
       console.log('Sidebar navigation failed, trying direct URL...');
       // Fallback: Navigate directly to jobs URL
       await this.page.goto('/jobs');
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
       console.log('✓ Navigated to Jobs page via URL');
     }
   }
 
   async searchJob(jobSearchText) {
     // Wait for page to fully load
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     await this.page.waitForTimeout(1000);
 
     // Clear any existing search first
@@ -80,7 +98,7 @@ export class JobPage {
     await this.searchInput.clear();
     await this.searchInput.fill(jobSearchText);
     await this.searchInput.press('Enter');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     await this.page.waitForTimeout(2000);
   }
 
@@ -88,7 +106,7 @@ export class JobPage {
     const jobLink = this.page.getByRole('link', { name: jobNumber });
     await jobLink.waitFor({ state: 'visible', timeout: 10000 });
     await jobLink.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
   }
 
   async cloneJob() {
@@ -96,7 +114,7 @@ export class JobPage {
     await this.moreActionsLink.click();
     await this.cloneJobMenuItem.waitFor({ state: 'visible', timeout: 10000 });
     await this.cloneJobMenuItem.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
   }
 
   async assignUser(userName) {
@@ -122,7 +140,7 @@ export class JobPage {
 
     await this.saveButton.waitFor({ state: 'visible', timeout: 10000 });
     await this.saveButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
   }
 
   async createClonedJob() {
@@ -131,15 +149,26 @@ export class JobPage {
 
     await this.createButton.waitFor({ state: 'visible', timeout: 10000 });
     await this.createButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
     console.log('✓ Job cloned successfully');
   }
 
   async clickNewJob() {
     await this.newJobButton.waitFor({ state: 'visible', timeout: 10000 });
-    await this.newJobButton.click();
-    await this.page.waitForLoadState('networkidle');
+
+    // Use Promise.all to wait for navigation and click simultaneously
+    await Promise.all([
+      this.page.waitForURL('**/jobs/new', { timeout: 30000 }),
+      this.newJobButton.click(),
+    ]);
+
+    // Wait for the form to render
+    await this.jobTitleInput.waitFor({ state: 'visible', timeout: 30000 });
+
+    // Wait for network requests carrying category data to finish
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    await this.page.waitForTimeout(2000);
   }
 
   async fillJobBasicInfo(jobData) {
@@ -192,7 +221,7 @@ export class JobPage {
 
     await this.chooseOrganizationButton.waitFor({ state: 'visible', timeout: 10000 });
     await this.chooseOrganizationButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
   }
 
   async addLineItems(products) {
@@ -226,7 +255,7 @@ export class JobPage {
     const addProductButton = this.page.getByRole('button', { name: 'Add Product' });
     await addProductButton.waitFor({ state: 'visible', timeout: 10000 });
     await addProductButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
   }
 
   async fillCustomFields(customFieldValue) {
@@ -238,7 +267,7 @@ export class JobPage {
 
   async createJob() {
     // Wait for page to stabilize before creating job
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     await this.page.waitForTimeout(1500);
 
     // Multiple strategies to find and click the Create Job button (based on ChroPath analysis)
@@ -285,7 +314,7 @@ export class JobPage {
     console.log('✓ Clicked Create button (text locator)');
 
     // Wait for page to load after creating job
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     await this.page.waitForTimeout(2000);
 
     console.log('✓ Job created successfully');
@@ -362,7 +391,7 @@ export class JobPage {
     const addButton = this.page.getByRole('button', { name: 'Add' });
     await addButton.waitFor({ state: 'visible', timeout: 10000 });
     await addButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
     console.log('✓ Material request initiated from job');
   }
@@ -414,7 +443,7 @@ export class JobPage {
     const updateButton = this.page.getByRole('button', { name: 'Update', exact: true });
     await updateButton.waitFor({ state: 'visible', timeout: 10000 });
     await updateButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
     console.log(`✓ Job status updated to ${newStatus}`);
   }

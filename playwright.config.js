@@ -89,6 +89,27 @@ export default defineConfig({
       },
     },
     {
+      name: 'chromium-default',
+      testMatch: [
+        'create-customer.spec.js',
+        'create-org.spec.js',
+        'create-job-mr-po-workflow.spec.js',
+      ],
+      use: {
+        ...devices['Desktop Chrome'],
+        // Override base config to avoid aggressive cache/service worker blocking
+        // which prevents API data (like job categories) from loading
+        launchOptions: {
+          args: [
+            '--disable-blink-features=AutomationControlled',
+          ]
+        },
+        contextOptions: {
+          serviceWorkers: 'allow',
+        },
+      },
+    },
+    {
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
