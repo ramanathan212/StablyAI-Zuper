@@ -41,9 +41,42 @@ export class LoginPage {
   }
 
   async dismissOnboarding() {
+    // Dismiss "Trial Period Ending Soon" modal if present
+    try {
+      const trialCloseBtn = this.page.locator('button').filter({ has: this.page.locator('i, em') }).first();
+      const trialModal = this.page.locator('text=Trial Period Ending Soon');
+      if (await trialModal.isVisible({ timeout: 3000 }).catch(() => false)) {
+        // Click the X close button on the trial modal
+        const closeBtn = this.page.locator('.modal-close, [class*="close"], button:near(:text("Trial Period Ending Soon"))').first();
+        if (await closeBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await closeBtn.click();
+        } else {
+          // Fallback: press Escape to close
+          await this.page.keyboard.press('Escape');
+        }
+        await this.page.waitForTimeout(500);
+        console.log('✓ Trial period modal dismissed');
+      }
+    } catch (_) {}
+
+    // Dismiss notification permission dialog ("No, thanks" / "Allow")
     const noThanksButton = this.page.getByRole('button', { name: 'No, thanks' });
     if (await noThanksButton.isVisible({ timeout: 5000 }).catch(() => false)) {
       await noThanksButton.click();
+      await this.page.waitForTimeout(500);
     }
+
+    // Dismiss any remaining CDK overlay backdrops
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await backdrop.click({ force: true });
+        await this.page.waitForTimeout(500);
+      }
+    } catch (_) {}
+
+    // Final Escape press to close any remaining modals
+    await this.page.keyboard.press('Escape');
+    await this.page.waitForTimeout(300);
   }
 }

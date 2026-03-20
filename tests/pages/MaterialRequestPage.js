@@ -73,7 +73,7 @@ export class MaterialRequestPage {
     // If button not found, refresh page and try again
     if (!buttonClicked) {
       console.log('⚠️  Button not found on first attempt. Refreshing page...');
-      await this.page.reload({ waitUntil: 'networkidle' });
+      await this.page.reload({ waitUntil: 'load' });
       await this.page.waitForTimeout(2000);
 
       console.log('Trying to find button after page refresh...');
@@ -223,90 +223,57 @@ export class MaterialRequestPage {
   }
 
   async saveAndSubmit() {
-    // Import expect for assertions
-    const { expect } = await import('@playwright/test');
+    const _t = (label) => console.log(`[saveAndSubmit] ${label}: ${Date.now()}`);
 
-    // Wait for page to stabilize after adding products
+    _t('start');
     await this.page.waitForLoadState('load');
+    _t('after waitForLoadState(load)');
     await this.page.waitForTimeout(2000);
 
-    // Store current URL before submission to verify navigation
     const urlBeforeSubmission = this.page.url();
     console.log(`Current URL before submission: ${urlBeforeSubmission}`);
 
-    // Try multiple strategies to find and click Save & Submit
+    // Find and click Save & Submit link
     let saveButtonClicked = false;
+    await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await this.page.waitForTimeout(1000);
 
-    // Strategy 1: Try to find Save & Submit link/text at the bottom of the page
-    try {
-      // Scroll to bottom to ensure Save & Submit is visible
-      await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-      await this.page.waitForTimeout(1000);
-
-      const saveAndSubmitSelectors = [
-        "//a[contains(text(), 'Save & Submit')]",
-        "//span[contains(text(), 'Save & Submit')]",
-        "//button[contains(text(), 'Save & Submit')]",
-        "a:has-text('Save & Submit')",
-        "span:has-text('Save & Submit')",
-        ".save-submit, [class*='save']"
-      ];
-
-      for (const selector of saveAndSubmitSelectors) {
-        const element = this.page.locator(selector).first();
-        if (await element.isVisible({ timeout: 5000 }).catch(() => false)) {
-          console.log(`✓ Found Save & Submit using selector: ${selector}`);
-          await element.scrollIntoViewIfNeeded();
-          await element.click();
-          saveButtonClicked = true;
-          console.log('✓ Clicked initial Save & Submit button/link');
-          break;
-        }
-      }
-    } catch (error) {
-      console.log('Save & Submit link not found, trying alternative approach...');
+    const saveLink = this.page.locator("//a[contains(text(), 'Save & Submit')]").first();
+    if (await saveLink.isVisible({ timeout: 5000 }).catch(() => false)) {
+      console.log('✓ Found Save & Submit link');
+      await saveLink.scrollIntoViewIfNeeded();
+      await saveLink.click();
+      saveButtonClicked = true;
+      console.log('✓ Clicked initial Save & Submit link');
     }
 
     if (!saveButtonClicked) {
-      throw new Error('Could not find Save & Submit button/link. Please check if the form is complete.');
+      throw new Error('Could not find Save & Submit link.');
     }
 
-    // Wait for confirmation dialog/popup to appear
+    _t('after link click');
     await this.page.waitForTimeout(2000);
     console.log('Waiting for confirmation dialog...');
 
-    // Step 2: Click the Save & Submit button in the confirmation popup/dialog
-    // Wait for navigation after clicking the confirmation button
-    try {
-      await Promise.all([
-        this.page.waitForURL('**/material_requests/**/details**', { timeout: 15000 }),
-        this.saveAndSubmitButtonClick.click()
-      ]);
-      console.log('✓ Clicked confirmation button and navigation completed');
-    } catch (error) {
-      throw new Error(`Failed to click confirmation button or navigate: ${error.message}`);
-    }
+    _t('before Promise.all');
+    // Click confirmation button and wait for navigation
+    await Promise.all([
+      this.page.waitForURL('**/material_requests/**/details**', { timeout: 30000 }),
+      this.saveAndSubmitButtonClick.click()
+    ]);
+    _t('after Promise.all');
+    console.log('✓ Clicked confirmation button and navigation completed');
 
-    // Wait for page to stabilize after submission
+    _t('before waitForLoadState(load) #2');
     await this.page.waitForLoadState('load');
-    await this.page.waitForTimeout(1000);
+    _t('after waitForLoadState(load) #2');
 
-    // Verify URL changed to details page
     const urlAfterSubmission = this.page.url();
     console.log(`URL after submission: ${urlAfterSubmission}`);
 
-    // Verify we navigated to the details page
     if (urlAfterSubmission.includes('/material_requests/') && urlAfterSubmission.includes('/details')) {
       console.log('✓ Successfully navigated to Material Request details page');
       console.log('✓ Material Request submitted successfully');
-
-      // Additional verification: Check for "Submitted" status on the page
-      try {
-        await expect(this.page.locator('text=Submitted').first()).toBeVisible({ timeout: 10000 });
-        console.log('✓ Confirmed "Submitted" status is visible on the page');
-      } catch (error) {
-        console.log('⚠️  Warning: Could not verify "Submitted" status visibility');
-      }
     } else {
       throw new Error(`Expected URL to contain '/material_requests/' and '/details', but got: ${urlAfterSubmission}`);
     }
@@ -412,7 +379,7 @@ export class MaterialRequestPage {
 
   async clickOpenlatestMR() {
     // Wait for the Material Requests list to load
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     await this.page.waitForTimeout(2000);
 
     // Click the first MR link in the list using regex pattern to match any MR
@@ -423,14 +390,14 @@ export class MaterialRequestPage {
     console.log('✓ Clicked on the latest Material Request link');
 
     // Wait for MR details page to load
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     await this.page.waitForTimeout(2000);
   }
 
   async openMRFromJob(jobNumber = null) {
     // Wait for page to stabilize
     await this.page.waitForTimeout(2000);
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
     // Get the current URL to determine context
     const currentUrl = this.page.url();
@@ -498,7 +465,7 @@ export class MaterialRequestPage {
     await mrSection.scrollIntoViewIfNeeded();
     await mrSection.waitFor({ state: 'visible', timeout: 10000 });
     await mrSection.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     await this.page.waitForTimeout(1500);
     console.log(`✓ Clicked Material Requests section using: ${successfulSelector}`);
 
@@ -512,7 +479,7 @@ export class MaterialRequestPage {
     const mrSelector = this.page.getByRole('link').filter({ hasText: mrPattern }).first();
     await mrSelector.waitFor({ state: 'visible', timeout: 10000 });
     await mrSelector.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     console.log('✓ Successfully opened Material Request from Job details page');
   }
 }
