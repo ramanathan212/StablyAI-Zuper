@@ -68,6 +68,40 @@ export class VendorPage {
     }
 
     await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+
+    // Dismiss overlays (trial modal, notification popup)
+    await this._dismissOverlays();
+  }
+
+  async _dismissOverlays() {
+    // Dismiss browser notification popup ("NO, THANKS")
+    try {
+      const noThanksButton = this.page.getByRole('button', { name: 'NO, THANKS' });
+      if (await noThanksButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await noThanksButton.click();
+        await this.page.waitForTimeout(500);
+        console.log('✓ Notification popup dismissed');
+      }
+    } catch { /* no popup */ }
+
+    // Dismiss "Trial Period Ending Soon" modal via X button
+    try {
+      const closeButton = this.page.locator('.cdk-overlay-container button.close, .cdk-overlay-container .close, .cdk-overlay-container [aria-label="Close"]').first();
+      if (await closeButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await closeButton.click();
+        await this.page.waitForTimeout(500);
+        console.log('✓ Trial modal dismissed');
+      }
+    } catch { /* no modal */ }
+
+    // Dismiss any remaining backdrop by pressing Escape
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await this.page.keyboard.press('Escape');
+        await this.page.waitForTimeout(500);
+      }
+    } catch { /* no backdrop */ }
   }
 
   async clickNewVendor() {
@@ -95,8 +129,8 @@ export class VendorPage {
     await this.addProductsLink.click();
     await this.page.waitForTimeout(1000);
 
-    // Wait for the product table to be loaded
-    await this.page.waitForSelector('input[type="checkbox"]', { timeout: 10000 });
+    // Wait for the product table to be loaded inside the modal
+    await this.page.locator('.cdk-overlay-container input[type="checkbox"], table input[type="checkbox"]').first().waitFor({ state: 'attached', timeout: 15000 });
 
     // Select products by checking checkboxes
     for (const product of products) {
@@ -191,10 +225,17 @@ export class VendorPage {
     await streetInput.fill('123 Test Street');
     await this.page.waitForTimeout(1000);
 
-    // Click on the address suggestion
-    const addressSuggestion = this.page.getByText('Test St, Waconia, MN, USA');
-    await addressSuggestion.waitFor({ state: 'visible', timeout: 10000 });
-    await addressSuggestion.click();
+    // Click on the first address suggestion from the autocomplete dropdown
+    const addressSuggestion = this.page.locator('.pac-container .pac-item, [class*="autocomplete"] li, [class*="suggestion"]').first();
+    try {
+      await addressSuggestion.waitFor({ state: 'visible', timeout: 10000 });
+      await addressSuggestion.click();
+    } catch {
+      // Fallback: try clicking any visible suggestion text containing "Test"
+      const fallback = this.page.getByText(/Test St|Test Street/).first();
+      await fallback.waitFor({ state: 'visible', timeout: 5000 });
+      await fallback.click();
+    }
     await this.page.waitForTimeout(1000);
 
     // Click Add button

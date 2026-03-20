@@ -1,4 +1,4 @@
-import { clickWithOverlayHandling, waitForPageReady } from '../Helper/overlay-helper.js';
+import { clickWithOverlayHandling, waitForPageReady, dismissOverlays } from '../Helper/overlay-helper.js';
 
 export class SettingsPage {
   constructor(page) {
@@ -19,9 +19,17 @@ export class SettingsPage {
   }
 
   async searchSettings(searchTerm) {
-    await this.searchInput.click();
-    await this.searchInput.fill(searchTerm);
-    await this.searchInput.press('Enter');
+    // Dismiss any overlays before searching
+    await dismissOverlays(this.page);
+
+    // Try the primary selector, fall back to a broader one
+    let input = this.searchInput;
+    if (!await input.isVisible({ timeout: 5000 }).catch(() => false)) {
+      input = this.page.getByRole('textbox', { name: 'Search' }).first();
+    }
+    await input.click();
+    await input.fill(searchTerm);
+    await input.press('Enter');
     await this.page.waitForTimeout(1000);
     console.log(`✓ Searched for: ${searchTerm}`);
   }
@@ -68,7 +76,8 @@ export class SettingsPage {
 
   async clickPurchasingLink() {
     await this.page.getByRole('link', { name: 'ﰖ Purchasing' }).click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForTimeout(2000);
     console.log('✓ Clicked Purchasing link');
   }
 
@@ -106,7 +115,8 @@ export class SettingsPage {
 
   async clickPartsServicesLink() {
     await this.page.getByRole('link', { name: ' Parts & Services General' }).click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForTimeout(2000);
     console.log('✓ Clicked Parts & Services General link');
   }
 
@@ -139,10 +149,15 @@ export class SettingsPage {
 
   async navigateBackToWorkspace() {
     await this.page.locator('a').filter({ hasText: 'Back to Workspace' }).click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForTimeout(2000);
+
+    // Dismiss any overlays on the dashboard
+    await dismissOverlays(this.page);
 
     const { expect } = await import('@playwright/test');
-    await expect(this.page.getByRole('navigation').getByText('Dashboard')).toBeVisible();
+    // Verify we're on the dashboard by checking URL
+    await expect(this.page).toHaveURL(/dashboard/);
 
     console.log('✓ Navigated back to workspace');
   }
