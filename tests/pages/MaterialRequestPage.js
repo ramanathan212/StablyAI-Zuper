@@ -105,7 +105,41 @@ export class MaterialRequestPage {
     console.log('✓ Successfully on New Material Request page');
   }
 
+  async _dismissOverlays() {
+    // Dismiss browser notification popup ("NO, THANKS")
+    try {
+      const noThanksButton = this.page.getByRole('button', { name: 'NO, THANKS' });
+      if (await noThanksButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await noThanksButton.click();
+        await this.page.waitForTimeout(500);
+        console.log('✓ Notification popup dismissed');
+      }
+    } catch { /* no popup */ }
+
+    // Dismiss "Trial Period Ending Soon" modal via X button
+    try {
+      const closeButton = this.page.locator('.cdk-overlay-container button.close, .cdk-overlay-container .close, .cdk-overlay-container [aria-label="Close"]').first();
+      if (await closeButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await closeButton.click();
+        await this.page.waitForTimeout(500);
+        console.log('✓ Trial modal dismissed');
+      }
+    } catch { /* no modal */ }
+
+    // Dismiss any remaining backdrop by pressing Escape
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await this.page.keyboard.press('Escape');
+        await this.page.waitForTimeout(500);
+      }
+    } catch { /* no backdrop */ }
+  }
+
   async fillMRBasicInfo(mrData) {
+    // Dismiss any overlays before interacting with the form
+    await this._dismissOverlays();
+
     await this.titleInput.click();
     await this.titleInput.fill(mrData.title);
 
@@ -315,8 +349,14 @@ export class MaterialRequestPage {
     await this.page.waitForLoadState('load');
     await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     await this.page.waitForTimeout(2000);
-    // Click the button to start PO creation
-    await this.page.getByRole('button').nth(4).click();
+
+    // Dismiss any overlays first
+    await this._dismissOverlays();
+
+    // Click "Convert to Purchase Order" link/button
+    const convertButton = this.page.locator('a, button').filter({ hasText: /Convert to Purchase Order/i }).first();
+    await convertButton.waitFor({ state: 'visible', timeout: 10000 });
+    await convertButton.click();
     await this.page.waitForTimeout(1000);
 
     // Check first checkbox

@@ -24,6 +24,25 @@ export class PurchaseOrderPage {
         console.log('✓ Dismissed notification dialog');
       }
     } catch (_) {}
+
+    // Dismiss "Trial Period Ending Soon" modal via X button
+    try {
+      const closeButton = this.page.locator('.cdk-overlay-container button.close, .cdk-overlay-container .close, .cdk-overlay-container [aria-label="Close"]').first();
+      if (await closeButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await closeButton.click();
+        await this.page.waitForTimeout(500);
+        console.log('✓ Trial modal dismissed');
+      }
+    } catch (_) {}
+
+    // Dismiss any remaining backdrop by pressing Escape
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await this.page.keyboard.press('Escape');
+        await this.page.waitForTimeout(500);
+      }
+    } catch (_) {}
   }
 
   async markAsSubmitted() {

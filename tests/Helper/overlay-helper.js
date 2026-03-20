@@ -35,8 +35,9 @@ export async function clickWithOverlayHandling(locator, options = {}) {
       // Wait for the element to be visible and stable
       await locator.waitFor({ state: 'visible', timeout: 10000 });
 
-      // Check if any overlay is blocking
+      // Dismiss any overlays that may be blocking
       const page = locator.page();
+      await dismissOverlays(page);
       await waitForOverlayToDisappear(page, 2000);
 
       // Attempt the click with force option on final attempt
@@ -72,7 +73,8 @@ export async function waitForPageReady(page) {
     await page.waitForLoadState('domcontentloaded');
   }
 
-  // Wait for any overlays to disappear
+  // Dismiss any overlays and wait for them to disappear
+  await dismissOverlays(page);
   await waitForOverlayToDisappear(page);
 
   // Wait for common loading indicators to disappear
@@ -93,13 +95,56 @@ export async function waitForPageReady(page) {
  * @param {import('@playwright/test').Page} page - Playwright page object
  */
 export async function dismissOverlays(page) {
+  // Dismiss browser notification popup ("NO, THANKS")
   try {
-    // Try to close any visible dialogs by clicking backdrop
-    const backdrop = page.locator('.cdk-overlay-backdrop');
-    if (await backdrop.isVisible()) {
-      await backdrop.click({ force: true });
+    const noThanksButton = page.getByRole('button', { name: /NO,?\s*THANKS/i });
+    if (await noThanksButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await noThanksButton.click();
       await page.waitForTimeout(500);
-      console.log('✓ Dismissed overlay');
+      console.log('✓ Dismissed notification popup');
+    }
+  } catch { /* no popup */ }
+
+  // Dismiss "Trial Period Ending Soon" or similar modal via X/close button
+  try {
+    // Try multiple selectors for the close button
+    const closeSelectors = [
+      '.cdk-overlay-container button.close',
+      '.cdk-overlay-container .close',
+      '.cdk-overlay-container [aria-label="Close"]',
+      '.cdk-overlay-container [class*="close"]',
+      'button.close',
+      '[class*="modal"] button.close',
+      '[class*="modal"] .close',
+    ];
+    for (const sel of closeSelectors) {
+      const btn = page.locator(sel).first();
+      if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await btn.click({ force: true });
+        await page.waitForTimeout(500);
+        console.log(`✓ Dismissed modal via ${sel}`);
+        break;
+      }
+    }
+  } catch { /* no modal */ }
+
+  // Try pressing Escape as final fallback for any modal
+  try {
+    const overlay = page.locator('.cdk-overlay-pane').first();
+    if (await overlay.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+      console.log('✓ Dismissed modal via Escape');
+    }
+  } catch { /* no overlay pane */ }
+
+  // Dismiss any remaining overlay backdrop
+  try {
+    const backdrop = page.locator('.cdk-overlay-backdrop');
+    if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+      console.log('✓ Dismissed overlay via Escape');
     }
   } catch {
     // No overlay to dismiss

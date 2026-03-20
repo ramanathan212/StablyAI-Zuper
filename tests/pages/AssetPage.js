@@ -16,9 +16,37 @@ export class AssetPage {
     this.saveAssetLink = page.locator('a').filter({ hasText: 'Save Asset' });
   }
 
+  async dismissOverlays() {
+    // Dismiss "Trial Period Ending Soon" or any modal with X button
+    try {
+      const closeButton = this.page.locator('.cdk-overlay-container button.close, .cdk-overlay-container .close, .cdk-overlay-container [aria-label="Close"]').first();
+      await closeButton.waitFor({ state: 'visible', timeout: 5000 });
+      await closeButton.click();
+      await this.page.waitForTimeout(500);
+      console.log('✓ Dismissed overlay modal');
+    } catch {
+      // No modal to dismiss
+    }
+
+    // Dismiss any remaining backdrop by pressing Escape
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await this.page.keyboard.press('Escape');
+        await this.page.waitForTimeout(500);
+      }
+    } catch {
+      // No backdrop
+    }
+  }
+
   async navigateToAssets() {
     await this.page.goto('https://uat.zuperpro.com/dashboard');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForTimeout(3000);
+
+    // Dismiss any overlays/modals before interacting
+    await this.dismissOverlays();
 
     // Click assets menu icon
     await this.assetsMenuIcon.click();
@@ -26,7 +54,8 @@ export class AssetPage {
 
     // Click Assets link
     await this.assetsLink.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForTimeout(2000);
 
     console.log('✓ Navigated to Assets page');
   }
@@ -43,7 +72,8 @@ export class AssetPage {
 
   async clickNewAsset() {
     await this.newAssetButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForTimeout(2000);
 
     const { expect } = await import('@playwright/test');
     await expect(this.page.getByRole('link', { name: 'Assets' })).toBeVisible();
@@ -120,7 +150,7 @@ export class AssetPage {
 
   async saveAsset() {
     await this.saveAssetLink.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForTimeout(2000);
 
     console.log('✓ Asset saved successfully');
