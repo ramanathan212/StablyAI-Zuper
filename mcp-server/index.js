@@ -233,7 +233,7 @@ class ZuperPlaywrightMCPServer {
       command += ` ${testFile}`;
     }
 
-    command += ` --config=playwright.${config}.config.js`;
+    command += ` --config=playwright.${config}.config.ts`;
 
     if (headed) {
       command += ' --headed';

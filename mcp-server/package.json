@@ -8,8 +8,8 @@
   },
   "scripts": {
     "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "npx playwright test --config=playwright.unit.config.js",
-    "test:e2e": "npx playwright test --config=playwright.e2e.config.js",
+    "test:unit": "npx playwright test --config=playwright.unit.config.ts",
+    "test:e2e": "npx playwright test --config=playwright.e2e.config.ts",
     "test:playwright": "npx playwright test",
     "create-jobs": "node tests/create-bulk-jobs.js",
     "create-jobs-custom": "node tests/create-bulk-jobs-custom.js",

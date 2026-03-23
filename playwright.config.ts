@@ -135,5 +135,12 @@ export default defineConfig({
         },
       },
     },
+    {
+      name: 'Zuper Sense Testing',
+      grep: /.^/,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
   ],
 });

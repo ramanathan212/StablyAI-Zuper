@@ -1,15 +1,14 @@
 {
   "name": "playwrite-automation",
   "version": "1.0.0",
-  "type": "module",
   "main": "index.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
     "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "npx playwright test --config=playwright.unit.config.js",
-    "test:e2e": "npx playwright test --config=playwright.config.js",
+    "test:unit": "npx playwright test --config=playwright.unit.config.ts",
+    "test:e2e": "npx playwright test --config=playwright.config.ts",
     "test:playwright": "npx playwright test",
     "test:clean": "npm run clear-cache && npx playwright test",
     "test:fresh": "npm run clear-cache -- --auth && npx playwright test",
@@ -22,11 +21,11 @@
     "create-jobs": "node tests/create-bulk-jobs.js",
     "create-jobs-custom": "node tests/create-bulk-jobs-custom.js",
     "fetch-template": "node tests/utils/fetch-job-template.js",
-    "monitor": "node tests/utils/code-monitor-agent.js",
-    "monitor:watch": "node tests/utils/code-monitor-agent.js --watch",
-    "monitor:report": "node tests/utils/generate-report.js",
-    "clear-cache": "node scripts/clear-cache.js",
-    "clear-cache:all": "node scripts/clear-cache.js --all"
+    "monitor": "node tests/utils/code-monitor-agent.mjs",
+    "monitor:watch": "node tests/utils/code-monitor-agent.mjs --watch",
+    "monitor:report": "node tests/utils/generate-report.mjs",
+    "clear-cache": "node scripts/clear-cache.mjs",
+    "clear-cache:all": "node scripts/clear-cache.mjs --all"
   },
   "keywords": [],
   "author": "",
