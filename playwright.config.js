@@ -135,5 +135,12 @@ export default defineConfig({
         },
       },
     },
+    {
+      name: 'Dev V3 Feature testing',
+      grep: /.^/,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
   ],
 });
