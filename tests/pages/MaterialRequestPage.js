@@ -19,12 +19,12 @@ export class MaterialRequestPage {
   async navigateToMaterialRequests() {
     // Direct navigation to material requests page
     await this.page.goto('/material_requests');
-    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
   }
 
   async clickNewMaterialRequest() {
-    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForTimeout(2000);
 
     // Helper function to try finding and clicking the button
@@ -86,7 +86,7 @@ export class MaterialRequestPage {
       const currentUrl = this.page.url();
       const baseUrl = currentUrl.split('/material_requests')[0];
       await this.page.goto(`${baseUrl}/material_requests/new`);
-      await this.page.waitForLoadState('load');
+      await this.page.waitForLoadState('domcontentloaded');
       await this.page.waitForTimeout(2000);
 
       // Check if we successfully landed on the new MR page
@@ -101,7 +101,7 @@ export class MaterialRequestPage {
       throw new Error('Could not find or navigate to New Material Request page after multiple attempts. Please check if you have permission to create Material Requests.');
     }
 
-    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('domcontentloaded');
     console.log('✓ Successfully on New Material Request page');
   }
 
@@ -208,7 +208,7 @@ export class MaterialRequestPage {
     await searchInput.press('Enter');
 
     // Wait for search results to load
-    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForTimeout(2000);
 
     // Wait for results and select the job
@@ -251,62 +251,45 @@ export class MaterialRequestPage {
     await this.addButton.click();
 
     // Wait for the modal to close and page to stabilize
-    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     await this.page.waitForTimeout(3000);
   }
 
   async saveAndSubmit() {
-    const _t = (label) => console.log(`[saveAndSubmit] ${label}: ${Date.now()}`);
-
-    _t('start');
-    await this.page.waitForLoadState('load');
-    _t('after waitForLoadState(load)');
+    await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForTimeout(2000);
 
-    const urlBeforeSubmission = this.page.url();
-    console.log(`Current URL before submission: ${urlBeforeSubmission}`);
+    console.log(`Current URL before submission: ${this.page.url()}`);
 
     // Find and click Save & Submit link
-    let saveButtonClicked = false;
     await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await this.page.waitForTimeout(1000);
 
     const saveLink = this.page.locator("//a[contains(text(), 'Save & Submit')]").first();
-    if (await saveLink.isVisible({ timeout: 5000 }).catch(() => false)) {
-      console.log('✓ Found Save & Submit link');
-      await saveLink.scrollIntoViewIfNeeded();
-      await saveLink.click();
-      saveButtonClicked = true;
-      console.log('✓ Clicked initial Save & Submit link');
-    }
-
-    if (!saveButtonClicked) {
+    if (!(await saveLink.isVisible({ timeout: 5000 }).catch(() => false))) {
       throw new Error('Could not find Save & Submit link.');
     }
+    await saveLink.scrollIntoViewIfNeeded();
+    await saveLink.click();
+    console.log('✓ Clicked Save & Submit link');
 
-    _t('after link click');
     await this.page.waitForTimeout(2000);
-    console.log('Waiting for confirmation dialog...');
 
-    _t('before Promise.all');
-    // Click confirmation button and wait for navigation
-    await Promise.all([
-      this.page.waitForURL('**/material_requests/**/details**', { timeout: 30000 }),
-      this.saveAndSubmitButtonClick.click()
-    ]);
-    _t('after Promise.all');
-    console.log('✓ Clicked confirmation button and navigation completed');
+    // Click confirmation button and wait for URL change (use 'commit' to avoid
+    // waiting for load event which never fires on Angular SPA persistent connections)
+    await this.saveAndSubmitButtonClick.click();
+    await this.page.waitForURL('**/material_requests/**/details**', { waitUntil: 'commit', timeout: 30000 });
+    console.log('✓ Confirmation clicked and navigation completed');
 
-    _t('before waitForLoadState(load) #2');
-    await this.page.waitForLoadState('load');
-    _t('after waitForLoadState(load) #2');
+    // Wait for content to render (don't use waitForLoadState('load') — Angular's
+    // persistent connections prevent the load event from firing)
+    await this.page.waitForTimeout(3000);
 
     const urlAfterSubmission = this.page.url();
     console.log(`URL after submission: ${urlAfterSubmission}`);
 
     if (urlAfterSubmission.includes('/material_requests/') && urlAfterSubmission.includes('/details')) {
-      console.log('✓ Successfully navigated to Material Request details page');
       console.log('✓ Material Request submitted successfully');
     } else {
       throw new Error(`Expected URL to contain '/material_requests/' and '/details', but got: ${urlAfterSubmission}`);
@@ -346,7 +329,7 @@ export class MaterialRequestPage {
 
   async createPOFromMR(vendorName) {
       // Wait for page to fully load before starting PO creation
-    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     await this.page.waitForTimeout(2000);
 
@@ -380,7 +363,7 @@ export class MaterialRequestPage {
 
     // Click Create Purchase Order button
     await this.page.getByRole('button', { name: 'Create Purchase Order' }).click();
-    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
     // Click Purchase Orders to view created PO
@@ -407,7 +390,7 @@ export class MaterialRequestPage {
       return page1;
     }
 
-    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     return this.page;
   }
