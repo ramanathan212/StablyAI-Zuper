@@ -28,3 +28,11 @@ tests/.auth/
 # Environment variables
 .env
 .env.local
+.env.*
+.stably-agent.env
+
+# Stably
+.stably-playwright-wrapper.config.*
+.stably-browser-run-test-*.config.*
+.stably/*
+!.stably/docs/

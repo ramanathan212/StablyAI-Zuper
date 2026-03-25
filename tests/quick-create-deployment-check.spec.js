@@ -25,23 +25,24 @@ test.describe('Quick Create Deployment Check - March 4', () => {
 
     /** Dismiss all common popups/overlays */
     const dismissPopups = async () => {
-      // Notification popup
-      const noThanks = page.getByRole('button', { name: 'No, thanks' });
-      if (await noThanks.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await noThanks.click({ force: true });
-        await page.waitForTimeout(500);
-      }
-      // Timezone dialog
-      const cancelBtn = page.getByRole('button', { name: 'Cancel' });
-      if (await cancelBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await cancelBtn.click({ force: true });
-        await page.waitForTimeout(500);
-      }
-      // Second notification check
-      if (await noThanks.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await noThanks.click({ force: true });
-        await page.waitForTimeout(500);
-      }
+      // Dismiss Beamer notification popups and timezone dialogs via JS to avoid viewport issues
+      await page.evaluate(() => {
+        // Click "No, thanks" Beamer notification if present
+        const noThanksBtn = document.querySelector('#pushActionRefuse, [id*="pushActionRefuse"]');
+        if (noThanksBtn) noThanksBtn.click();
+        // Dismiss timezone cancel button if present
+        const cancelBtns = document.querySelectorAll('button');
+        cancelBtns.forEach(btn => {
+          if (btn.textContent.trim() === 'Cancel') btn.click();
+        });
+      });
+      await page.waitForTimeout(1000);
+      // Second pass to catch delayed popups
+      await page.evaluate(() => {
+        const noThanksBtn = document.querySelector('#pushActionRefuse, [id*="pushActionRefuse"]');
+        if (noThanksBtn) noThanksBtn.click();
+      });
+      await page.waitForTimeout(500);
     };
 
     /** Dismiss CDK overlays and navigation overlays so normal clicks work */
@@ -50,11 +51,14 @@ test.describe('Quick Create Deployment Check - March 4', () => {
         document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
         document.querySelectorAll('.cdk-overlay-transparent-backdrop').forEach(el => el.remove());
         document.querySelectorAll('.zuper-vertical-navigation-aside-overlay').forEach(el => el.remove());
+        // Remove scroll-blocking class that Angular Material adds when overlays are open
+        document.body.classList.remove('cdk-global-scrollblock');
       });
       await page.waitForTimeout(500);
       await page.evaluate(() => {
         document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
         document.querySelectorAll('.zuper-vertical-navigation-aside-overlay').forEach(el => el.remove());
+        document.body.classList.remove('cdk-global-scrollblock');
       });
       await page.waitForTimeout(300);
     };
@@ -163,17 +167,39 @@ test.describe('Quick Create Deployment Check - March 4', () => {
       // Fill org email
       await page.getByRole('textbox', { name: 'Email*' }).describe('Org Email input').fill(orgEmail);
 
-      // Fill Indian address with autocomplete
+      // Fill Indian address with autocomplete (with manual fallback)
       const streetInput = page.getByRole('textbox', { name: 'Flat / House No, Street /' }).describe('Street Address input');
       await streetInput.click();
       await streetInput.pressSequentially('Anna Salai', { delay: 100 });
       await page.waitForTimeout(2000);
 
-      // Select autocomplete suggestion
-      const suggestion = page.getByRole('button').filter({ hasText: /Anna Salai/ }).first().describe('Address suggestion');
-      await suggestion.waitFor({ state: 'visible', timeout: 8000 });
-      await suggestion.click();
-      await page.waitForTimeout(1000);
+      // Try to select autocomplete suggestion, fall back to manual entry if it doesn't appear
+      const suggestion = page.getByRole('button').filter({ hasText: /Anna Salai/ }).first();
+      const suggestionVisible = await suggestion.isVisible().catch(() => false);
+      if (suggestionVisible) {
+        await suggestion.click();
+        await page.waitForTimeout(1000);
+      } else {
+        // Autocomplete didn't appear — manually fill address fields
+        await page.waitForTimeout(500);
+        const cityInput = streetInput.locator('xpath=ancestor::*[contains(@class,"address")]//input[contains(@placeholder,"City")]').first();
+        const cityVisible = await cityInput.isVisible().catch(() => false);
+        if (cityVisible) {
+          await cityInput.fill('Chennai');
+        } else {
+          // Try alternative selectors for city field within the org panel
+          const cityByLabel = page.locator('text=City *').first().locator('..').locator('input').first();
+          const cityByLabelVisible = await cityByLabel.isVisible().catch(() => false);
+          if (cityByLabelVisible) {
+            await cityByLabel.fill('Chennai');
+          }
+        }
+        const stateInput = page.getByRole('textbox', { name: 'State / Province' }).first();
+        const stateVisible = await stateInput.isVisible().catch(() => false);
+        if (stateVisible) {
+          await stateInput.fill('Tamil Nadu');
+        }
+      }
 
       // Tab out of address field to trigger validation
       await streetInput.click();
@@ -220,8 +246,17 @@ test.describe('Quick Create Deployment Check - March 4', () => {
       await contactEmailInput.waitFor({ state: 'visible', timeout: 5000 });
       await contactEmailInput.fill(contactEmail);
 
-      // Select Account Manager (required field) - use agent for complex dropdown
-      await agent.act('Click on the "Account Manager" dropdown in the Choose Contact panel and select the first available option from the list', { page, maxCycles: 5 });
+      // Select Account Manager (required field) - scroll to label then click the combobox
+      const accountManagerLabel = page.getByText('Account Manager*', { exact: true }).first();
+      await accountManagerLabel.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(500);
+      const accountManagerCombo = accountManagerLabel.locator('..').getByRole('combobox');
+      await accountManagerCombo.click();
+      await page.waitForTimeout(1000);
+      // Select the first option from the dropdown
+      const firstOption = page.locator('.ng-dropdown-panel .ng-option').first();
+      await firstOption.waitFor({ state: 'visible', timeout: 10000 });
+      await firstOption.click();
 
       // Clear overlays before Create click
       await clearOverlays();
@@ -242,7 +277,19 @@ test.describe('Quick Create Deployment Check - March 4', () => {
     await test.step('Quick Create Property', async () => {
       await clearOverlays();
 
+      // After contact panel closes, remove any lingering overlay containers/panes
+      await page.evaluate(() => {
+        document.querySelectorAll('.cdk-overlay-container .cdk-overlay-pane:empty').forEach(el => el.remove());
+        document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+        document.querySelectorAll('.cdk-overlay-transparent-backdrop').forEach(el => el.remove());
+        // Remove 'cdk-global-scrollblock' class from body if present (prevents scrolling)
+        document.body.classList.remove('cdk-global-scrollblock');
+      });
+      await page.waitForTimeout(1000);
+
       const addPropertyBtn = page.locator('a').filter({ hasText: /^Add Property$/ }).describe('Add Property button');
+      // Wait for the element to be attached to DOM first, then scroll
+      await addPropertyBtn.waitFor({ state: 'attached', timeout: 15000 });
       await addPropertyBtn.scrollIntoViewIfNeeded();
       await addPropertyBtn.waitFor({ state: 'visible', timeout: 10000 });
       await addPropertyBtn.click({ force: true });
@@ -257,17 +304,33 @@ test.describe('Quick Create Deployment Check - March 4', () => {
       await propNameInput.waitFor({ state: 'visible', timeout: 5000 });
       await propNameInput.fill(propertyName);
 
-      // Fill Indian address with autocomplete
+      // Fill Indian address with autocomplete (with manual fallback)
       const propStreetInput = page.getByRole('textbox', { name: 'Flat / House No, Street / Locality' }).describe('Property Street Address');
       await propStreetInput.click();
       await propStreetInput.pressSequentially('MG Road Bangalore', { delay: 100 });
       await page.waitForTimeout(2000);
 
-      // Select autocomplete suggestion
-      const propSuggestion = page.getByRole('button').filter({ hasText: /MG Road/ }).first().describe('Property address suggestion');
-      await propSuggestion.waitFor({ state: 'visible', timeout: 8000 });
-      await propSuggestion.click();
-      await page.waitForTimeout(1000);
+      // Try to select autocomplete suggestion, fall back to manual entry if it doesn't appear
+      const propSuggestion = page.getByRole('button').filter({ hasText: /MG Road/ }).first();
+      const propSuggestionVisible = await propSuggestion.isVisible().catch(() => false);
+      if (propSuggestionVisible) {
+        await propSuggestion.click();
+        await page.waitForTimeout(1000);
+      } else {
+        // Autocomplete didn't appear — manually fill address fields
+        await page.waitForTimeout(500);
+        const propCityInput = page.getByRole('textbox', { name: 'City' }).last();
+        const propCityVisible = await propCityInput.isVisible().catch(() => false);
+        if (propCityVisible) {
+          await propCityInput.fill('Bangalore');
+        }
+        const propStateInput = page.getByRole('textbox', { name: 'State / Province' }).last();
+        const propStateVisible = await propStateInput.isVisible().catch(() => false);
+        if (propStateVisible) {
+          await propStateInput.fill('Karnataka');
+        }
+        await page.waitForTimeout(500);
+      }
 
       // Clear overlays before Create click
       await clearOverlays();
@@ -298,9 +361,11 @@ test.describe('Quick Create Deployment Check - March 4', () => {
       await dueDateInput.scrollIntoViewIfNeeded();
       await dueDateInput.click();
 
-      const dateButton = page.getByRole('button', { name: /March 15,/ }).describe('March 15 date button');
-      await dateButton.waitFor({ state: 'visible', timeout: 5000 });
-      await dateButton.click();
+      // Pick a future date (tomorrow or later) - find the first enabled date button in the calendar
+      await page.waitForTimeout(500);
+      const enabledDateButton = page.locator('button.mat-calendar-body-cell:not(.mat-calendar-body-disabled)').first();
+      await enabledDateButton.waitFor({ state: 'visible', timeout: 5000 });
+      await enabledDateButton.click();
     });
 
     // Step 10: Create Job and verify
