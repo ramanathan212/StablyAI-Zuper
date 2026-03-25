@@ -9,7 +9,7 @@
   "scripts": {
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "npx playwright test --config=playwright.unit.config.js",
-    "test:e2e": "npx playwright test --config=playwright.config.js",
+    "test:e2e": "npx playwright test --config=playwright.config.ts",
     "test:playwright": "npx playwright test",
     "test:clean": "npm run clear-cache && npx playwright test",
     "test:fresh": "npm run clear-cache -- --auth && npx playwright test",

@@ -107,7 +107,7 @@ test.describe('Quick Create Deployment Check - March 4', () => {
 
     // Step 4: Open New Job form
     await test.step('Open New Job form', async () => {
-      const newJobBtn = page.getByRole('link', { name: 'New Job' }).describe('New Job button');
+      const newJobBtn = page.getByRole('link', { name: 'New Job', exact: true }).describe('New Job button');
       await newJobBtn.waitFor({ state: 'visible', timeout: 15000 });
       await newJobBtn.click();
       await page.waitForURL('**/jobs/new**', { timeout: 30000 });
