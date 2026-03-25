@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures/cache-fixtures.js';
+import { LoginPage } from './pages/LoginPage.js';
 import { AssetPage } from './pages/AssetPage.js';
 import { testData } from './config/test-data-config.js';
 
@@ -18,10 +19,6 @@ test.describe('Asset Management', () => {
   // Test data
   const assetData = testData.asset;
 
-  test.use({
-    storageState: 'tests/.auth/user.json'
-  });
-
   test.beforeEach(async ({ page }) => {
     assetPage = new AssetPage(page);
 
@@ -40,9 +37,9 @@ test.describe('Asset Management', () => {
     console.log('TEST EXECUTION SUMMARY');
     console.log('='.repeat(80));
     console.log(`Test Name: ${testResults.testName}`);
-    console.log(`Start Time: ${testResults.startTime.toLocaleString()}`);
-    console.log(`End Time: ${testResults.endTime.toLocaleString()}`);
-    console.log(`Duration: ${testResults.duration} seconds`);
+    console.log(`Start Time: ${testResults.startTime?.toLocaleString() ?? 'N/A'}`);
+    console.log(`End Time: ${testResults.endTime?.toLocaleString() ?? 'N/A'}`);
+    console.log(`Duration: ${testResults.duration ?? 'N/A'} seconds`);
     console.log(`Overall Status: ${testResults.overallStatus}`);
     console.log('\nStep Details:');
     console.log('-'.repeat(80));
@@ -65,7 +62,7 @@ test.describe('Asset Management', () => {
     console.log('='.repeat(80) + '\n');
   });
 
-  test('Create new asset with organization and contact', async ({ autoClearCache }) => {
+  test('Create new asset with organization and contact', async ({ page, autoClearCache }) => {
     // Helper function to track step execution
     const executeStep = async (stepName, stepFunction) => {
       const stepStart = new Date();
@@ -95,7 +92,15 @@ test.describe('Asset Management', () => {
       }
     };
 
-    // Step 1: Navigate to Assets page
+    // Step 1: Login to application
+    await executeStep('Login to application', async () => {
+      const loginPage = new LoginPage(page);
+      const { login } = testData;
+      await loginPage.login(login.companyName, login.email, login.password);
+      await loginPage.dismissOnboarding();
+    });
+
+    // Step 2: Navigate to Assets page
     await executeStep('Navigate to Assets page', async () => {
       await assetPage.navigateToAssets();
     });
@@ -157,9 +162,9 @@ test.describe('Asset Management', () => {
     console.log('TEST EXECUTION SUMMARY');
     console.log('='.repeat(80));
     console.log(`Test Name: ${testResults.testName}`);
-    console.log(`Start Time: ${testResults.startTime.toLocaleString()}`);
-    console.log(`End Time: ${testResults.endTime.toLocaleString()}`);
-    console.log(`Duration: ${testResults.duration} seconds`);
+    console.log(`Start Time: ${testResults.startTime?.toLocaleString() ?? 'N/A'}`);
+    console.log(`End Time: ${testResults.endTime?.toLocaleString() ?? 'N/A'}`);
+    console.log(`Duration: ${testResults.duration ?? 'N/A'} seconds`);
     console.log(`Overall Status: ${testResults.overallStatus}`);
     console.log('\nStep Details:');
     console.log('-'.repeat(80));
