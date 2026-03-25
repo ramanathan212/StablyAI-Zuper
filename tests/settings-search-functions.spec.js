@@ -1,5 +1,7 @@
 import { test, expect } from './fixtures/cache-fixtures.js';
+import { LoginPage } from './pages/LoginPage.js';
 import { SettingsPage } from './pages/SettingsPage.js';
+import { testData } from './config/test-data-config.js';
 
 test.describe('Settings Search Functionality', () => {
   let settingsPage;
@@ -13,10 +15,6 @@ test.describe('Settings Search Functionality', () => {
     steps: [],
     overallStatus: 'PENDING'
   };
-
-  test.use({
-    storageState: 'tests/.auth/user.json'
-  });
 
   test.beforeEach(async ({ page }) => {
     settingsPage = new SettingsPage(page);
@@ -36,9 +34,9 @@ test.describe('Settings Search Functionality', () => {
     console.log('TEST EXECUTION SUMMARY');
     console.log('='.repeat(80));
     console.log(`Test Name: ${testResults.testName}`);
-    console.log(`Start Time: ${testResults.startTime.toLocaleString()}`);
-    console.log(`End Time: ${testResults.endTime.toLocaleString()}`);
-    console.log(`Duration: ${testResults.duration} seconds`);
+    console.log(`Start Time: ${testResults.startTime?.toLocaleString() ?? 'N/A'}`);
+    console.log(`End Time: ${testResults.endTime?.toLocaleString() ?? 'N/A'}`);
+    console.log(`Duration: ${testResults.duration ?? 'N/A'} seconds`);
     console.log(`Overall Status: ${testResults.overallStatus}`);
     console.log('\nStep Details:');
     console.log('-'.repeat(80));
@@ -61,7 +59,7 @@ test.describe('Settings Search Functionality', () => {
     console.log('='.repeat(80) + '\n');
   });
 
-  test('Verify search results for different categories', async ({ autoClearCache }) => {
+  test('Verify search results for different categories', async ({ page, autoClearCache }) => {
     // Helper function to track step execution
     const executeStep = async (stepName, stepFunction) => {
       const stepStart = new Date();
@@ -90,6 +88,14 @@ test.describe('Settings Search Functionality', () => {
         testResults.steps.push(stepResult);
       }
     };
+
+    // Login to application
+    await executeStep('Login to application', async () => {
+      const loginPage = new LoginPage(page);
+      const { login } = testData;
+      await loginPage.login(login.companyName, login.email, login.password);
+      await loginPage.dismissOnboarding();
+    });
 
     // Navigate to Settings
     await executeStep('Navigate to Settings', async () => {
@@ -178,9 +184,9 @@ test.describe('Settings Search Functionality', () => {
     console.log('TEST EXECUTION SUMMARY');
     console.log('='.repeat(80));
     console.log(`Test Name: ${testResults.testName}`);
-    console.log(`Start Time: ${testResults.startTime.toLocaleString()}`);
-    console.log(`End Time: ${testResults.endTime.toLocaleString()}`);
-    console.log(`Duration: ${testResults.duration} seconds`);
+    console.log(`Start Time: ${testResults.startTime?.toLocaleString() ?? 'N/A'}`);
+    console.log(`End Time: ${testResults.endTime?.toLocaleString() ?? 'N/A'}`);
+    console.log(`Duration: ${testResults.duration ?? 'N/A'} seconds`);
     console.log(`Overall Status: ${testResults.overallStatus}`);
     console.log('\nStep Details:');
     console.log('-'.repeat(80));

@@ -16,7 +16,42 @@ export class AssetPage {
     this.saveAssetLink = page.locator('a').filter({ hasText: 'Save Asset' });
   }
 
+  async dismissBeamerNotification() {
+    try {
+      const beamerModal = this.page.locator('#beamerPushModal.pushModal.active');
+      if (await beamerModal.isVisible({ timeout: 2000 }).catch(() => false)) {
+        // Try clicking the close/deny button on the Beamer notification
+        const denyBtn = this.page.locator('#beamerPushModal .btn-deny, #beamerPushModal [class*="deny"], #beamerPushModal .pushClose').first();
+        if (await denyBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await denyBtn.click();
+        } else {
+          // Fallback: use JS to remove the modal
+          await this.page.evaluate(() => {
+            const modal = document.getElementById('beamerPushModal');
+            if (modal) modal.classList.remove('active');
+          });
+        }
+        await this.page.waitForTimeout(500);
+        console.log('✓ Dismissed Beamer push notification');
+      }
+    } catch {
+      // No Beamer notification
+    }
+  }
+
   async dismissOverlays() {
+    // Dismiss Beamer push notification modal if present
+    try {
+      const beamerClose = this.page.locator('#beamerPushModal .close, #beamerPushModal button, .pushModal.active .close').first();
+      if (await beamerClose.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await beamerClose.click();
+        await this.page.waitForTimeout(500);
+        console.log('✓ Dismissed Beamer push notification');
+      }
+    } catch {
+      // No Beamer modal
+    }
+
     // Dismiss "Trial Period Ending Soon" or any modal with X button
     try {
       const closeButton = this.page.locator('.cdk-overlay-container button.close, .cdk-overlay-container .close, .cdk-overlay-container [aria-label="Close"]').first();
@@ -98,6 +133,9 @@ export class AssetPage {
     // Open organization selector
     await this.chooseOrganizationButton.click();
     await this.page.waitForTimeout(1000);
+
+    // Dismiss Beamer push notification if it appeared
+    await this.dismissBeamerNotification();
 
     // Search for organization
     await this.searchOrganizationsInput.click();

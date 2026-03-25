@@ -91,9 +91,11 @@ export default defineConfig({
     {
       name: 'chromium-default',
       testMatch: [
+        'create-asset.spec.js',
         'create-customer.spec.js',
         'create-org.spec.js',
         'create-job-mr-po-workflow.spec.js',
+        'settings-search-functions.spec.js',
       ],
       use: {
         ...devices['Desktop Chrome'],
