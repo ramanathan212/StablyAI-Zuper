@@ -18,6 +18,9 @@ test.describe('Organization Management', () => {
   };
 
   test.beforeEach(async ({ page }) => {
+    // Navigate immediately so the browser is never stuck on about:blank in Playwright UI
+    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
+
     organizationPage = new OrganizationPage(page);
 
     // Reset test results

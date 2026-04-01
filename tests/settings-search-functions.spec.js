@@ -17,6 +17,9 @@ test.describe('Settings Search Functionality', () => {
   };
 
   test.beforeEach(async ({ page }) => {
+    // Navigate immediately so the browser is never stuck on about:blank in Playwright UI
+    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
+
     settingsPage = new SettingsPage(page);
 
     // Reset test results

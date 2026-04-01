@@ -20,6 +20,13 @@ export const test = base.extend({
    * Usage: async ({ page, autoClearCache }) => { ... }
    */
   autoClearCache: async ({ page }, use) => {
+    // Navigate to the app first so localStorage/sessionStorage clearing targets
+    // the correct origin (not about:blank) and Playwright UI shows the app.
+    try {
+      await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    } catch {
+      // Continue even if navigation fails — cache clearing will still proceed
+    }
     const cacheUtils = createCacheUtils(page);
     await cacheUtils.clearAllCache();
     console.log('🧹 Auto cache clearing completed before test');

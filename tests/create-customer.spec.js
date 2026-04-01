@@ -13,6 +13,11 @@ test.describe('Customer Management', () => {
     steps: []
   };
 
+  test.beforeEach(async ({ page }) => {
+    // Navigate immediately so the browser is never stuck on about:blank in Playwright UI
+    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
+  });
+
   test.afterEach(async () => {
     testResults.endTime = new Date();
     testResults.duration = ((testResults.endTime - testResults.startTime) / 1000).toFixed(2);

@@ -20,6 +20,9 @@ test.describe('Asset Management', () => {
   const assetData = testData.asset;
 
   test.beforeEach(async ({ page }) => {
+    // Navigate immediately so the browser is never stuck on about:blank in Playwright UI
+    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
+
     assetPage = new AssetPage(page);
 
     // Reset test results

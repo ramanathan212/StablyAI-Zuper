@@ -71,12 +71,8 @@ export class PurchaseOrderPage {
 
     // Try multiple selectors for "Send to Vendor" / "Mark as Sent to Vendor" menu item
     const sentToVendorSelectors = [
-      "span:has-text('Send to Vendor')",
-      "a:has-text('Send to Vendor')",
-      "li:has-text('Send to Vendor')",
       "//span[normalize-space(text())='Mark as Sent to Vendor']",
       "span:has-text('Mark as Sent to Vendor')",
-      "//a[contains(text(),'Sent to Vendor')]",
     ];
 
     let clicked = false;

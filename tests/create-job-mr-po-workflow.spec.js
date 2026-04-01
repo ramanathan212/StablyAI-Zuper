@@ -27,6 +27,9 @@ test.describe('Complete Job, MR, PO, and Quote Workflow', () => {
   };
 
   test.beforeEach(async ({ page }) => {
+    // Navigate immediately so the browser is never stuck on about:blank in Playwright UI
+    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
+
     jobPage = new JobPage(page);
     materialRequestPage = new MaterialRequestPage(page);
     purchaseOrderPage = new PurchaseOrderPage(page);

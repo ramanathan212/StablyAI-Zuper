@@ -21,6 +21,9 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
   };
 
   test.beforeEach(async ({ page }) => {
+    // Navigate immediately so the browser is never stuck on about:blank in Playwright UI
+    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
+
     vendorPage = new VendorPage(page);
     materialRequestPage = new MaterialRequestPage(page);
     purchaseOrderPage = new PurchaseOrderPage(page);
