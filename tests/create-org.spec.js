@@ -27,16 +27,6 @@ test.describe('Organization Management', () => {
     testResults.startTime = new Date();
     testResults.steps = [];
     testResults.overallStatus = 'RUNNING';
-
-    // Login before each test
-    const loginPage = new LoginPage(page);
-    await loginPage.login(testData.login.companyName, testData.login.email, testData.login.password);
-    await loginPage.dismissOnboarding();
-
-    await waitForPageReady(page);
-
-    // Dismiss onboarding modal if present
-    await dismissOnboardingModal(page);
   });
 
   test.afterEach(async ({ page }) => {
@@ -57,9 +47,9 @@ test.describe('Organization Management', () => {
     console.log('TEST EXECUTION SUMMARY');
     console.log('='.repeat(80));
     console.log(`Test Name: ${testResults.testName}`);
-    console.log(`Start Time: ${testResults.startTime.toLocaleString()}`);
-    console.log(`End Time: ${testResults.endTime.toLocaleString()}`);
-    console.log(`Duration: ${testResults.duration} seconds`);
+    console.log(`Start Time: ${testResults.startTime?.toLocaleString() ?? 'N/A'}`);
+    console.log(`End Time: ${testResults.endTime?.toLocaleString() ?? 'N/A'}`);
+    console.log(`Duration: ${testResults.duration ?? 'N/A'} seconds`);
     console.log(`Overall Status: ${testResults.overallStatus}`);
     console.log('\nStep Details:');
     console.log('-'.repeat(80));
@@ -113,7 +103,15 @@ test.describe('Organization Management', () => {
       }
     };
 
-    // Step 1: Navigate to Organizations
+    // Step 1: Login to application
+    await executeStep('Login to application', async () => {
+      const loginPage = new LoginPage(page);
+      const { login } = testData;
+      await loginPage.login(login.companyName, login.email, login.password);
+      await loginPage.dismissOnboarding();
+    });
+
+    // Step 2: Navigate to Organizations
     await executeStep('Navigate to Organizations page', async () => {
       await navigateToOrganizationsWithOverlay(page);
     });
@@ -191,9 +189,9 @@ test.describe('Organization Management', () => {
     console.log('TEST EXECUTION SUMMARY');
     console.log('='.repeat(80));
     console.log(`Test Name: ${testResults.testName}`);
-    console.log(`Start Time: ${testResults.startTime.toLocaleString()}`);
-    console.log(`End Time: ${testResults.endTime.toLocaleString()}`);
-    console.log(`Duration: ${testResults.duration} seconds`);
+    console.log(`Start Time: ${testResults.startTime?.toLocaleString() ?? 'N/A'}`);
+    console.log(`End Time: ${testResults.endTime?.toLocaleString() ?? 'N/A'}`);
+    console.log(`Duration: ${testResults.duration ?? 'N/A'} seconds`);
     console.log(`Overall Status: ${testResults.overallStatus}`);
     console.log('\nStep Details:');
     console.log('-'.repeat(80));
