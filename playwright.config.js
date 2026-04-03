@@ -90,12 +90,14 @@ export default defineConfig({
     },
     {
       name: 'chromium-default',
+      grep: /(Complete Vendor, MR, and PO Flow should complete full vendor, material request, and purchase order workflow|Asset Management Create new asset with organization and contact|Customer Management Create new customer with complete details|Complete Job, MR, PO, and Quote Workflow should create job, request materials, process PO, and create quote|Job Creation with Quick Create Organization and Customer Create new job with quick create organization and customer|Organization Management Create new organization with complete details)$/i,
       testMatch: [
+        'complete-vendor-mr-po-flow-refactored.spec.js',
         'create-asset.spec.js',
         'create-customer.spec.js',
-        'create-org.spec.js',
         'create-job-mr-po-workflow.spec.js',
-        'settings-search-functions.spec.js',
+        'create-job-with-quick-create-org-customer.spec.js',
+        'create-org.spec.js',
       ],
       use: {
         ...devices['Desktop Chrome'],
