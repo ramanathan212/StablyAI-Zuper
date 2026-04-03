@@ -12,6 +12,9 @@ export class SettingsPage {
   async navigateToSettings() {
     await this.page.goto('https://uat.zuperpro.com/dashboard');
     await waitForPageReady(this.page);
+    // Explicitly dismiss overlays before attempting to click Settings link
+    // This ensures CDK overlays are cleared before clickWithOverlayHandling runs
+    await dismissOverlays(this.page);
     await clickWithOverlayHandling(this.settingsLink);
     await clickWithOverlayHandling(this.tryNowButton);
     await waitForPageReady(this.page);

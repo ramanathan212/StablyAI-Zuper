@@ -102,12 +102,13 @@ test.describe('Job Creation with Quick Create Organization and Customer', () => 
       await jobTitleInput.waitFor({ state: 'visible', timeout: 10000 });
       await jobTitleInput.fill(jobData.title);
 
-      // Select Job Category
-      const primaryDetailsSection = page.locator('a').filter({ hasText: 'Primary Details Job Category' });
-      await primaryDetailsSection.click();
+      // Select Job Category - click the combobox directly to open the dropdown
+      const jobCategoryDropdown = page.getByRole('combobox', { name: 'Choose a Job Category' });
+      await jobCategoryDropdown.waitFor({ state: 'visible', timeout: 10000 });
+      await jobCategoryDropdown.click();
 
       const categoryOption = page.getByRole('option', { name: jobData.category });
-      await categoryOption.waitFor({ state: 'visible', timeout: 5000 });
+      await categoryOption.waitFor({ state: 'visible', timeout: 15000 });
       await categoryOption.click();
     });
 

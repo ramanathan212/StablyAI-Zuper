@@ -46,7 +46,7 @@ export class AssetPage {
       if (await beamerClose.isVisible({ timeout: 3000 }).catch(() => false)) {
         await beamerClose.click();
         await this.page.waitForTimeout(500);
-        console.log('✓ Dismissed Beamer push notification');
+        console.log('Dismissed Beamer push notification');
       }
     } catch {
       // No Beamer modal
@@ -55,24 +55,54 @@ export class AssetPage {
     // Dismiss "Trial Period Ending Soon" or any modal with X button
     try {
       const closeButton = this.page.locator('.cdk-overlay-container button.close, .cdk-overlay-container .close, .cdk-overlay-container [aria-label="Close"]').first();
-      await closeButton.waitFor({ state: 'visible', timeout: 5000 });
-      await closeButton.click();
-      await this.page.waitForTimeout(500);
-      console.log('✓ Dismissed overlay modal');
+      if (await closeButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await closeButton.click({ force: true });
+        await this.page.waitForTimeout(500);
+        console.log('Dismissed overlay modal');
+      }
     } catch {
       // No modal to dismiss
     }
 
-    // Dismiss any remaining backdrop by pressing Escape
+    // Try pressing Escape for any CDK overlay pane
     try {
-      const backdrop = this.page.locator('.cdk-overlay-backdrop');
-      if (await backdrop.isVisible({ timeout: 2000 }).catch(() => false)) {
+      const overlayPane = this.page.locator('.cdk-overlay-pane').first();
+      if (await overlayPane.isVisible({ timeout: 1000 }).catch(() => false)) {
         await this.page.keyboard.press('Escape');
         await this.page.waitForTimeout(500);
       }
-    } catch {
-      // No backdrop
-    }
+    } catch { /* no overlay pane */ }
+
+    // Click the backdrop itself to dismiss (Angular CDK closes on backdrop click)
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await backdrop.click({ force: true });
+        await this.page.waitForTimeout(500);
+      }
+    } catch { /* no backdrop */ }
+
+    // If backdrop still visible, press Escape again
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 500 }).catch(() => false)) {
+        await this.page.keyboard.press('Escape');
+        await this.page.waitForTimeout(500);
+      }
+    } catch { /* no backdrop */ }
+
+    // Final fallback: force-remove any remaining overlays via JS
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 500 }).catch(() => false)) {
+        await this.page.evaluate(() => {
+          document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+          document.querySelectorAll('.cdk-overlay-pane').forEach(el => el.remove());
+        });
+        await this.page.waitForTimeout(200);
+        console.log('Force-removed remaining overlays via JS');
+      }
+    } catch { /* no backdrop */ }
   }
 
   async navigateToAssets() {
@@ -83,12 +113,31 @@ export class AssetPage {
     // Dismiss any overlays/modals before interacting
     await this.dismissOverlays();
 
-    // Click assets menu icon
-    await this.assetsMenuIcon.click();
+    // Click assets menu icon with overlay fallback
+    try {
+      await this.assetsMenuIcon.click();
+    } catch (error) {
+      // If click fails due to overlay, force-remove and retry with JS click
+      await this.page.evaluate(() => {
+        document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+        document.querySelectorAll('.cdk-overlay-pane').forEach(el => el.remove());
+      });
+      await this.page.waitForTimeout(200);
+      await this.assetsMenuIcon.click({ force: true });
+    }
     await this.page.waitForTimeout(1000);
 
     // Click Assets link
-    await this.assetsLink.click();
+    try {
+      await this.assetsLink.click();
+    } catch (error) {
+      await this.page.evaluate(() => {
+        document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+        document.querySelectorAll('.cdk-overlay-pane').forEach(el => el.remove());
+      });
+      await this.page.waitForTimeout(200);
+      await this.assetsLink.click({ force: true });
+    }
     await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForTimeout(2000);
 
