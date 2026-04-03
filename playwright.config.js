@@ -137,5 +137,12 @@ export default defineConfig({
         },
       },
     },
+    {
+      name: 'chrome',
+      grep: /.^/,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
   ],
 });
