@@ -85,13 +85,13 @@ export class CustomerPage {
    * Dismiss all overlays, modals, and backdrops that may block interaction
    */
   async dismissAllOverlays() {
-    // Dismiss "Trial Period Ending Soon" modal
+    // Dismiss "Trial Period Ending Soon" modal via close button first
     try {
-      const trialModal = this.page.locator('text=Trial Period Ending Soon');
-      if (await trialModal.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await this.page.keyboard.press('Escape');
+      const closeButton = this.page.locator('.cdk-overlay-container button.close, .cdk-overlay-container .close, .cdk-overlay-container [aria-label="Close"]').first();
+      if (await closeButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await closeButton.click({ force: true });
         await this.page.waitForTimeout(500);
-        console.log('✓ Trial period modal dismissed');
+        console.log('Dismissed overlay modal via close button');
       }
     } catch (_) {}
 
@@ -99,13 +99,22 @@ export class CustomerPage {
     try {
       const noThanksBtn = this.page.getByRole('button', { name: 'No, thanks' });
       if (await noThanksBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await noThanksBtn.click();
+        await noThanksBtn.click({ force: true });
         await this.page.waitForTimeout(500);
-        console.log('✓ Notification dialog dismissed');
+        console.log('Notification dialog dismissed');
       }
     } catch (_) {}
 
-    // Dismiss CDK overlay backdrops by clicking them
+    // Try pressing Escape for any CDK overlay pane
+    try {
+      const overlayPane = this.page.locator('.cdk-overlay-pane').first();
+      if (await overlayPane.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await this.page.keyboard.press('Escape');
+        await this.page.waitForTimeout(500);
+      }
+    } catch (_) {}
+
+    // Click CDK overlay backdrop to dismiss (Angular CDK closes on backdrop click)
     try {
       const backdrop = this.page.locator('.cdk-overlay-backdrop');
       if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
@@ -114,9 +123,27 @@ export class CustomerPage {
       }
     } catch (_) {}
 
-    // Final Escape to close any remaining modals
-    await this.page.keyboard.press('Escape');
-    await this.page.waitForTimeout(300);
+    // If backdrop still visible, press Escape again
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 500 }).catch(() => false)) {
+        await this.page.keyboard.press('Escape');
+        await this.page.waitForTimeout(500);
+      }
+    } catch (_) {}
+
+    // Final fallback: force-remove any remaining overlays via JS
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 500 }).catch(() => false)) {
+        await this.page.evaluate(() => {
+          document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+          document.querySelectorAll('.cdk-overlay-pane').forEach(el => el.remove());
+        });
+        await this.page.waitForTimeout(200);
+        console.log('Force-removed remaining overlays via JS');
+      }
+    } catch (_) {}
   }
 
   /**
