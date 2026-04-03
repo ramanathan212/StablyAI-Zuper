@@ -28,7 +28,6 @@ export default defineConfig({
         })]
       : []),
   ],
-  // globalSetup: './tests/global-setup.js', // Disabled - use test-level auth
   use: {
     baseURL: BASE_URLS[ENV],
     headless: true,
@@ -37,111 +36,33 @@ export default defineConfig({
     video: 'retain-on-failure',
     actionTimeout: 15000,
     navigationTimeout: 60000, // Increased to 60 seconds for slow page loads
-    // storageState: 'tests/.auth/user.json', // Disabled - test handles its own login
 
-    // Cache and state management options
     launchOptions: {
-      // Start with a clean browser profile each time
       args: [
         '--disable-blink-features=AutomationControlled',
-        '--disable-cache',
-        '--disable-application-cache',
-        '--disable-offline-load-stale-cache',
-        '--disk-cache-size=0'
       ]
     },
-
-    // Clear browser context state between tests
-    contextOptions: {
-      // Disable service workers that might cache data
-      serviceWorkers: 'block'
-    }
   },
 
   projects: [
     {
-      name: 'mcp-isolated',
-      grep: /(Navigate to Quotes Module should login and navigate to Quotes page|Quick Create Deployment Check - March 4 Create new job with quick create organization, contact, and property)$/i,
-      testMatch: ['navigate-to-quotes.spec.js', 'quick-create-deployment-check.spec.js'],
+      name: 'chrome',
       use: {
         ...devices['Desktop Chrome'],
-        storageState: undefined, // Don't use stored auth - test handles its own login
-      },
-    },
-    {
-      name: 'chromium',
-      grep: /(Quick Create Deployment Check - March 4 Create new job with quick create organization, contact, and property)$/i,
-      testMatch: ['quick-create-deployment-check.spec.js'],
-      use: {
-        ...devices['Desktop Chrome'],
-        launchOptions: {
-          args: [
-            '--disable-blink-features=AutomationControlled',
-            '--disable-cache',
-            '--disable-application-cache',
-            '--disable-offline-load-stale-cache',
-            '--disk-cache-size=0',
-            '--disable-gpu-shader-disk-cache',
-            '--media-cache-size=0',
-            '--aggressive-cache-discard',
-          ]
-        },
-      },
-    },
-    {
-      name: 'chromium-default',
-      testMatch: [
-        'create-asset.spec.js',
-        'create-customer.spec.js',
-        'create-org.spec.js',
-        'create-job-mr-po-workflow.spec.js',
-        'settings-search-functions.spec.js',
-      ],
-      use: {
-        ...devices['Desktop Chrome'],
-        // Override base config to avoid aggressive cache/service worker blocking
-        // which prevents API data (like job categories) from loading
-        launchOptions: {
-          args: [
-            '--disable-blink-features=AutomationControlled',
-          ]
-        },
-        contextOptions: {
-          serviceWorkers: 'allow',
-        },
       },
     },
     {
       name: 'firefox',
+      grep: /.^/, // Opt-in: run with --project=firefox
       use: {
         ...devices['Desktop Firefox'],
-        launchOptions: {
-          firefoxUserPrefs: {
-            'browser.cache.disk.enable': false,
-            'browser.cache.memory.enable': false,
-            'browser.cache.offline.enable': false,
-            'network.http.use-cache': false,
-          }
-        },
       },
     },
     {
       name: 'webkit',
+      grep: /.^/, // Opt-in: run with --project=webkit
       use: {
         ...devices['Desktop Safari'],
-        launchOptions: {
-          args: [
-            '--disable-cache',
-            '--disable-application-cache',
-          ]
-        },
-      },
-    },
-    {
-      name: 'chrome',
-      grep: /.^/,
-      use: {
-        ...devices['Desktop Chrome'],
       },
     },
   ],
