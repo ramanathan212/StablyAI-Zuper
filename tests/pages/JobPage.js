@@ -39,12 +39,20 @@ export class JobPage {
     await this.page.waitForTimeout(1000);
 
     // Dismiss any overlays that might block navigation
+    // Try close buttons first for CDK modals
+    try {
+      const closeButton = this.page.locator('.cdk-overlay-container button.close, .cdk-overlay-container .close, .cdk-overlay-container [aria-label="Close"]').first();
+      if (await closeButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await closeButton.click({ force: true });
+        await this.page.waitForTimeout(500);
+      }
+    } catch (_) {}
     await this.page.keyboard.press('Escape');
     await this.page.waitForTimeout(300);
     try {
       const noThanksBtn = this.page.getByRole('button', { name: 'No, thanks' });
       if (await noThanksBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await noThanksBtn.click();
+        await noThanksBtn.click({ force: true });
         await this.page.waitForTimeout(500);
       }
     } catch (_) {}
@@ -53,6 +61,17 @@ export class JobPage {
       if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
         await backdrop.click({ force: true });
         await this.page.waitForTimeout(500);
+      }
+    } catch (_) {}
+    // If backdrop still visible, force-remove via JS
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 500 }).catch(() => false)) {
+        await this.page.evaluate(() => {
+          document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+          document.querySelectorAll('.cdk-overlay-pane').forEach(el => el.remove());
+        });
+        await this.page.waitForTimeout(200);
       }
     } catch (_) {}
 
@@ -156,6 +175,37 @@ export class JobPage {
 
   async clickNewJob() {
     await this.newJobButton.waitFor({ state: 'visible', timeout: 10000 });
+
+    // Dismiss any overlays before clicking
+    try {
+      const closeButton = this.page.locator('.cdk-overlay-container button.close, .cdk-overlay-container .close, .cdk-overlay-container [aria-label="Close"]').first();
+      if (await closeButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await closeButton.click({ force: true });
+        await this.page.waitForTimeout(500);
+      }
+    } catch (_) {}
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await backdrop.click({ force: true });
+        await this.page.waitForTimeout(500);
+      }
+    } catch (_) {}
+    try {
+      const backdrop = this.page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible({ timeout: 500 }).catch(() => false)) {
+        await this.page.keyboard.press('Escape');
+        await this.page.waitForTimeout(500);
+      }
+    } catch (_) {}
+    // Force-remove any remaining overlays via JS
+    try {
+      await this.page.evaluate(() => {
+        document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+        document.querySelectorAll('.cdk-overlay-pane').forEach(el => el.remove());
+      });
+      await this.page.waitForTimeout(200);
+    } catch (_) {}
 
     // Use Promise.all to wait for navigation and click simultaneously
     await Promise.all([
