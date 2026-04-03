@@ -99,6 +99,14 @@ export default defineConfig({
         'create-job-with-quick-create-org-customer.spec.js',
         'create-org.spec.js',
       ],
+      stably: {
+        notifications: {
+          slack: {
+            channelName: 'qa-automation-stably-report',
+            notifyOnResult: 'all',
+          },
+        },
+      },
       use: {
         ...devices['Desktop Chrome'],
         // Override base config to avoid aggressive cache/service worker blocking
