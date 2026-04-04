@@ -10,33 +10,39 @@
  */
 export async function waitForOverlayToDisappear(page, timeout = 5000) {
   try {
-    // Wait for all overlay backdrops to be detached from DOM
+    // Wait for all overlay backdrops to be hidden (not detached - CDK keeps
+    // the overlay container in the DOM permanently)
     await page.waitForSelector('.cdk-overlay-backdrop', {
-      state: 'detached',
+      state: 'hidden',
       timeout
     });
   } catch (error) {
-    // If overlay didn't detach in time, force-remove via JS
-    try {
-      await page.evaluate(() => {
-        document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
-      });
-    } catch { /* page may not be ready */ }
+    // If no overlay exists or it didn't hide in time, that's fine - continue
+    console.log('No overlay to wait for or overlay already hidden');
   }
 }
 
 /**
- * Forcibly removes all CDK overlay backdrops and overlay panes from the DOM via JavaScript.
- * This is the nuclear option when Escape/click-based dismissal fails.
+ * Forcibly removes all CDK overlay backdrops and blocking overlay panes from the DOM via JavaScript.
+ * Removes backdrops and overlay panes that contain mat-dialog content.
+ * Does NOT remove overlay panes used for navigation menus, dropdowns, tooltips, etc.
  * @param {import('@playwright/test').Page} page - Playwright page object
  */
 export async function forceRemoveOverlays(page) {
   try {
     await page.evaluate(() => {
-      // Remove all backdrop elements
+      // Remove all backdrop elements (these are always blocking)
       document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
-      // Remove all overlay panes (the modal content containers)
-      document.querySelectorAll('.cdk-overlay-pane').forEach(el => el.remove());
+      // Remove overlay panes that contain mat-dialog content only
+      document.querySelectorAll('.cdk-overlay-pane').forEach(el => {
+        const hasDialog = el.querySelector(
+          'mat-dialog-container, .mat-dialog-container, .mat-mdc-dialog-container, ' +
+          '[role="dialog"], [role="alertdialog"], .modal-content'
+        );
+        if (hasDialog) {
+          el.remove();
+        }
+      });
     });
     await page.waitForTimeout(200);
   } catch {
@@ -45,7 +51,36 @@ export async function forceRemoveOverlays(page) {
 }
 
 /**
- * Clicks an element with retry logic to handle overlay interceptions
+ * Checks whether a blocking CDK dialog (mat-dialog) is currently visible.
+ * Returns true only if there is a mat-dialog-container inside a cdk-overlay-pane,
+ * which means a real modal dialog is open (not just a menu/dropdown/tooltip).
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<boolean>}
+ */
+async function hasBlockingDialog(page) {
+  try {
+    return await page.evaluate(() => {
+      const panes = document.querySelectorAll('.cdk-overlay-pane');
+      for (const pane of panes) {
+        if (pane.querySelector('mat-dialog-container, .mat-dialog-container, .mat-mdc-dialog-container')) {
+          // Check if the pane is actually visible
+          const style = getComputedStyle(pane);
+          if (style.display !== 'none' && style.visibility !== 'hidden') {
+            return true;
+          }
+        }
+      }
+      return false;
+    });
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Clicks an element with retry logic to handle overlay interceptions.
+ * Strategy: dismiss only actual blocking dialogs before clicking.
+ * Avoids inadvertently closing menus/dropdowns that should stay open.
  * @param {import('@playwright/test').Locator} locator - Playwright locator
  * @param {Object} options - Click options
  */
@@ -55,18 +90,21 @@ export async function clickWithOverlayHandling(locator, options = {}) {
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      // Dismiss any overlays FIRST so they don't block visibility detection
       const page = locator.page();
+
+      // Dismiss blocking dialogs (mat-dialogs) on every attempt.
+      // This is safe because it only targets actual modal dialogs,
+      // not navigation menus or dropdowns.
       await dismissOverlays(page);
       await waitForOverlayToDisappear(page, 2000);
 
-      // On attempt 2+, force-remove overlays via JS before trying the click
-      if (attempt >= 2) {
+      // On attempt 3: force-remove overlays via JS as last resort
+      if (attempt >= 3) {
         await forceRemoveOverlays(page);
       }
 
-      // Now wait for the element to be visible and stable
-      await locator.waitFor({ state: 'visible', timeout: 10000 });
+      // Wait for the element to be visible and stable
+      await locator.waitFor({ state: 'visible', timeout: 15000 });
 
       // Attempt the click - use force on attempt 2+
       if (attempt >= 2) {
@@ -92,12 +130,6 @@ export async function clickWithOverlayHandling(locator, options = {}) {
         }
       }
       console.log(`Click attempt ${attempt} failed, retrying in ${delayBetweenAttempts}ms...`);
-      // Dismiss overlays again before retrying
-      try {
-        const page = locator.page();
-        await dismissOverlays(page);
-        await waitForOverlayToDisappear(page, 2000);
-      } catch { /* ignore dismissal errors during retry */ }
       await new Promise(resolve => setTimeout(resolve, delayBetweenAttempts));
     }
   }
@@ -134,78 +166,95 @@ export async function waitForPageReady(page) {
 }
 
 /**
- * Dismisses any visible overlays or modals
+ * Dismisses any visible blocking overlays or modals.
+ * IMPORTANT: Only targets actual modal dialogs (mat-dialog) and known popups.
+ * Does NOT press Escape or click backdrops indiscriminately, because that
+ * would close navigation submenus and dropdowns that should stay open.
  * @param {import('@playwright/test').Page} page - Playwright page object
  */
 export async function dismissOverlays(page) {
-  // Dismiss browser notification popup ("NO, THANKS")
+  // Dismiss browser notification popup ("No, thanks" / "NO, THANKS")
   try {
-    const noThanksButton = page.getByRole('button', { name: /NO,?\s*THANKS/i });
-    if (await noThanksButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+    const noThanksButton = page.getByRole('button', { name: /no,?\s*thanks/i });
+    if (await noThanksButton.isVisible().catch(() => false)) {
       await noThanksButton.click({ force: true });
       await page.waitForTimeout(500);
       console.log('Dismissed notification popup');
     }
   } catch { /* no popup */ }
 
-  // Dismiss "Trial Period Ending Soon" or similar modal via X/close button
+  // Check if a blocking mat-dialog is present
+  const dialogPresent = await hasBlockingDialog(page);
+  if (!dialogPresent) {
+    return; // No blocking dialog - do nothing to avoid closing menus/dropdowns
+  }
+
+  console.log('Blocking dialog detected, attempting to dismiss...');
+
+  // Strategy 1: Try clicking known dialog dismiss buttons inside the overlay
+  // This handles timezone popups ("Cancel"), trial modals ("Close"), etc.
   try {
-    const closeSelectors = [
-      '.cdk-overlay-container button.close',
-      '.cdk-overlay-container .close',
-      '.cdk-overlay-container [aria-label="Close"]',
-      '.cdk-overlay-container [class*="close"]',
+    const dismissButtonSelectors = [
+      // Specific dialog buttons
+      '.cdk-overlay-pane button.close',
+      '.cdk-overlay-pane [aria-label="Close"]',
       'button.close',
-      '[class*="modal"] button.close',
-      '[class*="modal"] .close',
+      // Generic dismiss buttons inside dialogs - Cancel, Skip, No thanks, etc.
+      '.mat-mdc-dialog-container button:has-text("Cancel")',
+      '.mat-mdc-dialog-container button:has-text("Skip")',
+      '.mat-mdc-dialog-container button:has-text("Close")',
+      '.mat-mdc-dialog-container button:has-text("No")',
+      '.mat-dialog-container button:has-text("Cancel")',
+      '.mat-dialog-container button:has-text("Skip")',
+      '.mat-dialog-container button:has-text("Close")',
+      '.mat-dialog-container button:has-text("No")',
     ];
-    for (const sel of closeSelectors) {
-      const btn = page.locator(sel).first();
-      if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await btn.click({ force: true });
-        await page.waitForTimeout(500);
-        console.log(`Dismissed modal via ${sel}`);
-        break;
+    for (const sel of dismissButtonSelectors) {
+      try {
+        const btn = page.locator(sel).first();
+        if (await btn.isVisible().catch(() => false)) {
+          await btn.click({ force: true });
+          await page.waitForTimeout(500);
+          console.log(`Dismissed dialog via ${sel}`);
+          // Check if dialog is gone
+          if (!(await hasBlockingDialog(page))) {
+            return;
+          }
+        }
+      } catch { /* selector didn't match */ }
+    }
+  } catch { /* no dismiss button found */ }
+
+  // Strategy 2: Try Escape key (only if dialog is still present)
+  if (await hasBlockingDialog(page)) {
+    try {
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+      console.log('Pressed Escape to dismiss dialog');
+      if (!(await hasBlockingDialog(page))) {
+        return;
       }
-    }
-  } catch { /* no modal */ }
+    } catch { /* Escape didn't work */ }
+  }
 
-  // Try pressing Escape to close any CDK modal/dialog
-  try {
-    const overlay = page.locator('.cdk-overlay-pane').first();
-    if (await overlay.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(500);
-      console.log('Dismissed modal via Escape');
-    }
-  } catch { /* no overlay pane */ }
+  // Strategy 3: Click backdrop (only if dialog is still present)
+  if (await hasBlockingDialog(page)) {
+    try {
+      const backdrop = page.locator('.cdk-overlay-backdrop');
+      if (await backdrop.isVisible().catch(() => false)) {
+        await backdrop.click({ force: true });
+        await page.waitForTimeout(500);
+        console.log('Clicked backdrop to dismiss dialog');
+        if (!(await hasBlockingDialog(page))) {
+          return;
+        }
+      }
+    } catch { /* no backdrop */ }
+  }
 
-  // Click the backdrop itself to dismiss CDK dialogs (Angular CDK closes on backdrop click)
-  try {
-    const backdrop = page.locator('.cdk-overlay-backdrop');
-    if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await backdrop.click({ force: true });
-      await page.waitForTimeout(500);
-      console.log('Clicked backdrop to dismiss overlay');
-    }
-  } catch { /* no backdrop */ }
-
-  // If backdrop still visible after clicking, try Escape again
-  try {
-    const backdrop = page.locator('.cdk-overlay-backdrop');
-    if (await backdrop.isVisible({ timeout: 500 }).catch(() => false)) {
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(500);
-      console.log('Pressed Escape to dismiss remaining overlay');
-    }
-  } catch { /* no backdrop */ }
-
-  // Final fallback: force-remove any remaining overlays via JS
-  try {
-    const backdrop = page.locator('.cdk-overlay-backdrop');
-    if (await backdrop.isVisible({ timeout: 500 }).catch(() => false)) {
-      await forceRemoveOverlays(page);
-      console.log('Force-removed remaining overlays via JS');
-    }
-  } catch { /* no backdrop */ }
+  // Strategy 4: Force-remove via JS (nuclear option)
+  if (await hasBlockingDialog(page)) {
+    await forceRemoveOverlays(page);
+    console.log('Force-removed blocking dialog via JS');
+  }
 }
