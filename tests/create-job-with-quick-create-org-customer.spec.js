@@ -150,7 +150,7 @@ test.describe('Job Creation with Quick Create Organization and Customer', () => 
       await createOrgButton.click();
 
       // Verify organization was created - wait for success indicator
-      const orgSection = page.locator('region').filter({ hasText: quickCreateOrgData.name });
+      const orgSection = page.getByRole('region').filter({ hasText: quickCreateOrgData.name });
       await expect(orgSection.first()).toBeVisible({ timeout: 15000 });
     });
 
@@ -202,8 +202,14 @@ test.describe('Job Creation with Quick Create Organization and Customer', () => 
       const dueDateInput = page.getByRole('textbox', { name: 'Due Date' });
       await dueDateInput.click();
 
-      // Select a date in the future (10th of current month or next available)
-      const dateButton = page.getByRole('button', { name: /March 10/ });
+      // Select a future date dynamically based on the current month
+      const now = new Date();
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+      const currentMonth = monthNames[now.getMonth()];
+      // Pick the 20th of the current month if today is before the 20th, otherwise pick the 28th
+      const dayToSelect = now.getDate() < 20 ? 20 : 28;
+      const dateButton = page.getByRole('button', { name: new RegExp(`${currentMonth} ${dayToSelect}`) });
       await dateButton.waitFor({ state: 'visible', timeout: 5000 });
       await dateButton.click();
     });
