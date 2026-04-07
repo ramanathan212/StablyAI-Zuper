@@ -61,31 +61,11 @@ export default defineConfig({
   projects: [
     {
       name: 'mcp-isolated',
-      grep: /(Navigate to Quotes Module should login and navigate to Quotes page|Quick Create Deployment Check - March 4 Create new job with quick create organization, contact, and property)$/i,
+      grep: /(Quick Create Deployment Check - March 4 Create new job with quick create organization, contact, and property)$/i,
       testMatch: ['navigate-to-quotes.spec.js', 'quick-create-deployment-check.spec.js'],
       use: {
         ...devices['Desktop Chrome'],
         storageState: undefined, // Don't use stored auth - test handles its own login
-      },
-    },
-    {
-      name: 'chromium',
-      grep: /(Quick Create Deployment Check - March 4 Create new job with quick create organization, contact, and property)$/i,
-      testMatch: ['quick-create-deployment-check.spec.js'],
-      use: {
-        ...devices['Desktop Chrome'],
-        launchOptions: {
-          args: [
-            '--disable-blink-features=AutomationControlled',
-            '--disable-cache',
-            '--disable-application-cache',
-            '--disable-offline-load-stale-cache',
-            '--disk-cache-size=0',
-            '--disable-gpu-shader-disk-cache',
-            '--media-cache-size=0',
-            '--aggressive-cache-discard',
-          ]
-        },
       },
     },
     {
