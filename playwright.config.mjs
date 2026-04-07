@@ -61,31 +61,11 @@ export default defineConfig({
   projects: [
     {
       name: 'mcp-isolated',
-      grep: /(Navigate to Quotes Module should login and navigate to Quotes page|Quick Create Deployment Check - March 4 Create new job with quick create organization, contact, and property)$/i,
+      grep: /(Quick Create Deployment Check - March 4 Create new job with quick create organization, contact, and property)$/i,
       testMatch: ['navigate-to-quotes.spec.js', 'quick-create-deployment-check.spec.js'],
       use: {
         ...devices['Desktop Chrome'],
         storageState: undefined, // Don't use stored auth - test handles its own login
-      },
-    },
-    {
-      name: 'chromium',
-      grep: /(Quick Create Deployment Check - March 4 Create new job with quick create organization, contact, and property)$/i,
-      testMatch: ['quick-create-deployment-check.spec.js'],
-      use: {
-        ...devices['Desktop Chrome'],
-        launchOptions: {
-          args: [
-            '--disable-blink-features=AutomationControlled',
-            '--disable-cache',
-            '--disable-application-cache',
-            '--disable-offline-load-stale-cache',
-            '--disk-cache-size=0',
-            '--disable-gpu-shader-disk-cache',
-            '--media-cache-size=0',
-            '--aggressive-cache-discard',
-          ]
-        },
       },
     },
     {
@@ -151,6 +131,21 @@ export default defineConfig({
     {
       name: 'chrome',
       grep: /.^/,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
+    {
+      name: 'Chrome_Sense',
+      grep: /(Sense AI - Layer 3: Semantic Evaluation Tests EVAL: Count query returns numeric data with correct time context|Sense AI - Layer 3: Semantic Evaluation Tests EVAL: Ranking query returns table with entities and values|Sense AI - Layer 3: Semantic Evaluation Tests EVAL: Ambiguous prompt triggers clarifying question|Sense AI - Layer 3: Semantic Evaluation Tests EVAL: Multi-turn context retention across follow-up messages|Sense AI - Layer 3: Semantic Evaluation Tests EVAL: Visual response quality with proper formatting hierarchy|Sense AI - Layer 4: Prompt Engineering & Guardrails GUARDRAIL: Out-of-domain prompt is handled gracefully|Sense AI - Layer 4: Prompt Engineering & Guardrails GUARDRAIL: Prompt injection attempt is resisted|Sense AI - Layer 4: Prompt Engineering & Guardrails PROMPT: Specific constrained prompt produces grounded data response|Sense AI - Layer 4: Prompt Engineering & Guardrails GUARDRAIL: AI disclaimer is always visible in thread view|Sense AI - Layer 4: Prompt Engineering & Guardrails PROMPT: Comparison query produces analytical multi-dimension response|Sense AI - Layer 2: Response Structure Tests Data query produces response with thinking indicator and action buttons|Sense AI - Layer 2: Response Structure Tests Ranking query produces a table with sortable columns|Sense AI - Layer 2: Response Structure Tests Multi-turn conversation maintains thread structure|Sense AI - Layer 2: Response Structure Tests Refresh button regenerates the response|Sense AI - Layer 1: UI Shell Tests Sense home page renders all core UI elements|Sense AI - Layer 1: UI Shell Tests Prompt area has dynamic suggestion and submitting creates a thread|Sense AI - Layer 1: UI Shell Tests Sense sidebar link is active when on Sense page|Sense AI - Layer 1: UI Shell Tests Clicking a suggested prompt creates a chat thread with proper UI)$/i,
+      testMatch: ['sense-ai-evaluation.spec.ts', 'sense-prompt-engineering.spec.ts', 'sense-response-structure.spec.ts', 'sense-ui-shell.spec.ts'],
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
+    {
+      name: 'PO',
+      grep: /(Edit PO Lifecycle Tests should allow Edit PO at Draft status with all editable fields|Edit PO Lifecycle Tests should allow Edit PO at Submitted status|Edit PO Lifecycle Tests should allow Edit PO at Sent to Vendor with Associations restricted|Edit PO Lifecycle Tests should allow Edit PO at Vendor Accepted with Associations restricted|Edit PO Lifecycle Tests should allow Edit PO at Vendor Rejected with Associations restricted|Edit PO Lifecycle Tests should NOT allow Edit PO at Partially Fulfilled, Fulfilled, Invoiced, and Paid statuses|Edit PO Lifecycle Tests should show only Delete \(no Edit, no Cancel\) for Closed PO|Edit PO Lifecycle Tests should show edit history and status changes in Activity tab|Edit PO Lifecycle Tests should allow job completion when associated PO is in Draft status)$/i,
       use: {
         ...devices['Desktop Chrome'],
       },

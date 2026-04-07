@@ -1,3 +1,5 @@
+import { dismissOverlays as dismissOverlaysHelper, forceRemoveOverlays, waitForOverlayToDisappear } from '../Helper/overlay-helper.js';
+
 export class AssetPage {
   constructor(page) {
     this.page = page;
@@ -40,69 +42,9 @@ export class AssetPage {
   }
 
   async dismissOverlays() {
-    // Dismiss Beamer push notification modal if present
-    try {
-      const beamerClose = this.page.locator('#beamerPushModal .close, #beamerPushModal button, .pushModal.active .close').first();
-      if (await beamerClose.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await beamerClose.click();
-        await this.page.waitForTimeout(500);
-        console.log('Dismissed Beamer push notification');
-      }
-    } catch {
-      // No Beamer modal
-    }
-
-    // Dismiss "Trial Period Ending Soon" or any modal with X button
-    try {
-      const closeButton = this.page.locator('.cdk-overlay-container button.close, .cdk-overlay-container .close, .cdk-overlay-container [aria-label="Close"]').first();
-      if (await closeButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await closeButton.click({ force: true });
-        await this.page.waitForTimeout(500);
-        console.log('Dismissed overlay modal');
-      }
-    } catch {
-      // No modal to dismiss
-    }
-
-    // Try pressing Escape for any CDK overlay pane
-    try {
-      const overlayPane = this.page.locator('.cdk-overlay-pane').first();
-      if (await overlayPane.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await this.page.keyboard.press('Escape');
-        await this.page.waitForTimeout(500);
-      }
-    } catch { /* no overlay pane */ }
-
-    // Click the backdrop itself to dismiss (Angular CDK closes on backdrop click)
-    try {
-      const backdrop = this.page.locator('.cdk-overlay-backdrop');
-      if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await backdrop.click({ force: true });
-        await this.page.waitForTimeout(500);
-      }
-    } catch { /* no backdrop */ }
-
-    // If backdrop still visible, press Escape again
-    try {
-      const backdrop = this.page.locator('.cdk-overlay-backdrop');
-      if (await backdrop.isVisible({ timeout: 500 }).catch(() => false)) {
-        await this.page.keyboard.press('Escape');
-        await this.page.waitForTimeout(500);
-      }
-    } catch { /* no backdrop */ }
-
-    // Final fallback: force-remove any remaining overlays via JS
-    try {
-      const backdrop = this.page.locator('.cdk-overlay-backdrop');
-      if (await backdrop.isVisible({ timeout: 500 }).catch(() => false)) {
-        await this.page.evaluate(() => {
-          document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
-          document.querySelectorAll('.cdk-overlay-pane').forEach(el => el.remove());
-        });
-        await this.page.waitForTimeout(200);
-        console.log('Force-removed remaining overlays via JS');
-      }
-    } catch { /* no backdrop */ }
+    // Delegate to shared overlay helper which only dismisses actual blocking dialogs
+    await dismissOverlaysHelper(this.page);
+    await this.dismissBeamerNotification();
   }
 
   async navigateToAssets() {
@@ -110,19 +52,16 @@ export class AssetPage {
     await this.page.waitForLoadState('domcontentloaded');
     await this.page.waitForTimeout(3000);
 
-    // Dismiss any overlays/modals before interacting
-    await this.dismissOverlays();
+    // Dismiss any blocking dialogs (timezone popup, trial modal, etc.)
+    await dismissOverlaysHelper(this.page);
+    await waitForOverlayToDisappear(this.page, 2000);
 
     // Click assets menu icon with overlay fallback
     try {
       await this.assetsMenuIcon.click();
     } catch (error) {
-      // If click fails due to overlay, force-remove and retry with JS click
-      await this.page.evaluate(() => {
-        document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
-        document.querySelectorAll('.cdk-overlay-pane').forEach(el => el.remove());
-      });
-      await this.page.waitForTimeout(200);
+      // If click fails due to overlay, force-remove blocking dialogs only and retry
+      await forceRemoveOverlays(this.page);
       await this.assetsMenuIcon.click({ force: true });
     }
     await this.page.waitForTimeout(1000);
@@ -131,11 +70,8 @@ export class AssetPage {
     try {
       await this.assetsLink.click();
     } catch (error) {
-      await this.page.evaluate(() => {
-        document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
-        document.querySelectorAll('.cdk-overlay-pane').forEach(el => el.remove());
-      });
-      await this.page.waitForTimeout(200);
+      // If click fails, force-remove blocking dialogs only (not menus) and retry
+      await forceRemoveOverlays(this.page);
       await this.assetsLink.click({ force: true });
     }
     await this.page.waitForLoadState('domcontentloaded');

@@ -1,3 +1,5 @@
+import { dismissOverlays as dismissOverlaysHelper, forceRemoveOverlays, waitForOverlayToDisappear } from '../Helper/overlay-helper.js';
+
 export class CustomerPage {
   constructor(page) {
     this.page = page;
@@ -85,65 +87,9 @@ export class CustomerPage {
    * Dismiss all overlays, modals, and backdrops that may block interaction
    */
   async dismissAllOverlays() {
-    // Dismiss "Trial Period Ending Soon" modal via close button first
-    try {
-      const closeButton = this.page.locator('.cdk-overlay-container button.close, .cdk-overlay-container .close, .cdk-overlay-container [aria-label="Close"]').first();
-      if (await closeButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await closeButton.click({ force: true });
-        await this.page.waitForTimeout(500);
-        console.log('Dismissed overlay modal via close button');
-      }
-    } catch (_) {}
-
-    // Dismiss notification dialog
-    try {
-      const noThanksBtn = this.page.getByRole('button', { name: 'No, thanks' });
-      if (await noThanksBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await noThanksBtn.click({ force: true });
-        await this.page.waitForTimeout(500);
-        console.log('Notification dialog dismissed');
-      }
-    } catch (_) {}
-
-    // Try pressing Escape for any CDK overlay pane
-    try {
-      const overlayPane = this.page.locator('.cdk-overlay-pane').first();
-      if (await overlayPane.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await this.page.keyboard.press('Escape');
-        await this.page.waitForTimeout(500);
-      }
-    } catch (_) {}
-
-    // Click CDK overlay backdrop to dismiss (Angular CDK closes on backdrop click)
-    try {
-      const backdrop = this.page.locator('.cdk-overlay-backdrop');
-      if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await backdrop.click({ force: true });
-        await this.page.waitForTimeout(500);
-      }
-    } catch (_) {}
-
-    // If backdrop still visible, press Escape again
-    try {
-      const backdrop = this.page.locator('.cdk-overlay-backdrop');
-      if (await backdrop.isVisible({ timeout: 500 }).catch(() => false)) {
-        await this.page.keyboard.press('Escape');
-        await this.page.waitForTimeout(500);
-      }
-    } catch (_) {}
-
-    // Final fallback: force-remove any remaining overlays via JS
-    try {
-      const backdrop = this.page.locator('.cdk-overlay-backdrop');
-      if (await backdrop.isVisible({ timeout: 500 }).catch(() => false)) {
-        await this.page.evaluate(() => {
-          document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
-          document.querySelectorAll('.cdk-overlay-pane').forEach(el => el.remove());
-        });
-        await this.page.waitForTimeout(200);
-        console.log('Force-removed remaining overlays via JS');
-      }
-    } catch (_) {}
+    // Delegate to shared overlay helper which only dismisses actual blocking dialogs
+    // (timezone popup, trial modal, etc.) without closing navigation menus/dropdowns
+    await dismissOverlaysHelper(this.page);
   }
 
   /**

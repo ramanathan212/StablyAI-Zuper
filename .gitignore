@@ -33,10 +33,12 @@ tests/.auth/
 
 # Stably
 .stably-playwright-wrapper.config.*
+.stably-browser-run-test-*.config.*
 /patches
 /.playwright-mcp
 /.stably-browser
 /.playwright-cli
+/blob-report
 .last-run.json
 .stably/*
 !.stably/docs/
