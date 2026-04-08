@@ -154,7 +154,35 @@ test.describe('Edit PO Lifecycle Tests', () => {
   });
 
   // ==========================================================================
-  // TEST 3: Edit PO at Sent to Vendor - Associations restricted
+  // TEST 3: Edit PO at Approved status
+  // ==========================================================================
+  test('should allow Edit PO at Approved status', async ({ page }) => {
+    test.setTimeout(600000);
+
+    const timestamp = Date.now();
+    const poTitle = `Edit PO Approved Test ${timestamp}`;
+    const vendorName = 'Jacksonville Roofing USA';
+
+    await test.step('Create PO and advance to Approved', async () => {
+      await createNewPOAsDraft({ page, poTitle, vendorName });
+      await markAsSubmitted({ page });
+      await markAsApproved({ page });
+
+      const status = await getPOStatus({ page });
+      expect(status).toContain('Approved');
+    });
+
+    await test.step('Verify Edit PO is available at Approved status', async () => {
+      await openMoreActionsMenu({ page });
+      const editVisible = await isEditPOVisible({ page });
+      expect(editVisible).toBe(true);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+    });
+  });
+
+  // ==========================================================================
+  // TEST 4: Edit PO at Sent to Vendor - Associations restricted
   // ==========================================================================
   test('should allow Edit PO at Sent to Vendor with Associations restricted', async ({ page }) => {
     test.setTimeout(600000);
@@ -201,7 +229,7 @@ test.describe('Edit PO Lifecycle Tests', () => {
   });
 
   // ==========================================================================
-  // TEST 4: Edit PO at Vendor Accepted - Associations restricted
+  // TEST 5: Edit PO at Vendor Accepted - Associations restricted
   // ==========================================================================
   test('should allow Edit PO at Vendor Accepted with Associations restricted', async ({ page }) => {
     test.setTimeout(600000);
@@ -245,7 +273,7 @@ test.describe('Edit PO Lifecycle Tests', () => {
   });
 
   // ==========================================================================
-  // TEST 5: Edit PO at Vendor Rejected - Associations restricted
+  // TEST 6: Edit PO at Vendor Rejected - Associations restricted
   // ==========================================================================
   test('should allow Edit PO at Vendor Rejected with Associations restricted', async ({ page }) => {
     test.setTimeout(600000);
@@ -288,7 +316,7 @@ test.describe('Edit PO Lifecycle Tests', () => {
   });
 
   // ==========================================================================
-  // TEST 6: Edit PO NOT available at Partially Fulfilled, Fulfilled, Invoiced, Paid
+  // TEST 7: Edit PO NOT available at Partially Fulfilled, Fulfilled, Invoiced, Paid
   // ==========================================================================
   test('should NOT allow Edit PO at Partially Fulfilled, Fulfilled, Invoiced, and Paid statuses', async ({ page }) => {
     test.setTimeout(300000);
@@ -332,7 +360,7 @@ test.describe('Edit PO Lifecycle Tests', () => {
   });
 
   // ==========================================================================
-  // TEST 7: Closed PO - No Edit, No Cancel, only Delete
+  // TEST 8: Closed PO - No Edit, No Cancel, only Delete
   // ==========================================================================
   test('should show only Delete (no Edit, no Cancel) for Closed PO', async ({ page }) => {
     test.setTimeout(180000);
@@ -358,7 +386,7 @@ test.describe('Edit PO Lifecycle Tests', () => {
   });
 
   // ==========================================================================
-  // TEST 8: Activity tab shows edit history and status changes
+  // TEST 9: Activity tab shows edit history and status changes
   // ==========================================================================
   test('should show edit history and status changes in Activity tab', async ({ page }) => {
     test.setTimeout(600000);
@@ -403,7 +431,7 @@ test.describe('Edit PO Lifecycle Tests', () => {
   });
 
   // ==========================================================================
-  // TEST 9: Job with PO in Draft allows job completion
+  // TEST 10: Job with PO in Draft allows job completion
   // ==========================================================================
   test('should allow job completion when associated PO is in Draft status', async ({ page }) => {
     test.setTimeout(300000);
