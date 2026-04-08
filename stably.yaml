@@ -1,0 +1,9 @@
+# stably.yaml
+agent:
+  fix:
+    maxTurnsPerIssue: 20       # Max AI turns per issue
+    maxParallelWorkers: 3      # Parallel fix workers
+    skipAfterConsecutiveUnfixed: 3  # Skip after N consecutive failures
+    rules: |                   # Custom instructions for the fix agent
+      Always prefer data-testid selectors.
+      Do not modify page objects.
