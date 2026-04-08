@@ -150,5 +150,12 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
       },
     },
+    {
+      name: 'UI',
+      grep: /.^/,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
   ],
 });
