@@ -1,176 +1,104 @@
 import { test, expect } from '@stablyai/playwright-test';
-import { LoginPage } from './pages/LoginPage.js';
+import {
+  loginToApp,
+  dismissPopups,
+  loginAndDismissPopups,
+} from './helpers/auth.helper';
+import {
+  navigateToJobs,
+  navigateToOrganizations,
+  openNewOrganizationForm,
+  fillAndSaveOrganization,
+} from './helpers/navigation.helper';
 
-test.describe('Login, Navigate to Jobs, and Create Organization', () => {
+test.describe('Authentication to Organization Management', () => {
   /**
    * User Prompt:
-   * - Open https://uat.zuperpro.com
-   * - Enter username in username field
-   * - Enter password in password field
-   * - Click on Login button
-   * - Verify dashboard is displayed
-   * - now login again and click job icon
-   * - click organization and create a organization with a organization name as test uat8/4
-   *   and organization email as uat8/4@gmail.com, street address as 4/966, Gandhi St,
-   *   Elango Nagar, Perungudi, Chennai, Tamil Nadu 600096, India and click save
+   * - Add a Playwright test suite covering the end-to-end flow from
+   *   authentication to organization management.
+   * - Implement robust login and navigation logic using page.evaluate
+   *   to bypass UI overlays and banner obstructions.
+   * - Automate organization creation with unique naming conventions
+   *   and Google Maps address autocomplete integration.
+   * - Include handling for recurring UI popups such as timezone settings
+   *   and notification prompts to ensure test stability.
    */
-  test('should login, navigate to Jobs, then create an Organization', async ({ page }) => {
-    const companyName = process.env.company_name!;
-    const userName = process.env.user_name!;
-    const password = process.env.password!;
 
-    // ── Login ──────────────────────────────────────────────────────────
-    const loginPage = new LoginPage(page);
-    await loginPage.navigate();
+  test('should authenticate and display the dashboard', async ({ page }) => {
+    // Login using page.evaluate to bypass banner overlay
+    await loginToApp({ page });
 
-    await loginPage.companyNameInput.waitFor({ state: 'visible', timeout: 30000 });
-    await loginPage.companyNameInput.fill(companyName);
-
-    // Use JS click to bypass banner overlay
-    await page.evaluate(() => {
-      const btn = Array.from(document.querySelectorAll('button')).find(
-        (b) => b.textContent?.trim() === 'Continue'
-      );
-      if (btn) btn.click();
-    });
-
-    await loginPage.emailInput.waitFor({ state: 'visible', timeout: 15000 });
-    await loginPage.emailInput.fill(userName);
-    await loginPage.passwordInput.fill(password);
-
-    await page.evaluate(() => {
-      const btn = Array.from(document.querySelectorAll('button')).find(
-        (b) => b.textContent?.trim() === 'Login'
-      );
-      if (btn) btn.click();
-    });
-
-    // ── Verify dashboard ───────────────────────────────────────────────
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 30000 });
+    // Verify dashboard is displayed
+    await expect(page).toHaveURL(/\/dashboard/);
     await expect(page).toHaveTitle(/Dashboard/);
 
-    // ── Dismiss popups ─────────────────────────────────────────────────
-    const cancelButton = page.getByRole('button', { name: 'Cancel' }).describe('Cancel timezone popup');
-    await cancelButton.waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
-    if (await cancelButton.isVisible()) {
-      await cancelButton.click();
-    }
+    // Dismiss recurring popups (timezone, notifications)
+    await dismissPopups({ page });
 
-    const noThanksButton = page.getByRole('button', { name: 'No, thanks' }).describe('No thanks notification popup');
-    await noThanksButton.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-    if (await noThanksButton.isVisible()) {
-      await noThanksButton.click();
-    }
+    // Verify key dashboard widgets are present after popups are cleared
+    await expect(page.getByText('Jobs By Category').first()).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByText('Job Statistics').first()).toBeVisible();
+  });
 
-    // ── Navigate to Jobs ───────────────────────────────────────────────
-    const jobGroupIcon = page.locator('#job_group').describe('Jobs group sidebar icon');
-    await jobGroupIcon.waitFor({ state: 'visible', timeout: 15000 });
-    await jobGroupIcon.click();
+  test('should navigate to the Jobs page from the dashboard', async ({
+    page,
+  }) => {
+    await loginAndDismissPopups({ page });
 
-    const jobsLink = page.getByRole('link', { name: 'Jobs', exact: true }).describe('Jobs link in sidebar');
-    await jobsLink.waitFor({ state: 'visible', timeout: 10000 });
-    await jobsLink.click();
+    // Navigate to Jobs via sidebar
+    await navigateToJobs({ page });
 
-    await expect(page).toHaveURL(/\/jobs/, { timeout: 15000 });
+    // Verify Jobs page loaded
+    await expect(page).toHaveURL(/\/jobs/);
     await expect(page).toHaveTitle(/Jobs/);
+  });
 
-    // ── Navigate to Organizations ──────────────────────────────────────
-    const orgNavButton = page
-      .locator('div')
-      .filter({ hasText: 'Customers, Organizations and' })
-      .nth(3)
-      .describe('Customer/Org sidebar group');
-    await orgNavButton.waitFor({ state: 'visible', timeout: 20000 });
-    await orgNavButton.click();
+  test('should navigate to the Organizations list page', async ({ page }) => {
+    await loginAndDismissPopups({ page });
 
-    const orgsLink = page.getByRole('link', { name: 'Organizations' }).describe('Organizations link');
-    await orgsLink.waitFor({ state: 'visible', timeout: 10000 });
-    await orgsLink.click();
+    // Navigate to Organizations via sidebar
+    await navigateToOrganizations({ page });
 
-    await expect(page).toHaveURL(/\/organizations/, { timeout: 15000 });
+    // Verify Organizations page loaded
+    await expect(page).toHaveURL(/\/organizations/);
+    await expect(page).toHaveTitle(/Organizations/);
 
-    // ── Click New Organization ─────────────────────────────────────────
-    // Dismiss notification dialog if it reappeared
-    const noThanks2 = page.getByRole('button', { name: 'No, thanks' });
-    if (await noThanks2.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await noThanks2.evaluate((el) => el.click());
-      await page.waitForTimeout(300);
-    }
+    // Verify the "New Organization" action is available
+    await expect(
+      page.getByRole('link', { name: ' New Organization' })
+    ).toBeVisible({ timeout: 10000 });
+  });
 
-    const newOrgButton = page.getByRole('link', { name: ' New Organization' }).describe('New Organization button');
-    await newOrgButton.waitFor({ state: 'visible', timeout: 10000 });
-    await newOrgButton.click();
+  test('should create a new organization with complete details', async ({
+    page,
+  }) => {
+    await loginAndDismissPopups({ page });
 
-    await expect(page).toHaveURL(/\/organizations\/new/, { timeout: 15000 });
+    // Navigate to Organizations and open the new form
+    await navigateToOrganizations({ page });
+    await openNewOrganizationForm({ page });
 
-    // ── Fill Organization details ──────────────────────────────────────
-    // Add a unique suffix to avoid 409 Conflict from duplicate org names
+    // Generate unique name/email to avoid 409 Conflict on repeated runs
     const uniqueSuffix = Date.now().toString().slice(-6);
     const orgName = `test uat8/4_${uniqueSuffix}`;
     const orgEmail = `uat8_4_${uniqueSuffix}@gmail.com`;
 
-    const orgNameInput = page.getByRole('textbox', { name: 'Organization Name*' }).describe('Organization Name input');
-    await orgNameInput.waitFor({ state: 'visible', timeout: 15000 });
-    await orgNameInput.fill(orgName);
-
-    const orgEmailInput = page.getByRole('textbox', { name: 'Organization Email' }).describe('Organization Email input');
-    await orgEmailInput.fill(orgEmail);
-
-    // ── Fill street address (triggers Google Maps autocomplete) ────────
-    const streetInput = page
-      .getByRole('textbox', { name: 'Flat / House No, Street / Locality' })
-      .first()
-      .describe('Street address input');
-    await streetInput.click();
-    await streetInput.pressSequentially('4/966 Gandhi St Perungudi Chennai', { delay: 60 });
-
-    // Wait for autocomplete suggestions and select the first matching one
-    await page.waitForTimeout(2000);
-    await page.evaluate(() => {
-      const allBtns = Array.from(document.querySelectorAll('button[title]'));
-      const addressBtns = allBtns.filter(
-        (b) => b.title && b.title.length > 15 && b.title.includes(',')
-      );
-      if (addressBtns[0]) addressBtns[0].click();
-    });
-    await page.waitForTimeout(800);
-
-    // ── Check "Same As Service Address" for billing ────────────────────
-    // Use JS click to bypass CDK overlay backdrop
-    await page.getByRole('checkbox', { name: 'Same As Service Address' }).evaluate((el: HTMLInputElement) => {
-      if (!el.checked) el.click();
-    });
-    await page.waitForTimeout(500);
-
-    // ── Dismiss notification dialog if present before save ─────────────
-    const noThanks3 = page.getByRole('button', { name: 'No, thanks' });
-    if (await noThanks3.isVisible({ timeout: 1500 }).catch(() => false)) {
-      await noThanks3.evaluate((el) => el.click());
-      await page.waitForTimeout(300);
-    }
-
-    // ── Save Organization ──────────────────────────────────────────────
-    // Click Save Organization anchor via JS — target the <a> element directly
-    await page.evaluate(() => {
-      const link = Array.from(document.querySelectorAll('a'))
-        .find((a) => a.textContent?.trim().includes('Save Organization'));
-      if (link) link.click();
+    // Fill the form and save — address autocomplete + Same As Service Address
+    await fillAndSaveOrganization({
+      page,
+      orgName,
+      orgEmail,
+      streetSearch: '4/966 Gandhi St Perungudi Chennai',
     });
 
-    // Wait for the "Create Organization" confirmation dialog
-    const createButton = page.getByRole('button', { name: 'Create' });
-    await createButton.waitFor({ state: 'visible', timeout: 10000 });
-
-    // Click Create via JS to bypass banner overlay
-    await page.evaluate(() => {
-      const btn = Array.from(document.querySelectorAll('button'))
-        .find((b) => b.innerText && b.innerText.trim() === 'Create');
-      if (btn) btn.click();
+    // Verify the organization was created and we're on its detail page
+    await expect(page).toHaveURL(/\/organizations\/.*\/details/, {
+      timeout: 30000,
     });
-
-    // ── Verify organization was created ────────────────────────────────
-    await page.waitForURL((url) => !url.toString().includes('/organizations/new'), { timeout: 30000 });
-    await expect(page).toHaveURL(/\/organizations\/.*\/details/, { timeout: 30000 });
-    await expect(page).toHaveTitle(new RegExp(orgName.replace(/[/]/g, '\\/')));
+    await expect(page).toHaveTitle(
+      new RegExp(orgName.replace(/[/]/g, '\\/'))
+    );
   });
 });
