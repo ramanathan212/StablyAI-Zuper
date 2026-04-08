@@ -30,29 +30,25 @@ export async function loginToStaging({
   await companyInput.waitFor({ state: 'visible', timeout: 30000 });
   await companyInput.fill(process.env.company_name || '');
 
-  // Use JS click to bypass potential banner overlay
-  await page.evaluate(() => {
-    const btn = Array.from(document.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === 'Continue'
-    );
-    if (btn) btn.click();
-  });
+  // Click Continue button using Playwright locator with force to bypass any overlay
+  const continueBtn = page.getByRole('button', { name: 'Continue' });
+  await continueBtn.waitFor({ state: 'visible', timeout: 10000 });
+  await continueBtn.click({ force: true });
 
-  const emailInput = page.getByRole('textbox', { name: 'Email address' });
+  // Wait for the email field to appear (login step 2)
+  const emailInput = page.locator('#email');
   await emailInput.waitFor({ state: 'visible', timeout: 15000 });
   await emailInput.fill(process.env.user_name || '');
 
-  // Wait for the password field to be visible and fill it explicitly
-  const passwordInput = page.getByRole('textbox', { name: 'Password Forgot password?' });
+  // Wait for the password field to be visible and fill it
+  const passwordInput = page.locator('#password');
   await passwordInput.waitFor({ state: 'visible', timeout: 10000 });
   await passwordInput.fill(process.env.password || '');
 
-  await page.evaluate(() => {
-    const btn = Array.from(document.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === 'Login'
-    );
-    if (btn) btn.click();
-  });
+  // Click Login button using Playwright locator with force to bypass any overlay
+  const loginBtn = page.getByRole('button', { name: 'Login' });
+  await loginBtn.waitFor({ state: 'visible', timeout: 10000 });
+  await loginBtn.click({ force: true });
 
   // Angular SPA — use commit, not load
   await page.waitForURL('**/dashboard', { waitUntil: 'commit', timeout: 30000 });
