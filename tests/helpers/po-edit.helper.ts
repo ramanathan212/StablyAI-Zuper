@@ -143,10 +143,12 @@ export async function createNewPOAsDraft({
   page,
   poTitle,
   vendorName,
+  requiredQty = '1',
 }: {
   page: Page;
   poTitle: string;
   vendorName: string;
+  requiredQty?: string;
 }): Promise<string> {
   // Navigate to new PO form
   await page.goto(`${STAGING_URL}/purchase_order/new`);
@@ -229,7 +231,7 @@ export async function createNewPOAsDraft({
   // Fill in Required Qty (validation blocks save without it)
   const qtyInput = page.locator('input[id^="qty_"]').first();
   if (await qtyInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await qtyInput.fill('1');
+    await qtyInput.fill(requiredQty);
     await page.waitForTimeout(500);
   }
 
@@ -596,21 +598,55 @@ export async function markAsVendorRejected({
   await dismissDialogs({ page });
   await page.waitForTimeout(1000);
 
-  // Try the direct action link first
-  const directLink = page.locator('a, span, div').filter({ hasText: /^Mark as Rejected$/ }).first();
-  if (await directLink.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await directLink.click();
-  } else {
+  // Try various direct action link patterns
+  const directPatterns = [
+    /^Mark as Rejected$/,
+    /^Mark as Vendor Rejected$/,
+    /^Vendor Rejected$/,
+    /^Reject$/,
+  ];
+
+  let clicked = false;
+  for (const pattern of directPatterns) {
+    const link = page.locator('a, span, div').filter({ hasText: pattern }).first();
+    if (await link.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await link.click();
+      clicked = true;
+      console.log(`Clicked direct link: "${pattern.source}"`);
+      break;
+    }
+  }
+
+  if (!clicked) {
     // Fall back to More Actions menu
     await openMoreActionsMenu({ page });
-    const menuItem = page.getByRole('menuitem', { name: /Mark as Rejected/i }).first();
-    await menuItem.waitFor({ state: 'visible', timeout: 5000 });
-    await menuItem.click();
+
+    // Log all visible menu items for debugging
+    const allMenuItems = await page.getByRole('menuitem').all();
+    const menuLabels: string[] = [];
+    for (const item of allMenuItems) {
+      const text = await item.textContent().catch(() => '');
+      if (text) menuLabels.push(text.trim());
+    }
+    console.log(`More Actions menu items: ${JSON.stringify(menuLabels)}`);
+
+    const menuItem = page.getByRole('menuitem', { name: /Reject|Vendor Rejected/i }).first();
+    if (await menuItem.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await menuItem.click();
+    } else {
+      // Try clicking any menu item containing "reject"
+      const rejectItem = page.getByRole('menuitem').filter({ hasText: /reject/i }).first();
+      if (await rejectItem.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await rejectItem.click();
+      } else {
+        throw new Error(`No reject menu item found. Available items: ${JSON.stringify(menuLabels)}`);
+      }
+    }
   }
   await page.waitForTimeout(1000);
 
   // Click confirmation button if a dialog appears
-  const confirmBtn = page.getByRole('button', { name: /Mark as Rejected|Reject|Confirm|Yes/i }).first();
+  const confirmBtn = page.getByRole('button', { name: /Reject|Mark as Rejected|Vendor Rejected|Confirm|Yes/i }).first();
   if (await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
     await confirmBtn.scrollIntoViewIfNeeded();
     await confirmBtn.click({ force: true });
@@ -736,6 +772,280 @@ export async function advancePOToStatus({
     }
     await page.waitForTimeout(1000);
     await dismissDialogs({ page });
+  }
+}
+
+/**
+ * Receives items for a PO at Vendor Accepted status.
+ * @param receiveQty - the quantity to fill in the receive form for each line item
+ */
+export async function receiveItems({
+  page,
+  receiveQty,
+}: {
+  page: Page;
+  receiveQty: number;
+}): Promise<void> {
+  await dismissDialogs({ page });
+  await page.waitForTimeout(1000);
+
+  // Look for "Receive Items" action link/button on the PO details page
+  const receivePatterns = [
+    /^Receive Items$/,
+    /^Receive Item$/,
+    /^Receive$/,
+  ];
+
+  let clicked = false;
+  for (const pattern of receivePatterns) {
+    const link = page.locator('a, span, div, button').filter({ hasText: pattern }).first();
+    if (await link.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await link.click();
+      clicked = true;
+      console.log(`Clicked "${pattern.source}" action`);
+      break;
+    }
+  }
+
+  if (!clicked) {
+    // Fall back to More Actions menu
+    await openMoreActionsMenu({ page });
+
+    // Log all menu items for debugging
+    const allMenuItems = await page.getByRole('menuitem').all();
+    const menuLabels: string[] = [];
+    for (const item of allMenuItems) {
+      const text = await item.textContent().catch(() => '');
+      if (text) menuLabels.push(text.trim());
+    }
+    console.log(`More Actions menu items: ${JSON.stringify(menuLabels)}`);
+
+    const menuItem = page.getByRole('menuitem', { name: /Receive/i }).first();
+    if (await menuItem.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await menuItem.click();
+      console.log('Clicked Receive from More Actions');
+    }
+  }
+
+  // Wait for the receive form/page/sidebar to load
+  await page.waitForTimeout(5000);
+
+  // Log all visible inputs for debugging
+  const allInputs = await page.locator('input:visible').all();
+  console.log(`Total visible inputs on page: ${allInputs.length}`);
+  for (const input of allInputs.slice(0, 15)) {
+    const id = await input.getAttribute('id').catch(() => '');
+    const type = await input.getAttribute('type').catch(() => '');
+    const placeholder = await input.getAttribute('placeholder').catch(() => '');
+    const name = await input.getAttribute('name').catch(() => '');
+    const formcontrol = await input.getAttribute('formcontrolname').catch(() => '');
+    const value = await input.inputValue().catch(() => '');
+    console.log(`  Input: id="${id}" type="${type}" placeholder="${placeholder}" name="${name}" formcontrol="${formcontrol}" value="${value}"`);
+  }
+
+  // Look for quantity input fields in the receive form
+  // Try multiple selector strategies
+  const qtySelectors = [
+    page.locator('input[formcontrolname*="received" i]'),
+    page.locator('input[formcontrolname*="qty" i]'),
+    page.locator('input[id*="received" i]'),
+    page.locator('input[id*="qty" i]'),
+    page.locator('input[placeholder*="Qty" i]'),
+    page.locator('input[placeholder*="quantity" i]'),
+    page.locator('input[placeholder*="Received" i]'),
+    page.locator('input[type="number"]:visible'),
+  ];
+
+  let filledCount = 0;
+  for (const selector of qtySelectors) {
+    const count = await selector.count();
+    if (count > 0) {
+      for (let i = 0; i < count; i++) {
+        const input = selector.nth(i);
+        if (await input.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await input.clear();
+          await input.fill(String(receiveQty));
+          filledCount++;
+          console.log(`Filled receive qty input ${filledCount}: ${receiveQty}`);
+        }
+      }
+      if (filledCount > 0) break;
+    }
+  }
+
+  if (filledCount === 0) {
+    console.warn('WARNING: No quantity inputs found for receive items');
+  }
+
+  await page.waitForTimeout(1000);
+
+  // Click the Receive/Submit/Save button
+  const receiveBtnPatterns = [
+    /^Receive$/,
+    /^Receive Items$/,
+    /^Save$/,
+    /^Submit$/,
+    /^Confirm$/,
+    /^Update$/,
+  ];
+
+  let btnClicked = false;
+  for (const pattern of receiveBtnPatterns) {
+    const btn = page.getByRole('button', { name: pattern }).first();
+    if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await btn.click();
+      console.log(`Clicked "${pattern.source}" button to confirm receive`);
+      btnClicked = true;
+      break;
+    }
+  }
+
+  if (!btnClicked) {
+    // Try any submit-like button
+    const anyBtn = page.locator('button[type="submit"]:visible, button.btn-primary:visible').first();
+    if (await anyBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      const btnText = await anyBtn.textContent();
+      await anyBtn.click();
+      console.log(`Clicked submit button: "${btnText}"`);
+    }
+  }
+
+  await page.waitForTimeout(3000);
+
+  // Handle any confirmation dialog
+  const confirmBtn = page.getByRole('button', { name: /Confirm|Yes|OK/i }).first();
+  if (await confirmBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await confirmBtn.click();
+    await page.waitForTimeout(2000);
+  }
+
+  await page.waitForTimeout(3000);
+  await dismissDialogs({ page });
+}
+
+/**
+ * Marks the PO as Invoiced from the PO details page.
+ */
+export async function markAsInvoiced({
+  page,
+}: {
+  page: Page;
+}): Promise<void> {
+  await dismissDialogs({ page });
+  await page.waitForTimeout(1000);
+
+  const patterns = [
+    /^Mark as Invoiced$/,
+    /^Invoiced$/,
+    /^Create Invoice$/,
+  ];
+
+  let clicked = false;
+  for (const pattern of patterns) {
+    const link = page.locator('a, span, div').filter({ hasText: pattern }).first();
+    if (await link.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await link.click();
+      clicked = true;
+      break;
+    }
+  }
+
+  if (!clicked) {
+    await openMoreActionsMenu({ page });
+    const menuItem = page.getByRole('menuitem', { name: /Invoice/i }).first();
+    if (await menuItem.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await menuItem.click();
+    }
+  }
+
+  await page.waitForTimeout(1000);
+
+  const confirmBtn = page.getByRole('button', { name: /Mark as Invoiced|Invoiced|Confirm|Yes/i }).first();
+  if (await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+    await confirmBtn.click();
+  }
+
+  await page.waitForTimeout(3000);
+  await dismissDialogs({ page });
+}
+
+/**
+ * Marks the PO as Paid from the PO details page.
+ */
+export async function markAsPaid({
+  page,
+}: {
+  page: Page;
+}): Promise<void> {
+  await dismissDialogs({ page });
+  await page.waitForTimeout(1000);
+
+  const patterns = [
+    /^Mark as Paid$/,
+    /^Paid$/,
+  ];
+
+  let clicked = false;
+  for (const pattern of patterns) {
+    const link = page.locator('a, span, div').filter({ hasText: pattern }).first();
+    if (await link.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await link.click();
+      clicked = true;
+      break;
+    }
+  }
+
+  if (!clicked) {
+    await openMoreActionsMenu({ page });
+    const menuItem = page.getByRole('menuitem', { name: /Paid/i }).first();
+    if (await menuItem.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await menuItem.click();
+    }
+  }
+
+  await page.waitForTimeout(1000);
+
+  const confirmBtn = page.getByRole('button', { name: /Mark as Paid|Paid|Confirm|Yes/i }).first();
+  if (await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+    await confirmBtn.click();
+  }
+
+  await page.waitForTimeout(3000);
+  await dismissDialogs({ page });
+}
+
+/**
+ * Advances a PO from Draft through all statuses to Vendor Accepted.
+ * Handles the auto-advance from Approved → Sent to Vendor.
+ */
+export async function advancePOToVendorAccepted({
+  page,
+}: {
+  page: Page;
+}): Promise<void> {
+  await markAsSubmitted({ page });
+  await markAsApproved({ page });
+
+  // markAsApproved auto-advances to Sent to Vendor in the current app.
+  // Wait for the status transition to complete before proceeding.
+  await page.waitForTimeout(3000);
+  await dismissDialogs({ page });
+
+  // Try Vendor Accepted directly — if the "Mark as Vendor Accepted" action
+  // isn't visible, then try advancing to Sent to Vendor first.
+  const vendorAcceptLink = page.locator('a, span, div').filter({ hasText: /^Mark as Vendor Accepted$/ }).first();
+  if (await vendorAcceptLink.isVisible({ timeout: 5000 }).catch(() => false)) {
+    // Already at Sent to Vendor — proceed to Vendor Accepted
+    await markAsVendorAccepted({ page });
+  } else {
+    // May still be at Approved — try advancing to Sent to Vendor first
+    try {
+      await markAsSentToVendor({ page });
+    } catch {
+      // Already at Sent to Vendor — ignore the error
+      console.log('markAsSentToVendor skipped — PO already at Sent to Vendor');
+    }
+    await markAsVendorAccepted({ page });
   }
 }
 
