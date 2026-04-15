@@ -153,6 +153,7 @@ export default defineConfig({
     {
       name: 'Jobs',
       grep: /(Jobs Bulk Update Fields should bulk update all specified fields for selected jobs)$/i,
+      testMatch: ['jobs-bulk-update-fields.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
       },
