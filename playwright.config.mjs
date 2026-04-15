@@ -150,5 +150,12 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
       },
     },
+    {
+      name: 'Jobs',
+      grep: /(Jobs Bulk Update Fields should bulk update all specified fields for selected jobs)$/i,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
   ],
 });
