@@ -158,5 +158,12 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
       },
     },
+    {
+      name: 'JobNotes',
+      grep: /(Job Notes Image Upload should upload an image in job notes and verify it appears)$/i,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
   ],
 });
