@@ -165,5 +165,12 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
       },
     },
+    {
+      name: 'UAT-notes',
+      grep: /.^/,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
   ],
 });
