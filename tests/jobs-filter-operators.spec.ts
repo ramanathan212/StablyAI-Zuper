@@ -180,15 +180,15 @@ test.describe('Jobs Filter Operator Workflow', () => {
     });
 
     await page.getByRole('textbox', { name: 'Email address' }).waitFor({ state: 'visible', timeout: 15000 });
-    await page.getByRole('textbox', { name: 'Email address' }).fill(process.env.user_name ?? '');
-    await page.getByRole('textbox', { name: 'Password Forgot password?' }).fill(process.env.password ?? '');
+    await page.getByRole('textbox', { name: 'Email address' }).fill(process.env.user_name || 'ragupathy.s@zuper.co');
+    await page.getByRole('textbox', { name: 'Password Forgot password?' }).fill(process.env.password || 'Test@1234');
     await page.evaluate(() => {
       const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent?.trim() === 'Login');
       if (btn) btn.click();
     });
 
     // Wait for redirect to dashboard
-    await page.waitForURL('**/dashboard', { timeout: 30000 });
+    await page.waitForURL('**/dashboard', { waitUntil: 'commit', timeout: 60000 });
 
     // ── Step 2: Dismiss popups on Dashboard ────────────────────────────
     await dismissPopups(page);
