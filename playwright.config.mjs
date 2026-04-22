@@ -167,7 +167,7 @@ export default defineConfig({
     },
     {
       name: 'UAT-notes',
-      grep: /.^/,
+      grep: /(Job Notes - Create Note with Attachments should create a note with text, add image\/video\/PDF attachments, and verify persistence|Job Notes Image Upload should upload an image in job notes and verify it appears|Job Notes - Pin and Unpin Note should pin a note and verify it appears in Pinned Notes section, then unpin and verify removal|Job Notes Section Verification should navigate to an existing job and verify the Notes section is visible|Job Notes - Sorting should sort notes by newest first \(descending\) and oldest first \(ascending\))$/i,
       use: {
         ...devices['Desktop Chrome'],
       },
