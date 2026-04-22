@@ -172,5 +172,12 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
       },
     },
+    {
+      name: 'UAT-Gallery',
+      grep: /(Gallery Album CRUD should create, rename, and delete an album in the Gallery Albums section|Job Gallery Album Isolation should isolate job-level album changes and propagate master settings only to new jobs|Job Gallery - Before & After Comparison should create and save a Before & After comparison from two gallery images|Job Gallery Default Albums should verify default albums on a new job match Gallery Settings configuration|Job Gallery - Filter Functionality should filter gallery images by type and verify results update|Job Gallery - Tags and Description should add tags and description to a gallery image)$/i,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
   ],
 });
