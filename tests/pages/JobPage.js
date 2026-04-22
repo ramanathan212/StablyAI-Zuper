@@ -233,9 +233,11 @@ export class JobPage {
 
     // Clear trade type filter so all products are visible (dialog auto-filters by job trade type)
     const tradeTypeFilter = this.page.locator('mat-dialog-container mat-select').nth(1);
-    await tradeTypeFilter.click();
-    await this.page.getByRole('option', { name: 'Any' }).click();
-    await this.page.waitForTimeout(1000);
+    if (await tradeTypeFilter.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await tradeTypeFilter.click();
+      await this.page.getByRole('option', { name: 'Any' }).click();
+      await this.page.waitForTimeout(1000);
+    }
 
     // Select products
     for (const productName of products) {
