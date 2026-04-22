@@ -56,6 +56,25 @@ export class PurchaseOrderPage {
     await this.page.waitForLoadState('load');
   }
 
+  async markAsApproved() {
+    await this.page.waitForLoadState('load');
+    await this._dismissNotificationDialog();
+    await this.page.waitForTimeout(1000);
+
+    // Click "Mark as Approved" button in the header
+    const markAsApprovedSpan = this.page.locator("//span[normalize-space(text())='Mark as Approved']");
+    await markAsApprovedSpan.waitFor({ state: 'visible', timeout: 15000 });
+    await markAsApprovedSpan.click();
+
+    // Wait for confirmation dialog and click confirmation button
+    const confirmButton = this.page.getByRole('button', { name: 'Mark as Approved' });
+    await confirmButton.waitFor({ state: 'visible', timeout: 10000 });
+    await confirmButton.click();
+    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    console.log('✓ Marked as Approved');
+  }
+
   async markAsSentToVendor() {
     // Wait for page to load and More Actions link to be visible
     await this.page.waitForLoadState('load');

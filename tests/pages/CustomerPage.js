@@ -20,7 +20,6 @@ export class CustomerPage {
 
     // Account Manager locators
     this.clickAccountManagerInput = page.locator('#account_manager input[type="text"]');
-    this.pickAccountManagerOption = page.getByRole('option', { name: 'James Smith zuper.admin@' });
     
     // Primary details section locator - out of form fields
     this.primaryDetailsSection = page.getByText('Primary DetailsFirst Name *');
@@ -189,8 +188,9 @@ export class CustomerPage {
     await this.clickAccountManagerInput.fill(accountManager);
     await this.page.waitForTimeout(1000);
 
-    await this.pickAccountManagerOption.waitFor({ state: 'visible', timeout: 10000 });
-    await this.pickAccountManagerOption.click();
+    const accountManagerOption = this.page.getByRole('option', { name: new RegExp(accountManager) });
+    await accountManagerOption.waitFor({ state: 'visible', timeout: 10000 });
+    await accountManagerOption.click();
     console.log(`✓ Filled account manager: ${accountManager}`);
 
     // Click outside to close any tooltips

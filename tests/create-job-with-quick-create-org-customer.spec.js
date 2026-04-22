@@ -174,12 +174,14 @@ test.describe('Job Creation with Quick Create Organization and Customer', () => 
       const emailInput = page.getByRole('textbox', { name: 'Email*' });
       await emailInput.fill(quickCreateCustomerData.email);
 
-      // Select Account Manager
-      const accountManagerDropdown = page.locator('.ng-select-typeahead.ng-select-searchable.ng-select-clearable.ng-select.ng-select-single.ng-untouched.ng-pristine.ng-invalid').locator('input').first();
-      await accountManagerDropdown.click();
+      // Select Account Manager - click the ng-select dropdown to show options, then select
+      const accountManagerNgSelect = page.locator('ng-select').filter({ has: page.locator('.ng-placeholder:text-is("Account Manager")') });
+      await accountManagerNgSelect.waitFor({ state: 'visible', timeout: 10000 });
+      await accountManagerNgSelect.click();
+      await page.waitForTimeout(1000);
 
-      const accountManagerOption = page.getByRole('option', { name: 'James Smith' });
-      await accountManagerOption.waitFor({ state: 'visible', timeout: 5000 });
+      const accountManagerOption = page.getByRole('option', { name: /Vignesh Sam/ });
+      await accountManagerOption.waitFor({ state: 'visible', timeout: 10000 });
       await accountManagerOption.click();
 
       // Create and choose contact

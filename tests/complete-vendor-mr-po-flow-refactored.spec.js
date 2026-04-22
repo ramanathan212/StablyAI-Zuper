@@ -188,6 +188,9 @@ test.describe('Complete Vendor, MR, and PO Flow', () => {
       // Mark as submitted
       await purchaseOrderPage.markAsSubmitted();
 
+      // Mark as approved (required step between Submitted and Sent to Vendor)
+      await purchaseOrderPage.markAsApproved();
+
       // Mark as sent to vendor
       await purchaseOrderPage.markAsSentToVendor();
 

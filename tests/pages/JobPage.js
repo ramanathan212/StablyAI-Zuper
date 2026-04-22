@@ -217,13 +217,9 @@ export class JobPage {
   }
 
   async addLineItems(products) {
-    // Click on Price List section to expand
-    const priceListSection = this.page.locator('a').filter({ hasText: 'Primary Details Job Category' });
-    await priceListSection.waitFor({ state: 'visible', timeout: 10000 });
-    await priceListSection.click();
-
-    // Click Add button for line items
+    // Scroll to Part/Service Details section and click Add button for line items
     const addLineItemLink = this.page.locator('#pricelist-ng-select a').filter({ hasText: /^Add$/ });
+    await addLineItemLink.scrollIntoViewIfNeeded();
     await addLineItemLink.waitFor({ state: 'visible', timeout: 10000 });
     await addLineItemLink.click();
 
@@ -234,6 +230,12 @@ export class JobPage {
 
     // Wait for product list to load
     await this.page.waitForTimeout(2000);
+
+    // Clear trade type filter so all products are visible (dialog auto-filters by job trade type)
+    const tradeTypeFilter = this.page.locator('mat-dialog-container mat-select').nth(1);
+    await tradeTypeFilter.click();
+    await this.page.getByRole('option', { name: 'Any' }).click();
+    await this.page.waitForTimeout(1000);
 
     // Select products
     for (const productName of products) {
