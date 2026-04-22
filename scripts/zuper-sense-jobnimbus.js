@@ -4,6 +4,9 @@
  * Logs into stagingv3.zuperpro.com, navigates to Zuper Sense,
  * creates a "job nimbus" chat, and executes all prompts from the Excel file.
  * Updates the Excel file with pass/fail status after each prompt.
+ *
+ * Usage:
+ *   node scripts/zuper-sense-jobnimbus.js
  */
 
 const { chromium } = require('playwright');

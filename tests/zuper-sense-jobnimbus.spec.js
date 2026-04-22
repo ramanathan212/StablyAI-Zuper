@@ -34,6 +34,9 @@ const SENSE_RESPONSE_TIMEOUT = 120000; // 2 minutes for AI response
  * Parse prompts from the Excel file, filtering out section headers.
  */
 function parsePrompts() {
+  if (!existsSync(EXCEL_PATH)) {
+    return [];
+  }
   const workbook = XLSX.readFile(EXCEL_PATH);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
@@ -224,6 +227,11 @@ test.describe('Zuper Sense - JobNimbus Prompts Validation', () => {
   });
 
   test('should execute all JobNimbus prompts in Zuper Sense', async ({ page }) => {
+    if (prompts.length === 0) {
+      throw new Error(
+        'Excel file not found. Please place JobNimbus_Insights_Zuper_Sense_Validation.xlsx at:\n  ' + EXCEL_PATH
+      );
+    }
     // Step 1: Login
     await test.step('Login to staging', async () => {
       await login(page);
