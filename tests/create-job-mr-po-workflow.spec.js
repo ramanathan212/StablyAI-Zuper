@@ -242,6 +242,7 @@ test.describe('Complete Job, MR, PO, and Quote Workflow', () => {
     // Step 14: Process Purchase Order through workflow
     await executeStep('Process purchase order workflow', async () => {
       await purchaseOrderPage.markAsSubmitted();
+      await purchaseOrderPage.markAsApproved();
       await purchaseOrderPage.markAsSentToVendor();
       await purchaseOrderPage.markAsVendorAccepted();
       // // Verify status changed - look for status badge/chip, not buttons or dialog text

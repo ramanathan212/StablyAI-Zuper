@@ -103,7 +103,7 @@ export const getTestData = () => ({
     lastName: 'Testing',
     organization: 'ACME Corporation',
     email: `UATcustomertesting${Date.now()}@gmail.com`,
-    accountManager: 'James Smith',
+    accountManager: 'Vignesh Sam',
     serviceAddress: {
       search: 'walmart',
       select: 'Walmart',
