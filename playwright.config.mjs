@@ -179,5 +179,12 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
       },
     },
+    {
+      name: 'UAT- Photo Feed',
+      grep: /.^/,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
   ],
 });
