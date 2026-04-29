@@ -180,8 +180,8 @@ export default defineConfig({
       },
     },
     {
-      name: 'UAT- Photo Feed',
-      grep: /.^/,
+      name: 'UAT- Maps',
+      grep: /(Maps Module - Tab Filter Interactions should verify filter interactions across all map tabs|Maps Module Verification should load Maps module, display location data, and switch tabs successfully)$/i,
       use: {
         ...devices['Desktop Chrome'],
       },
