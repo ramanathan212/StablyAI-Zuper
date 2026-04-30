@@ -187,7 +187,7 @@ export default defineConfig({
       },
     },
     {
-      name: 'UAT- Calendar',
+      name: 'UAT- Photo feed',
       grep: /.^/,
       use: {
         ...devices['Desktop Chrome'],
