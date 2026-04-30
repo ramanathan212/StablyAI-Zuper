@@ -245,16 +245,29 @@ test.describe('Job Gallery - Tags and Description', () => {
       .describe('Update Tags panel heading');
     await expect(updateTagsHeading).toBeVisible({ timeout: 10000 });
 
-    // Click on the tag combobox input
+    // Click on the tag combobox input to open the ng-select dropdown.
+    // ng-select may not open the dropdown on the first click if the component
+    // hasn't fully initialised its event listeners yet. We retry the click
+    // up to 3 times with a short stabilisation pause between attempts.
     const tagCombobox = page
       .getByRole('combobox')
       .describe('Tag combobox');
-    await tagCombobox.click();
 
-    // Wait for options to load
     const optionsList = page
       .getByRole('listbox', { name: 'Options list' })
       .describe('Tag options dropdown');
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await tagCombobox.click();
+      try {
+        await expect(optionsList).toBeVisible({ timeout: 5000 });
+        break; // dropdown opened successfully
+      } catch {
+        // Dropdown didn't open — wait briefly for ng-select to finish
+        // initialising, then retry the click.
+        await page.waitForTimeout(500);
+      }
+    }
     await expect(optionsList).toBeVisible({ timeout: 10000 });
 
     // Select the first available tag from the dropdown

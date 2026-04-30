@@ -97,12 +97,24 @@ export async function createNewJob(
   await dueDateInput.scrollIntoViewIfNeeded();
   await dueDateInput.click();
 
+  const today = new Date();
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December',
   ];
+
+  // If tomorrow is in a different month, navigate the calendar forward
+  if (tomorrow.getMonth() !== today.getMonth()) {
+    const nextMonthBtn = page
+      .locator('button.mat-calendar-next-button')
+      .describe('Next month calendar button');
+    await nextMonthBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await nextMonthBtn.click();
+    await page.waitForTimeout(500);
+  }
+
   const dueDateLabel = `${monthNames[tomorrow.getMonth()]} ${tomorrow.getDate()},`;
   const dateButton = page
     .getByRole('button', { name: dueDateLabel })
