@@ -188,7 +188,7 @@ export default defineConfig({
     },
     {
       name: 'UAT- Photo feed',
-      grep: /.^/,
+      grep: /(Photo Feed Details Panel should verify photo details panel actions including redirections, visibility, tags, description, download, and copy link|Photo Feed Editor should open editor, perform edit, save, and verify changes persist with metadata intact|Photo Feed to Job Gallery Consistency should verify a photo from Photo Feed appears consistently in the associated Job Gallery and persists after refresh|Photo Feed Listing, Filters, and Customize should verify listing page, date range, filters, and customize functionality)$/i,
       use: {
         ...devices['Desktop Chrome'],
       },
