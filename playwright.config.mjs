@@ -193,5 +193,12 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
       },
     },
+    {
+      name: 'UAT-Calendar',
+      grep: /(Calendar - Create Job from Calendar View should create a job from calendar with Repair category and one-hour duration|Calendar - Drag and Drop Reschedule Job should drag and drop a calendar job to reschedule it by at least one hour)$/i,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
   ],
 });
