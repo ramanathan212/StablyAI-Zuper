@@ -186,5 +186,12 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
       },
     },
+    {
+      name: 'UAT- Calendar',
+      grep: /.^/,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
   ],
 });
