@@ -219,31 +219,22 @@ test.describe('Job Gallery - Before & After Comparison', () => {
     //   2. Video items — img src URL contains "/vts:" (video thumbnail service)
     //   3. Photo items — everything else (individual image cards)
     //
-    // IMPORTANT: The "Today" section may contain Before & After comparison
-    // thumbnails from previous test runs. These look like photos but cannot
-    // be used as inputs for a new comparison (the studio won't open).
-    // We skip the entire "Today" section and select from "Yesterday" or later.
-    //
-    // We use evaluate to discover DOM indices of PHOTO-ONLY checkboxes,
-    // then click via Playwright locators (required for Angular change detection).
+    // We use evaluate to discover DOM indices of PHOTO-ONLY checkboxes
+    // (skipping section headers and videos), then click via Playwright
+    // locators (required for Angular change detection).
     const photoCheckboxIndices: number[] = await page.evaluate(() => {
       const cbs = Array.from(
         document.querySelectorAll('input[type="checkbox"]')
       );
-      let currentSection = '';
       const indices: number[] = [];
       cbs.forEach((cb, i) => {
         const gp = cb.parentElement?.parentElement?.parentElement;
         const gpText = gp?.textContent?.trim() ?? '';
 
-        // Section header: update current section and skip
+        // Section header checkbox: skip (e.g. "Today", "Yesterday")
         if (gpText.length > 0) {
-          currentSection = gpText.toLowerCase();
           return;
         }
-
-        // Skip items in "Today" section (likely has comparison thumbnails)
-        if (currentSection.startsWith('today')) return;
 
         // Skip videos (img src contains /vts: = video thumbnail service)
         const cardParent =

@@ -144,6 +144,7 @@ test.describe('Job Gallery Default Albums', () => {
     await dueDateInput.scrollIntoViewIfNeeded();
     await dueDateInput.click();
 
+    const today = new Date();
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const monthNames = [
@@ -160,6 +161,17 @@ test.describe('Job Gallery Default Albums', () => {
       'November',
       'December',
     ];
+
+    // If tomorrow is in a different month, navigate the calendar forward
+    if (tomorrow.getMonth() !== today.getMonth()) {
+      const nextMonthBtn = page
+        .locator('button.mat-calendar-next-button')
+        .describe('Next month calendar button');
+      await nextMonthBtn.waitFor({ state: 'visible', timeout: 10000 });
+      await nextMonthBtn.click();
+      await page.waitForTimeout(500);
+    }
+
     const dueDateLabel = `${monthNames[tomorrow.getMonth()]} ${tomorrow.getDate()},`;
 
     const dateButton = page
