@@ -1,5 +1,6 @@
 import { test, expect } from '@stablyai/playwright-test';
 import { forceRemoveOverlays } from './Helper/overlay-helper.js';
+import { dismissBeamerModal } from './helpers/gallery.helper.js';
 
 test.describe('Job Gallery Default Albums', () => {
   /**
@@ -276,6 +277,8 @@ test.describe('Job Gallery Default Albums', () => {
     await forceRemoveOverlays(page);
 
     // ── Step 3: Navigate to Gallery > Albums tab ──────────────────────
+    await dismissBeamerModal(page);
+
     const galleryTab = page
       .getByRole('button', { name: /^Gallery/ })
       .first()
@@ -283,6 +286,8 @@ test.describe('Job Gallery Default Albums', () => {
     await galleryTab.waitFor({ state: 'visible', timeout: 30000 });
     await galleryTab.click();
     await page.waitForTimeout(3000);
+
+    await dismissBeamerModal(page);
 
     const albumsTab = page
       .getByRole('button', { name: 'Albums', exact: true })

@@ -10,6 +10,7 @@ import {
   getSettingsAlbumNames,
   addMasterAlbum,
   deleteMasterAlbum,
+  dismissBeamerModal,
 } from './helpers/gallery.helper.js';
 import { forceRemoveOverlays } from './Helper/overlay-helper.js';
 
@@ -52,6 +53,7 @@ test.describe('Job Gallery Album Isolation', () => {
     // ── Step 2: Navigate to an existing job (Job A) ─────────────────────
     await page.goto('/jobs');
     await forceRemoveOverlays(page);
+    await dismissBeamerModal(page);
 
     const jobTable = page
       .locator('table')
@@ -70,6 +72,7 @@ test.describe('Job Gallery Album Isolation', () => {
     await page.goto(jobHref!);
     await expect(page).toHaveURL(/\/jobs\/.*\/details/, { timeout: 30000 });
     await forceRemoveOverlays(page);
+    await dismissBeamerModal(page);
 
     const jobAUrl = page.url();
     console.log('Job A URL:', jobAUrl);
@@ -233,6 +236,7 @@ test.describe('Job Gallery Album Isolation', () => {
     await page.goto(jobAUrl);
     await expect(page).toHaveURL(/\/jobs\/.*\/details/, { timeout: 30000 });
     await forceRemoveOverlays(page);
+    await dismissBeamerModal(page);
 
     await navigateToJobGalleryAlbums(page);
 
