@@ -163,11 +163,19 @@ test.describe('Photo Feed Listing, Filters, and Customize', () => {
     const noAttachmentsMsg = page
       .getByText('No attachments found for the applied filter')
       .describe('No attachments message when filter returns empty');
-    const hasPhotosForToday = (await page.locator('img[loading="lazy"]').count()) > 0;
-    const hasNoAttachments = await noAttachmentsMsg.isVisible().catch(() => false);
 
-    // At least one of these must be true — the page responded to the date change
-    expect(hasPhotosForToday || hasNoAttachments).toBe(true);
+    // Wait for the Angular app to finish loading filtered results before asserting.
+    // Use expect.poll to auto-retry until either photos appear or the empty-state message shows.
+    await expect
+      .poll(
+        async () => {
+          const hasPhotos = (await page.locator('img[loading="lazy"]').count()) > 0;
+          const hasNoAttachments = await noAttachmentsMsg.isVisible().catch(() => false);
+          return hasPhotos || hasNoAttachments;
+        },
+        { timeout: 30000, message: 'Expected either photos or "No attachments found" message after selecting Today filter' }
+      )
+      .toBe(true);
 
     // Change back to "Last 30 Days" so we have photos for the rest of the test
     await dateRangeToday.click();
@@ -230,9 +238,11 @@ test.describe('Photo Feed Listing, Filters, and Customize', () => {
       .describe('Active filter button showing count');
     await expect(activeFilterBtn).toBeVisible({ timeout: 10000 });
 
-    // Verify photos are displayed (filtered results)
-    const photosAfterFilter = await page.locator('img[loading="lazy"]').count();
-    expect(photosAfterFilter).toBeGreaterThan(0);
+    // Verify photos are displayed (filtered results) — wait for at least one to render
+    await page
+      .locator('img[loading="lazy"]')
+      .first()
+      .waitFor({ state: 'visible', timeout: 30000 });
 
     // Clear all filters using the × button
     const clearAllBtn = page
@@ -257,8 +267,7 @@ test.describe('Photo Feed Listing, Filters, and Customize', () => {
       .waitFor({ state: 'visible', timeout: 30000 });
 
     // Verify photos are displayed again (all photos visible)
-    const photosAfterClear = await page.locator('img[loading="lazy"]').count();
-    expect(photosAfterClear).toBeGreaterThan(0);
+    await expect(page.locator('img[loading="lazy"]').first()).toBeVisible({ timeout: 30000 });
 
     // ══════════════════════════════════════════════════════════════════════
     // ── Customize Validation (Layout + Attributes) ────────────────────────
@@ -317,6 +326,15 @@ test.describe('Photo Feed Listing, Filters, and Customize', () => {
     await saveBtnBaseline.click();
     await expect(customizeHeading).toBeHidden({ timeout: 15000 });
 
+    // Wait for the grid to reflect Small (8 columns) before reloading
+    // This ensures the save API has completed and the UI updated
+    await expect
+      .poll(async () => getGridColumnCount(), { timeout: 15000 })
+      .toBe(8);
+
+    // Allow the save API call to complete before reloading
+    await page.waitForLoadState('networkidle');
+
     // Reload the page to ensure the UI reflects the saved settings
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page
@@ -324,9 +342,10 @@ test.describe('Photo Feed Listing, Filters, and Customize', () => {
       .first()
       .waitFor({ state: 'visible', timeout: 30000 });
 
-    // Verify baseline: Small = 8 columns
-    const baselineGridCols = await getGridColumnCount();
-    expect(baselineGridCols).toBe(8);
+    // Verify baseline: Small = 8 columns (poll after reload in case grid re-renders)
+    await expect
+      .poll(async () => getGridColumnCount(), { timeout: 15000 })
+      .toBe(8);
 
     // Verify Job Title is NOT shown on photo cards
     const jobTitlePatternBaseline = page
@@ -383,8 +402,9 @@ test.describe('Photo Feed Listing, Filters, and Customize', () => {
       .waitFor({ state: 'visible', timeout: 30000 });
 
     // Verify the layout changed — grid should now be 4 columns (Large)
-    const updatedGridCols = await getGridColumnCount();
-    expect(updatedGridCols).toBe(4);
+    await expect
+      .poll(async () => getGridColumnCount(), { timeout: 15000 })
+      .toBe(4);
 
     // Verify the Job Title attribute appears on photo cards
     // Job titles follow the pattern "#NNNN - ..." on the listing
@@ -424,6 +444,12 @@ test.describe('Photo Feed Listing, Filters, and Customize', () => {
     // Wait for the Customize panel to close
     await expect(customizeHeading).toBeHidden({ timeout: 15000 });
 
+    // Wait for the grid to reflect Small (8 columns) before reloading
+    // This ensures the save API has completed and the UI updated
+    await expect
+      .poll(async () => getGridColumnCount(), { timeout: 30000 })
+      .toBe(8);
+
     // Reload the page to ensure the Angular UI reflects saved settings
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page
@@ -431,9 +457,10 @@ test.describe('Photo Feed Listing, Filters, and Customize', () => {
       .first()
       .waitFor({ state: 'visible', timeout: 30000 });
 
-    // Verify the layout reverted — grid should now be 8 columns (Small)
-    const revertedGridCols = await getGridColumnCount();
-    expect(revertedGridCols).toBe(8);
+    // Verify the layout reverted — grid should now be 8 columns (Small) after reload
+    await expect
+      .poll(async () => getGridColumnCount(), { timeout: 15000 })
+      .toBe(8);
 
     // Verify the Job Title text is no longer visible on photo cards
     const jobTitleGone = page
