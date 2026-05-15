@@ -50,8 +50,8 @@ test.describe('Job Notes Image Upload', () => {
     // --- Step 1: Login ---
     const loginPage = new LoginPage(page);
     await loginPage.login(
-      process.env.company_name!,
-      process.env.user_name!,
+      process.env.companyName!,
+      process.env.email!,
       process.env.password!
     );
 

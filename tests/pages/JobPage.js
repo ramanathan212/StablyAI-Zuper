@@ -22,7 +22,7 @@ export class JobPage {
     this.searchOrganizationsInput = page.getByRole('textbox', { name: 'Search Organizations' });
     this.chooseOrganizationButton = page.getByRole('button', { name: 'Choose Organization' });
     this.clickCategoryButton = page.getByText('Choose a Job Category', { exact: true });
-    this.categoryOption = page.getByText('Installation Services', { exact: true });   
+    this.categoryOption = page.getByText('Installation', { exact: true });   
     this.customFieldTextInput = page.getByRole('textbox', { name: 'Text Input *' });
     this.createBtn = page.getByRole('button', { name: 'Create', exact: true });
     this.lineItemsButton = page.getByRole('button', { name: 'Line Items' });
