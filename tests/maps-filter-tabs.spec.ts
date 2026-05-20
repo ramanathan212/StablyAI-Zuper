@@ -167,25 +167,28 @@ test.describe('Maps Module - Tab Filter Interactions', () => {
     });
 
     await test.step('Dismiss all popups on Maps page', async () => {
-      // 1. Dismiss timezone popup if present
-      const cancelBtn = page.getByRole('button', { name: 'Cancel' });
-      if (await cancelBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await cancelBtn.click();
-        await cancelBtn.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+      // Dismiss popups from topmost (last rendered) to bottommost to avoid
+      // CDK overlay backdrops intercepting clicks on earlier dialogs.
+
+      // 1. Dismiss notification permission popup if present (topmost)
+      const noThanksBtn = page.getByRole('button', { name: 'No, thanks' });
+      if (await noThanksBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await noThanksBtn.click();
+        await noThanksBtn.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
       }
 
       // 2. Dismiss geolocation popup if present
       const geoPopupOk = page.getByRole('button', { name: 'OK' });
       if (await geoPopupOk.isVisible({ timeout: 3000 }).catch(() => false)) {
         await geoPopupOk.click();
-        await geoPopupOk.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+        await geoPopupOk.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
       }
 
-      // 3. Dismiss notification permission popup if present
-      const noThanksBtn = page.getByRole('button', { name: 'No, thanks' });
-      if (await noThanksBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await noThanksBtn.click();
-        await noThanksBtn.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+      // 3. Dismiss timezone popup if present (bottommost)
+      const cancelBtn = page.getByRole('button', { name: 'Cancel' });
+      if (await cancelBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await cancelBtn.click();
+        await cancelBtn.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
       }
     });
 
@@ -236,14 +239,24 @@ test.describe('Maps Module - Tab Filter Interactions', () => {
         const tab = tabsNav.locator('a').filter({ hasText: tabConfig.tabName });
         await tab.click();
 
-        // Wait for data to load and verify count > 0 using text-pattern locator
+        // Wait for data to load and stabilize: require two consecutive reads
+        // with the same value (> 0) separated by a brief interval.
+        // This prevents capturing a transient count during loading.
         await expect(async () => {
-          originalCount = await getHeaderCount(tabConfig.headerLabel);
+          const firstRead = await getHeaderCount(tabConfig.headerLabel);
           expect(
-            originalCount,
+            firstRead,
             `${tabConfig.tabName} tab should display entries with count > 0. If -1, the count was not found — possible location permission issue.`
           ).toBeGreaterThan(0);
-        }).toPass({ timeout: 15000 });
+          // Brief pause then re-read to confirm the count has stabilized
+          await page.waitForTimeout(1000);
+          const secondRead = await getHeaderCount(tabConfig.headerLabel);
+          expect(
+            secondRead,
+            `${tabConfig.tabName} tab count not yet stable: first read ${firstRead}, second read ${secondRead}`
+          ).toBe(firstRead);
+          originalCount = secondRead;
+        }).toPass({ timeout: 30000 });
       });
 
       await test.step(`Tab: ${tabConfig.tabName} - Open filter and verify`, async () => {
