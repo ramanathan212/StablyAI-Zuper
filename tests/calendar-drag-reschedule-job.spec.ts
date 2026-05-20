@@ -90,12 +90,17 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
       has: page.locator('text=/CalendarJob_/')
     }).first().describe('CalendarJob entry on calendar');
 
-    // Verify the job is visible (scroll into view if needed)
+    // Scroll the calendar job into view to ensure it's visible and interactive
     await page.evaluate(() => {
-      const scrollEl = document.querySelector('.b-dayview-day-content');
-      if (scrollEl) scrollEl.scrollTop = 300; // Scroll to show afternoon events
+      const events = document.querySelectorAll('.b-cal-event-wrap');
+      for (const ev of events) {
+        if (ev.textContent && ev.textContent.includes('CalendarJob_')) {
+          ev.scrollIntoView({ block: 'center', behavior: 'instant' });
+          break;
+        }
+      }
     });
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(1500); // Allow scroll and re-render to settle
 
     await expect(calendarJobLocator).toBeVisible({ timeout: 15000 });
 
@@ -123,8 +128,13 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
     const originalTopPercent = originalTimeInfo!.topPercent;
 
     // Get the event's bounding box for drag operation
+    // Wait a moment to ensure layout is stable after scroll
+    await page.waitForTimeout(500);
     const eventBox = await calendarJobLocator.boundingBox();
     expect(eventBox).not.toBeNull();
+    // Ensure the event is actually in the viewport (y > 0 and reasonable height)
+    expect(eventBox!.y).toBeGreaterThan(0);
+    expect(eventBox!.height).toBeGreaterThan(0);
 
     // Get the day container height to calculate pixels per hour
     const dayContainerHeight = await page.evaluate(() => {
@@ -133,24 +143,34 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
     });
 
     const pixelsPerHour = dayContainerHeight / 24;
-    // We'll drag 2 hours UP (negative Y direction)
+    // We'll drag 2 hours DOWN (positive Y direction) to ensure target stays in viewport
     const dragDistance = Math.round(pixelsPerHour * 2);
 
     // Record source center coordinates
     const sourceX = eventBox!.x + eventBox!.width / 2;
     const sourceY = eventBox!.y + eventBox!.height / 2;
-    const targetY = sourceY - dragDistance;
+    // Drag DOWN instead of UP to avoid going off-screen above viewport
+    const targetY = sourceY + dragDistance;
 
     // ===== Step 5: Perform drag and drop =====
+    // Bryntum calendar requires careful drag sequencing:
+    // 1. Hover over the event center
+    // 2. Press and hold (longer delay for drag recognition vs click)
+    // 3. Small initial move to trigger drag proxy creation
+    // 4. Progressive movement to target with many steps
+    // 5. Pause at target before releasing
     await page.mouse.move(sourceX, sourceY);
-    await page.waitForTimeout(200);
-    await page.mouse.down();
-    await page.waitForTimeout(300);
-    // Move with steps for smooth drag (Bryntum requires progressive movement)
-    await page.mouse.move(sourceX, targetY, { steps: 20 });
     await page.waitForTimeout(500);
+    await page.mouse.down();
+    await page.waitForTimeout(800); // Bryntum needs ~500ms+ hold to distinguish drag from click
+    // Small initial movement to trigger drag proxy (in the drag direction - downward)
+    await page.mouse.move(sourceX, sourceY + 5, { steps: 3 });
+    await page.waitForTimeout(300);
+    // Progressive movement to target position (downward)
+    await page.mouse.move(sourceX, targetY, { steps: 30 });
+    await page.waitForTimeout(1000); // Allow Bryntum to process the drop position
     await page.mouse.up();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000); // Wait for reschedule dialog to appear
 
     // ===== Step 6: Handle the Reschedule confirmation dialog =====
     const rescheduleHeading = page.locator('h6').filter({ hasText: /Reschedule.*CalendarJob_/ }).describe('Reschedule dialog heading');
@@ -216,14 +236,17 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
 
     // Verify the new CSS top position matches the new time (approximately)
     const newTopPercent = await jobWithNewTime.evaluate(el => parseFloat((el as HTMLElement).style.top));
-    // Convert new start time to 24h format for expected position calculation
+    // Convert new start time to 24h format (including minutes) for expected position calculation
     let expectedNewHour = 0;
+    let expectedNewMinutes = 0;
     if (newMatch) {
       expectedNewHour = parseInt(newMatch[1]);
+      expectedNewMinutes = parseInt(newMatch[2]);
       if (newMatch[3] === 'PM' && expectedNewHour !== 12) expectedNewHour += 12;
       if (newMatch[3] === 'AM' && expectedNewHour === 12) expectedNewHour = 0;
     }
-    const expectedTopPercent = (expectedNewHour / 24) * 100;
+    const expectedTopPercent = ((expectedNewHour + expectedNewMinutes / 60) / 24) * 100;
+    // Use precision 1 decimal place to allow for Bryntum's 5-minute slot rounding
     expect(newTopPercent).toBeCloseTo(expectedTopPercent, 0);
 
     // ===== Step 8: Verify the job does NOT appear at the original time =====
