@@ -1,6 +1,38 @@
 import { Page, expect } from '@playwright/test';
 
 /**
+ * Dismisses the Beamer push notification modal if it appears.
+ * This modal (`#beamerPushModal.pushModal.active`) non-deterministically overlays
+ * the page and intercepts pointer events. Call after navigation or page loads.
+ */
+export async function dismissBeamerModal(page: Page): Promise<void> {
+  try {
+    const beamerModal = page.locator('#beamerPushModal.pushModal.active');
+    if (await beamerModal.isVisible({ timeout: 2000 }).catch(() => false)) {
+      // Try clicking the deny/close button
+      const denyBtn = page.locator(
+        '#beamerPushModal .btn-deny, #beamerPushModal [class*="deny"], #beamerPushModal .pushClose, #beamerPushModal #pushDeny'
+      ).first();
+      if (await denyBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await denyBtn.click();
+      } else {
+        // Fallback: remove the active class via JS to hide the modal
+        await page.evaluate(() => {
+          const modal = document.getElementById('beamerPushModal');
+          if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+          }
+        });
+      }
+      await page.waitForTimeout(500);
+    }
+  } catch {
+    // Modal not present or already dismissed - safe to continue
+  }
+}
+
+/**
  * Logs in and dismisses common popups (timezone, notifications).
  */
 export async function loginAndDismissPopups(page: Page): Promise<void> {
@@ -48,6 +80,9 @@ export async function loginAndDismissPopups(page: Page): Promise<void> {
     .waitFor({ state: 'visible', timeout: 5000 })
     .catch(() => {});
   if (await notifBtn.isVisible()) await notifBtn.click();
+
+  // Dismiss Beamer push notification modal if present
+  await dismissBeamerModal(page);
 }
 
 /**
@@ -226,6 +261,9 @@ export async function createNewJob(
   });
   await page.waitForTimeout(200);
 
+  // Dismiss Beamer push notification modal if present
+  await dismissBeamerModal(page);
+
   return page.url();
 }
 
@@ -233,6 +271,8 @@ export async function createNewJob(
  * Navigates to Gallery > Albums tab on the current job details page.
  */
 export async function navigateToJobGalleryAlbums(page: Page): Promise<void> {
+  await dismissBeamerModal(page);
+
   const galleryTab = page
     .getByRole('button', { name: /^Gallery/ })
     .first()
@@ -240,6 +280,8 @@ export async function navigateToJobGalleryAlbums(page: Page): Promise<void> {
   await galleryTab.waitFor({ state: 'visible', timeout: 30000 });
   await galleryTab.click();
   await page.waitForTimeout(3000);
+
+  await dismissBeamerModal(page);
 
   const albumsTab = page
     .getByRole('button', { name: 'Albums', exact: true })
@@ -252,8 +294,29 @@ export async function navigateToJobGalleryAlbums(page: Page): Promise<void> {
 /**
  * Extracts album names from a job's Gallery Albums view.
  * Assumes the Albums tab is already active.
+ * Waits for at least one album card to render before extracting names.
  */
 export async function getJobAlbumNames(page: Page): Promise<string[]> {
+  // Wait for at least one album card to render (p followed by "N Items" sibling)
+  await page.waitForFunction(
+    () => {
+      const paragraphs = document.querySelectorAll('p');
+      for (const p of paragraphs) {
+        const nextP = p.nextElementSibling;
+        if (
+          nextP &&
+          nextP.tagName === 'P' &&
+          /^\d+\s+Items?$/.test((nextP.textContent || '').trim())
+        ) {
+          return true;
+        }
+      }
+      return false;
+    },
+    null,
+    { timeout: 15000 }
+  );
+
   return page.evaluate(() => {
     const paragraphs = document.querySelectorAll('p');
     const names: string[] = [];
@@ -326,23 +389,28 @@ export async function openAlbumContextMenu(
   page: Page,
   albumName: string
 ): Promise<void> {
-  await page.evaluate((name: string) => {
-    const paragraphs = document.querySelectorAll('p');
-    for (const p of Array.from(paragraphs)) {
-      if (p.textContent?.trim() === name) {
-        const card = p.parentElement?.parentElement;
-        if (!card) continue;
-        const trigger = card.querySelector(
-          'button[aria-haspopup="menu"]'
-        ) as HTMLElement | null;
-        if (trigger) {
-          trigger.click();
-          return;
+  // Wait for the album card to be rendered before trying to find the menu trigger
+  await page.waitForFunction(
+    (name: string) => {
+      const paragraphs = document.querySelectorAll('p');
+      for (const p of Array.from(paragraphs)) {
+        if (p.textContent?.trim() === name) {
+          const card = p.parentElement?.parentElement;
+          if (!card) continue;
+          const trigger = card.querySelector(
+            'button[aria-haspopup="menu"]'
+          ) as HTMLElement | null;
+          if (trigger) {
+            trigger.click();
+            return true;
+          }
         }
       }
-    }
-    throw new Error('Could not find menu trigger for album: ' + name);
-  }, albumName);
+      return false;
+    },
+    albumName,
+    { timeout: 15000 }
+  );
 }
 
 /**
