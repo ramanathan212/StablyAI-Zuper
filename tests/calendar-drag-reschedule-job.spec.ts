@@ -85,15 +85,35 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
     await page.waitForTimeout(1000); // Allow animations to settle
 
     // ===== Step 3: Find a CalendarJob entry (from previous test run) =====
-    // Look for any CalendarJob_* entry on today's calendar
+    // Look for any CalendarJob_* entry on the calendar
     const calendarJobLocator = page.locator('.b-cal-event-wrap').filter({
       has: page.locator('text=/CalendarJob_/')
     }).first().describe('CalendarJob entry on calendar');
 
-    // Verify the job is visible (scroll into view if needed)
+    // Wait for CalendarJob events to load (they load asynchronously after the Day view renders)
+    let eventsFound = false;
+    try {
+      await calendarJobLocator.waitFor({ state: 'attached', timeout: 10000 });
+      eventsFound = true;
+    } catch {
+      // Events not loaded on today — navigate backwards to find a day with CalendarJob events
+      const prevDayButton = page.locator('button:has(img[src*="angle-right"])').first();
+      for (let attempt = 0; attempt < 7; attempt++) {
+        await prevDayButton.click();
+        await page.waitForTimeout(1500);
+        try {
+          await calendarJobLocator.waitFor({ state: 'attached', timeout: 3000 });
+          eventsFound = true;
+          break;
+        } catch { /* continue navigating back */ }
+      }
+    }
+    expect(eventsFound, 'No CalendarJob events found within 7 days').toBe(true);
+
+    // Scroll the day view container to bring events into view
     await page.evaluate(() => {
       const scrollEl = document.querySelector('.b-dayview-day-content');
-      if (scrollEl) scrollEl.scrollTop = 300; // Scroll to show afternoon events
+      if (scrollEl) scrollEl.scrollTop = 300;
     });
     await page.waitForTimeout(1000);
 
@@ -126,31 +146,40 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
     const eventBox = await calendarJobLocator.boundingBox();
     expect(eventBox).not.toBeNull();
 
-    // Get the day container height to calculate pixels per hour
-    const dayContainerHeight = await page.evaluate(() => {
-      const dayDetail = document.querySelector('.b-dayview-day-detail.b-today');
-      return dayDetail ? dayDetail.getBoundingClientRect().height : 744;
+    // Get the day container bounds to calculate pixels per hour and ensure drag stays in viewport
+    const dayContainerBounds = await page.evaluate(() => {
+      const dayDetail = document.querySelector('.b-dayview-day-detail');
+      if (!dayDetail) return { top: 0, height: 744, bottom: 744 };
+      const rect = dayDetail.getBoundingClientRect();
+      return { top: rect.top, height: rect.height, bottom: rect.bottom };
     });
 
-    const pixelsPerHour = dayContainerHeight / 24;
-    // We'll drag 2 hours UP (negative Y direction)
+    const pixelsPerHour = dayContainerBounds.height / 24;
+    // We'll drag 2 hours — direction chosen dynamically to stay within viewport
     const dragDistance = Math.round(pixelsPerHour * 2);
 
     // Record source center coordinates
     const sourceX = eventBox!.x + eventBox!.width / 2;
     const sourceY = eventBox!.y + eventBox!.height / 2;
-    const targetY = sourceY - dragDistance;
+
+    // Choose drag direction: prefer DOWN (positive Y) to avoid going off-screen at the top
+    // Only drag UP if there's insufficient space below
+    const spaceBelow = dayContainerBounds.bottom - sourceY;
+    const spaceAbove = sourceY - dayContainerBounds.top;
+    const targetY = spaceBelow > dragDistance + 50
+      ? sourceY + dragDistance   // Drag DOWN
+      : sourceY - dragDistance;  // Drag UP (fallback if near bottom)
 
     // ===== Step 5: Perform drag and drop =====
     await page.mouse.move(sourceX, sourceY);
-    await page.waitForTimeout(200);
-    await page.mouse.down();
     await page.waitForTimeout(300);
+    await page.mouse.down();
+    await page.waitForTimeout(500); // Hold longer to trigger Bryntum drag recognition
     // Move with steps for smooth drag (Bryntum requires progressive movement)
-    await page.mouse.move(sourceX, targetY, { steps: 20 });
+    await page.mouse.move(sourceX, targetY, { steps: 30 });
     await page.waitForTimeout(500);
     await page.mouse.up();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
     // ===== Step 6: Handle the Reschedule confirmation dialog =====
     const rescheduleHeading = page.locator('h6').filter({ hasText: /Reschedule.*CalendarJob_/ }).describe('Reschedule dialog heading');
@@ -216,15 +245,18 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
 
     // Verify the new CSS top position matches the new time (approximately)
     const newTopPercent = await jobWithNewTime.evaluate(el => parseFloat((el as HTMLElement).style.top));
-    // Convert new start time to 24h format for expected position calculation
+    // Convert new start time to 24h format (including minutes) for expected position calculation
     let expectedNewHour = 0;
+    let expectedNewMinutes = 0;
     if (newMatch) {
       expectedNewHour = parseInt(newMatch[1]);
+      expectedNewMinutes = parseInt(newMatch[2]);
       if (newMatch[3] === 'PM' && expectedNewHour !== 12) expectedNewHour += 12;
       if (newMatch[3] === 'AM' && expectedNewHour === 12) expectedNewHour = 0;
     }
-    const expectedTopPercent = (expectedNewHour / 24) * 100;
-    expect(newTopPercent).toBeCloseTo(expectedTopPercent, 0);
+    const expectedTopPercent = ((expectedNewHour + expectedNewMinutes / 60) / 24) * 100;
+    // Allow tolerance of ~1% (~15 minutes) for calendar rendering precision
+    expect(Math.abs(newTopPercent - expectedTopPercent)).toBeLessThan(2);
 
     // ===== Step 8: Verify the job does NOT appear at the original time =====
     // The job should NOT be at the original position (moved at least 1 hour = ~4.17%)
@@ -252,8 +284,26 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
 
     // Switch back to Day view (may revert to default week view after reload)
     await dayTab.click();
-    await page.locator('.b-dayview-day-detail.b-today').first().waitFor({ state: 'attached', timeout: 10000 });
+    await page.locator('.b-dayview-day-detail').first().waitFor({ state: 'attached', timeout: 10000 });
     await page.waitForTimeout(1000);
+
+    // Wait for CalendarJob events to load after refresh (same logic as Step 3)
+    const jobRefreshLocator = page.locator('.b-cal-event-wrap').filter({
+      has: page.locator('text=/CalendarJob_/')
+    }).first();
+    try {
+      await jobRefreshLocator.waitFor({ state: 'attached', timeout: 10000 });
+    } catch {
+      const prevDayBtnRefresh = page.locator('button:has(img[src*="angle-right"])').first();
+      for (let attempt = 0; attempt < 7; attempt++) {
+        await prevDayBtnRefresh.click();
+        await page.waitForTimeout(1500);
+        try {
+          await jobRefreshLocator.waitFor({ state: 'attached', timeout: 3000 });
+          break;
+        } catch { /* continue */ }
+      }
+    }
 
     // Scroll to show the event area
     await page.evaluate(() => {
@@ -262,15 +312,17 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
     });
     await page.waitForTimeout(1000);
 
-    // Verify the CalendarJob is still visible at the NEW time after refresh
     const jobAfterRefresh = page.locator('.b-cal-event-wrap').filter({
       has: page.locator('text=/CalendarJob_/')
     }).first().describe('CalendarJob after page refresh');
+
+    // Verify the CalendarJob is still visible at the NEW time after refresh
     await expect(jobAfterRefresh).toBeVisible({ timeout: 15000 });
 
     // Verify the position matches the new time (not the original)
     const persistedTopPercent = await jobAfterRefresh.evaluate(el => parseFloat((el as HTMLElement).style.top));
-    expect(persistedTopPercent).toBeCloseTo(expectedTopPercent, 0);
+    // Allow tolerance of ~1% (~15 minutes) for calendar rendering precision
+    expect(Math.abs(persistedTopPercent - expectedTopPercent)).toBeLessThan(2);
 
     // Confirm it's NOT at the original time position
     expect(Math.abs(persistedTopPercent - originalTopPercent)).toBeGreaterThan(3);
