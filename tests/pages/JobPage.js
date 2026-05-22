@@ -22,7 +22,7 @@ export class JobPage {
     this.searchOrganizationsInput = page.getByRole('textbox', { name: 'Search Organizations' });
     this.chooseOrganizationButton = page.getByRole('button', { name: 'Choose Organization' });
     this.clickCategoryButton = page.getByText('Choose a Job Category', { exact: true });
-    this.categoryOption = page.getByText('Installation', { exact: true });   
+    this.categoryOption = page.getByText('Repair', { exact: true });
     this.customFieldTextInput = page.getByRole('textbox', { name: 'Text Input *' });
     this.createBtn = page.getByRole('button', { name: 'Create', exact: true });
     this.lineItemsButton = page.getByRole('button', { name: 'Line Items' });
@@ -175,8 +175,12 @@ export class JobPage {
     await this.clickCategoryButton.waitFor({ state: 'visible', timeout: 10000 });
     await this.clickCategoryButton.click();
 
-    await this.categoryOption.waitFor({ state: 'visible', timeout: 20000 });
-    await this.categoryOption.click();
+    // Use category from jobData if provided, otherwise use default
+    const categoryLocator = jobData.category
+      ? this.page.getByText(jobData.category, { exact: true })
+      : this.categoryOption;
+    await categoryLocator.waitFor({ state: 'visible', timeout: 20000 });
+    await categoryLocator.click();
     await this.page.waitForTimeout(500);
 
     // Handle due date
