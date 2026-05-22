@@ -93,15 +93,14 @@ test.describe('Job Notes - Pin and Unpin Note', () => {
     await notesTab.waitFor({ state: 'visible', timeout: 30000 });
     await notesTab.click();
 
-    // Wait for notes area to load
-    const allNotesHeader = page.getByText('All Notes').describe('All Notes section header');
-    await expect(allNotesHeader).toBeVisible({ timeout: 15000 });
-
-    // ── Verify at least one note exists, or create one ───────────────────
+    // Wait for notes area to load – the note editor button is always present
     const noteEditorButton = page
       .getByRole('button', { name: 'Enter your notes here...' })
       .describe('Note editor placeholder');
-    await expect(noteEditorButton).toBeVisible({ timeout: 15000 });
+    await expect(noteEditorButton).toBeVisible({ timeout: 30000 });
+
+    // "All Notes" header may only appear once notes exist; define locator for later use
+    const allNotesHeader = page.getByText('All Notes').describe('All Notes section header');
 
     // Check if any note cards exist
     const firstNoteCard = page
@@ -138,8 +137,14 @@ test.describe('Job Notes - Pin and Unpin Note', () => {
       await firstNoteCard.waitFor({ state: 'visible', timeout: 15000 });
     }
 
-    // Get the text of the first note we'll pin
-    const firstNoteTextEl = firstNoteCard.locator('p').first().describe('First note text');
+    // Get the text of the first note we'll pin – wait for paragraph with actual text
+    // Note cards may contain empty <p> elements (spacers), so find one with real content
+    const firstNoteTextEl = firstNoteCard
+      .locator('p')
+      .filter({ hasText: /\S/ })
+      .first()
+      .describe('First note text paragraph');
+    await firstNoteTextEl.waitFor({ state: 'visible', timeout: 15000 });
     const noteTextContent = await firstNoteTextEl.textContent();
     expect(noteTextContent).toBeTruthy();
 
