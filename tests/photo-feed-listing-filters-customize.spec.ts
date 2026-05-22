@@ -159,7 +159,9 @@ test.describe('Photo Feed Listing, Filters, and Customize', () => {
       .describe('Date range button showing Today');
     await expect(dateRangeToday).toBeVisible({ timeout: 10000 });
 
-    // Either photos are shown or the "No attachments found" message appears
+    // Wait for the page to finish loading after the date filter change.
+    // The app shows a loading spinner while fetching; we must wait for either
+    // photos or the empty-state message to appear before asserting.
     const noAttachmentsMsg = page
       .getByText('No attachments found for the applied filter')
       .describe('No attachments message when filter returns empty');
@@ -227,7 +229,9 @@ test.describe('Photo Feed Listing, Filters, and Customize', () => {
     await firstUserOption.waitFor({ state: 'visible', timeout: 10000 });
     await firstUserOption.click();
 
-    // Close the filter dropdown by pressing Escape
+    // Close the filter dropdown by pressing Escape (may need multiple presses
+    // to close sub-menu then main menu)
+    await page.keyboard.press('Escape');
     await page.keyboard.press('Escape');
 
     // Verify the filter indicator shows "N Filter(s)" (extra spaces from icon element)
