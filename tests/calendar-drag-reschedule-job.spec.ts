@@ -90,11 +90,19 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
       has: page.locator('text=/CalendarJob_/')
     }).first().describe('CalendarJob entry on calendar');
 
-    // Scroll the CalendarJob into view within its scrollable container
-    await expect(calendarJobLocator).toBeAttached({ timeout: 15000 });
-    await calendarJobLocator.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(800); // Allow scroll animation to settle
-    await expect(calendarJobLocator).toBeVisible({ timeout: 10000 });
+    // Scroll the calendar job into view to ensure it's visible and interactive
+    await page.evaluate(() => {
+      const events = document.querySelectorAll('.b-cal-event-wrap');
+      for (const ev of events) {
+        if (ev.textContent && ev.textContent.includes('CalendarJob_')) {
+          ev.scrollIntoView({ block: 'center', behavior: 'instant' });
+          break;
+        }
+      }
+    });
+    await page.waitForTimeout(1500); // Allow scroll and re-render to settle
+
+    await expect(calendarJobLocator).toBeVisible({ timeout: 15000 });
 
     // ===== Step 4: Record the original time slot =====
     // Get the time from the event's CSS top percentage (which maps to time-of-day)
@@ -120,11 +128,13 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
     const originalTopPercent = originalTimeInfo!.topPercent;
 
     // Get the event's bounding box for drag operation
-    // Ensure the element is scrolled into view before getting coordinates
-    await calendarJobLocator.scrollIntoViewIfNeeded();
+    // Wait a moment to ensure layout is stable after scroll
     await page.waitForTimeout(500);
     const eventBox = await calendarJobLocator.boundingBox();
     expect(eventBox).not.toBeNull();
+    // Ensure the event is actually in the viewport (y > 0 and reasonable height)
+    expect(eventBox!.y).toBeGreaterThan(0);
+    expect(eventBox!.height).toBeGreaterThan(0);
 
     // Get the day container height to calculate pixels per hour
     const dayContainerHeight = await page.evaluate(() => {
@@ -137,33 +147,34 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
     const minY = containerBox ? containerBox.y + 20 : 0; // Don't drag above container top
 
     const pixelsPerHour = dayContainerHeight / 24;
-    // We'll drag 2 hours UP (negative Y direction)
+    // We'll drag 2 hours DOWN (positive Y direction) to ensure target stays in viewport
     const dragDistance = Math.round(pixelsPerHour * 2);
 
     // Record source center coordinates
     const sourceX = eventBox!.x + eventBox!.width / 2;
     const sourceY = eventBox!.y + eventBox!.height / 2;
-    // Clamp targetY to stay within the scrollable container bounds
-    const targetY = Math.max(sourceY - dragDistance, minY);
+    // Drag DOWN instead of UP to avoid going off-screen above viewport
+    const targetY = sourceY + dragDistance;
 
     // ===== Step 5: Perform drag and drop =====
-    // Helper: Attempt a drag operation with configurable parameters
-    // Bryntum calendar requires a deliberate press-hold-move sequence to register drag
-    async function attemptDrag(srcX: number, srcY: number, tgtY: number, steps: number, holdDelay: number) {
-      await page.mouse.move(srcX, srcY);
-      await page.waitForTimeout(300);
-      await page.mouse.down();
-      // Hold down longer before moving - Bryntum needs time to detect drag intent
-      await page.waitForTimeout(holdDelay);
-      // Move with small initial displacement to trigger drag detection
-      await page.mouse.move(srcX, srcY - 5, { steps: 2 });
-      await page.waitForTimeout(200);
-      // Then move progressively to the target
-      await page.mouse.move(srcX, tgtY, { steps });
-      await page.waitForTimeout(800);
-      await page.mouse.up();
-      await page.waitForTimeout(2000);
-    }
+    // Bryntum calendar requires careful drag sequencing:
+    // 1. Hover over the event center
+    // 2. Press and hold (longer delay for drag recognition vs click)
+    // 3. Small initial move to trigger drag proxy creation
+    // 4. Progressive movement to target with many steps
+    // 5. Pause at target before releasing
+    await page.mouse.move(sourceX, sourceY);
+    await page.waitForTimeout(500);
+    await page.mouse.down();
+    await page.waitForTimeout(800); // Bryntum needs ~500ms+ hold to distinguish drag from click
+    // Small initial movement to trigger drag proxy (in the drag direction - downward)
+    await page.mouse.move(sourceX, sourceY + 5, { steps: 3 });
+    await page.waitForTimeout(300);
+    // Progressive movement to target position (downward)
+    await page.mouse.move(sourceX, targetY, { steps: 30 });
+    await page.waitForTimeout(1000); // Allow Bryntum to process the drop position
+    await page.mouse.up();
+    await page.waitForTimeout(3000); // Wait for reschedule dialog to appear
 
     // Retry drag up to 3 times - the Bryntum calendar can intermittently fail to register drags
     const rescheduleHeading = page.locator('h6').filter({ hasText: /Reschedule.*CalendarJob_/ }).describe('Reschedule dialog heading');
@@ -271,18 +282,18 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
 
     // Verify the new CSS top position matches the new time (approximately)
     const newTopPercent = await jobWithNewTime.evaluate(el => parseFloat((el as HTMLElement).style.top));
-    // Convert new start time to 24h format for expected position calculation
+    // Convert new start time to 24h format (including minutes) for expected position calculation
     let expectedNewHour = 0;
+    let expectedNewMinutes = 0;
     if (newMatch) {
       expectedNewHour = parseInt(newMatch[1]);
+      expectedNewMinutes = parseInt(newMatch[2]);
       if (newMatch[3] === 'PM' && expectedNewHour !== 12) expectedNewHour += 12;
       if (newMatch[3] === 'AM' && expectedNewHour === 12) expectedNewHour = 0;
     }
-    const expectedTopPercent = (expectedNewHour / 24) * 100;
-    // Use a tolerance of ~2% to account for calendar time-slot snapping (5-min increments)
-    // Bryntum snaps to 5-min intervals, so position can differ by up to (5/60)/24*100 = ~0.35% per snap
-    // Allow up to 3% tolerance to handle edge cases with partial-hour snapping
-    expect(Math.abs(newTopPercent - expectedTopPercent)).toBeLessThan(3);
+    const expectedTopPercent = ((expectedNewHour + expectedNewMinutes / 60) / 24) * 100;
+    // Use precision 1 decimal place to allow for Bryntum's 5-minute slot rounding
+    expect(newTopPercent).toBeCloseTo(expectedTopPercent, 0);
 
     // ===== Step 8: Verify the job does NOT appear at the original time =====
     // The job should NOT be at the original position (moved at least 1 hour = ~4.17%)
