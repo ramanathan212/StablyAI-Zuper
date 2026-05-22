@@ -155,14 +155,27 @@ test.describe('Photo Feed Details Panel', () => {
     await closeGalleryBtn.click();
     await page.waitForTimeout(1000);
 
-    // ── Open another photo ──────────────────────────────────────────────
+    // ── Open a photo that has a customer association ─────────────────────
     await openFirstPhoto();
 
-    // ── Click on Customer redirection ───────────────────────────────────
+    // Navigate through photos until we find one with a customer link
     const customerLink = page
       .locator('a[href*="/customers/"]')
       .first()
       .describe('Customer redirection link');
+
+    const nextSlideBtn = page.getByRole('button', { name: 'Next slide' });
+    const maxSlides = 20;
+    for (let i = 0; i < maxSlides; i++) {
+      if (await customerLink.isVisible().catch(() => false)) break;
+      if (await nextSlideBtn.isEnabled().catch(() => false)) {
+        await nextSlideBtn.click();
+        await page.waitForTimeout(1000);
+      } else {
+        break;
+      }
+    }
+
     await expect(customerLink).toBeVisible({ timeout: 10000 });
     const customerHref = await customerLink.getAttribute('href');
     expect(customerHref).toContain('/customers/');
