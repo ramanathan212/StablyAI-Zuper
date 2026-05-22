@@ -123,7 +123,17 @@ test.describe('Photo Feed Editor', () => {
 
     // Get the tags container (sibling of the Tags heading container)
     const tagsSection = tagsHeading.locator('..').locator('..');
-    const tagTextsBefore = await tagsSection.textContent();
+
+    // Wait for tag content to stabilize (async data may still be loading after heading appears).
+    // The tags section initially shows a placeholder ("No tags added yet") then updates
+    // with actual tag data from an async API call. Poll until text stops changing.
+    let tagTextsBefore = await tagsSection.textContent();
+    for (let i = 0; i < 5; i++) {
+      await page.waitForTimeout(600);
+      const current = await tagsSection.textContent();
+      if (current === tagTextsBefore) break;
+      tagTextsBefore = current;
+    }
 
     // Description - locate within the Description section specifically
     const descriptionHeading = page
@@ -297,7 +307,15 @@ test.describe('Photo Feed Editor', () => {
 
     // Verify Tags content is unchanged
     await expect(tagsHeading).toBeVisible({ timeout: 10000 });
-    const tagTextsAfter = await tagsSection.textContent();
+
+    // Wait for tag content to stabilize after re-opening details panel
+    let tagTextsAfter = await tagsSection.textContent();
+    for (let i = 0; i < 5; i++) {
+      await page.waitForTimeout(600);
+      const current = await tagsSection.textContent();
+      if (current === tagTextsAfter) break;
+      tagTextsAfter = current;
+    }
     expect(tagTextsAfter).toBe(tagTextsBefore);
 
     // Verify Description remains unchanged
