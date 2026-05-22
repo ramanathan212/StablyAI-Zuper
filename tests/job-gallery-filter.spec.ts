@@ -1,5 +1,6 @@
 import { test, expect } from '@stablyai/playwright-test';
 import { forceRemoveOverlays } from './Helper/overlay-helper.js';
+import { dismissBeamerModal } from './helpers/gallery.helper.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -93,6 +94,9 @@ test.describe('Job Gallery - Filter Functionality', () => {
     await expect(page).toHaveURL(/\/jobs\/.*\/details/, { timeout: 30000 });
     await forceRemoveOverlays(page);
 
+    // ── Dismiss Beamer modal if present ────────────────────────────────
+    await dismissBeamerModal(page);
+
     // ── Open the Gallery tab ──────────────────────────────────────────
     const galleryTab = page
       .getByRole('button', { name: /^Gallery/ })
@@ -103,6 +107,9 @@ test.describe('Job Gallery - Filter Functionality', () => {
 
     // Wait for gallery content to load
     await page.waitForTimeout(3000);
+
+    // Dismiss Beamer modal again after tab switch
+    await dismissBeamerModal(page);
 
     // ── Ensure images exist; upload if gallery is empty ───────────────
     const galleryImages = page.locator(
@@ -227,6 +234,7 @@ test.describe('Job Gallery - Filter Functionality', () => {
     await filterButton.waitFor({ state: 'visible', timeout: 15000 });
 
     // ── Apply "Photo" filter via Type submenu ─────────────────────────
+    await dismissBeamerModal(page);
     await filterButton.click();
 
     // The filter menu is a CDK overlay with menuitems
@@ -265,6 +273,7 @@ test.describe('Job Gallery - Filter Functionality', () => {
     // ── Change filter to "Video" ──────────────────────────────────────
     // Re-open the filter dropdown by clicking the active filter button area
     // The filter icon/button area is still clickable
+    await dismissBeamerModal(page);
     await activeFilterButton.click();
 
     // Hover over Type to reveal submenu again
@@ -307,6 +316,7 @@ test.describe('Job Gallery - Filter Functionality', () => {
     // If videoCount is 0, the filter still worked — it correctly shows no videos
 
     // ── Clear all filters ─────────────────────────────────────────────
+    await dismissBeamerModal(page);
     const clearFilterButton = page
       .getByTitle('Clear all filters')
       .describe('Clear all filters button (×)');

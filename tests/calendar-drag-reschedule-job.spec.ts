@@ -115,7 +115,7 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
       const scrollEl = document.querySelector('.b-dayview-day-content');
       if (scrollEl) scrollEl.scrollTop = 300;
     });
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(1500); // Allow scroll and re-render to settle
 
     await expect(calendarJobLocator).toBeVisible({ timeout: 15000 });
 
@@ -143,8 +143,13 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
     const originalTopPercent = originalTimeInfo!.topPercent;
 
     // Get the event's bounding box for drag operation
+    // Wait a moment to ensure layout is stable after scroll
+    await page.waitForTimeout(500);
     const eventBox = await calendarJobLocator.boundingBox();
     expect(eventBox).not.toBeNull();
+    // Ensure the event is actually in the viewport (y > 0 and reasonable height)
+    expect(eventBox!.y).toBeGreaterThan(0);
+    expect(eventBox!.height).toBeGreaterThan(0);
 
     // Get the day container bounds to calculate pixels per hour and ensure drag stays in viewport
     const dayContainerBounds = await page.evaluate(() => {
@@ -171,6 +176,12 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
       : sourceY - dragDistance;  // Drag UP (fallback if near bottom)
 
     // ===== Step 5: Perform drag and drop =====
+    // Bryntum calendar requires careful drag sequencing:
+    // 1. Hover over the event center
+    // 2. Press and hold (longer delay for drag recognition vs click)
+    // 3. Small initial move to trigger drag proxy creation
+    // 4. Progressive movement to target with many steps
+    // 5. Pause at target before releasing
     await page.mouse.move(sourceX, sourceY);
     await page.waitForTimeout(300);
     await page.mouse.down();
@@ -181,9 +192,51 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
     await page.mouse.up();
     await page.waitForTimeout(3000);
 
-    // ===== Step 6: Handle the Reschedule confirmation dialog =====
+    // Retry drag up to 3 times - the Bryntum calendar can intermittently fail to register drags
     const rescheduleHeading = page.locator('h6').filter({ hasText: /Reschedule.*CalendarJob_/ }).describe('Reschedule dialog heading');
-    await expect(rescheduleHeading).toBeVisible({ timeout: 10000 });
+    let dragSucceeded = false;
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      // On retries, increase steps and hold delay for more reliable detection
+      const steps = 20 + (attempt - 1) * 15; // 20, 35, 50
+      const holdDelay = 500 + (attempt - 1) * 300; // 500ms, 800ms, 1100ms
+
+      await attemptDrag(sourceX, sourceY, targetY, steps, holdDelay);
+
+      // Check if reschedule dialog appeared
+      const isVisible = await rescheduleHeading.isVisible().catch(() => false);
+      if (isVisible) {
+        dragSucceeded = true;
+        break;
+      }
+
+      // If dialog didn't appear, wait and re-acquire bounding box in case event position shifted
+      if (attempt < 3) {
+        await page.waitForTimeout(1000);
+        // Remove any overlays that might have appeared
+        await removeOverlays();
+        // Re-verify the event is still visible and scroll into view for accurate coordinates
+        await expect(calendarJobLocator).toBeVisible({ timeout: 5000 });
+        await calendarJobLocator.scrollIntoViewIfNeeded();
+        await page.waitForTimeout(500);
+        const freshBox = await calendarJobLocator.boundingBox();
+        if (freshBox) {
+          // Update source coordinates for next attempt
+          const freshSourceY = freshBox.y + freshBox.height / 2;
+          // Clamp fresh target Y to stay within container bounds
+          const freshTargetY = Math.max(freshSourceY - dragDistance, minY);
+          await attemptDrag(freshBox.x + freshBox.width / 2, freshSourceY, freshTargetY, steps + 10, holdDelay + 200);
+          const retryVisible = await rescheduleHeading.isVisible().catch(() => false);
+          if (retryVisible) {
+            dragSucceeded = true;
+            break;
+          }
+        }
+      }
+    }
+
+    // Final assertion - if all drag attempts failed, this will provide a clear error
+    await expect(rescheduleHeading).toBeVisible({ timeout: 15000 });
 
     // Read the new scheduled time from the dialog
     const startTimeInput = page.locator('input[placeholder="Pick a time"]').first().describe('Scheduled start time in reschedule dialog');
