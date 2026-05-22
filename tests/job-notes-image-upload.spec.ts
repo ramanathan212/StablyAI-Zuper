@@ -1,6 +1,6 @@
 import { test, expect } from '@stablyai/playwright-test';
 import { LoginPage } from './pages/LoginPage.js';
-import { JobPage } from './pages/JobPage.js';
+import { forceRemoveOverlays } from './Helper/overlay-helper.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -10,7 +10,7 @@ test.describe('Job Notes Image Upload', () => {
    * - I want to start upload an image inside the Job --> Notes to test it out
    *
    * Clarifications:
-   * - Job Setup: Create a new job
+   * - Job Setup: Navigate to an existing job (like other passing notes tests)
    * - Assertions: Both image + notification
    */
   test('should upload an image in job notes and verify it appears', async ({ page }) => {
@@ -58,43 +58,46 @@ test.describe('Job Notes Image Upload', () => {
     // Dismiss any popups after login
     await loginPage.dismissOnboarding();
 
-    // --- Step 2: Navigate to New Job form ---
-    const jobPage = new JobPage(page);
-    await jobPage.navigateToJobs();
-    await jobPage.clickNewJob();
+    // --- Step 2: Navigate to an existing job ---
+    await page.goto('/jobs');
+    await forceRemoveOverlays(page);
 
-    // --- Step 3: Fill mandatory job fields ---
-    const uniqueJobTitle = `Notes Upload Test ${Date.now()}`;
+    const jobTable = page.locator('table').first().describe('Jobs list table');
+    await jobTable.waitFor({ state: 'visible', timeout: 30000 });
 
-    // Dynamic due date (tomorrow)
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-    const dueDate = `${monthNames[tomorrow.getMonth()]} ${tomorrow.getDate()},`;
+    const firstJobLink = page
+      .locator('table tbody tr')
+      .first()
+      .locator('a')
+      .first()
+      .describe('First job link');
+    await firstJobLink.waitFor({ state: 'visible', timeout: 15000 });
+    const jobHref = await firstJobLink.getAttribute('href');
+    await page.goto(jobHref!);
 
-    await jobPage.fillJobBasicInfo({ title: uniqueJobTitle, dueDate });
-
-    // Add organization (mandatory)
-    await jobPage.addOrganizationToJob('ACME Corporation');
-
-    // Fill mandatory custom field
-    await jobPage.fillCustomFields('test');
-
-    // --- Step 4: Create the job ---
-    await jobPage.createJob();
-
-    // Verify we're on the job details page
     await expect(page).toHaveURL(/\/jobs\/.*\/details/, { timeout: 30000 });
+    await forceRemoveOverlays(page);
 
-    // --- Step 5: Navigate to Notes tab ---
-    const notesTab = page.getByRole('button', { name: 'Notes' }).describe('Notes tab button');
-    await notesTab.waitFor({ state: 'visible', timeout: 15000 });
+    // Dismiss notification popup if present
+    const notifBtn = page.getByRole('button', { name: 'No, thanks' });
+    await notifBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    if (await notifBtn.isVisible()) await notifBtn.click();
+
+    // Dismiss timezone popup if present
+    const tzCancelBtn = page.getByRole('button', { name: 'Cancel' });
+    await tzCancelBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    if (await tzCancelBtn.isVisible()) await tzCancelBtn.click();
+
+    // Wait briefly for dialogs to dismiss
+    await page.waitForTimeout(500);
+    await forceRemoveOverlays(page);
+
+    // --- Step 3: Navigate to Notes tab ---
+    const notesTab = page.getByRole('button', { name: /^Notes/ }).first().describe('Notes tab button');
+    await notesTab.waitFor({ state: 'visible', timeout: 30000 });
     await notesTab.click();
 
-    // --- Step 6: Open note editor ---
+    // --- Step 4: Open note editor ---
     const noteEditorButton = page.getByRole('button', { name: 'Enter your notes here...' }).describe('Open note editor');
     await noteEditorButton.waitFor({ state: 'visible', timeout: 15000 });
     await noteEditorButton.click();
@@ -103,7 +106,7 @@ test.describe('Job Notes Image Upload', () => {
     const postNoteButton = page.getByRole('button', { name: 'Post Note' }).describe('Post Note button');
     await expect(postNoteButton).toBeVisible({ timeout: 10000 });
 
-    // --- Step 7: Upload image via Attach button ---
+    // --- Step 5: Upload image via Attach button ---
     const attachButton = page.getByTestId('notes_attachment-button').describe('Attach file button');
     await expect(attachButton).toBeVisible({ timeout: 10000 });
 
@@ -122,24 +125,24 @@ test.describe('Job Notes Image Upload', () => {
     await postNoteButton.waitFor({ state: 'visible', timeout: 15000 });
     await page.waitForTimeout(2000);
 
-    // --- Step 8: Post the note ---
+    // --- Step 6: Post the note ---
     await postNoteButton.click();
 
-    // --- Step 9: Verify the note was posted with the image ---
+    // --- Step 7: Verify the note was posted with the image ---
 
-    // 9a: Verify success toast notification "Note Created successfully" appears
+    // 7a: Verify success toast notification "Note Created successfully" appears
     const successToast = page.getByText('Note Created successfully').describe('Success toast notification');
     await expect(successToast).toBeVisible({ timeout: 20000 });
 
-    // 9b: Verify the attachment count text appears (e.g., "1 Attachment(s)")
+    // 7b: Verify the attachment count text appears (e.g., "1 Attachment(s)")
     const attachmentCount = page.getByText(/\d+\s*Attachment/i).first().describe('Attachment count in posted note');
     await expect(attachmentCount).toBeVisible({ timeout: 15000 });
 
-    // 9c: Verify the uploaded image filename appears in the note
+    // 7c: Verify the uploaded image filename appears in the note
     const imageFilename = page.getByText(/test-note-image/i).first().describe('Uploaded image filename in note');
     await expect(imageFilename).toBeVisible({ timeout: 10000 });
 
-    // 9d: Verify the "All Notes" section is visible with posted content
+    // 7d: Verify the "All Notes" section is visible with posted content
     const allNotesHeading = page.getByText('All Notes').describe('All Notes section header');
     await expect(allNotesHeading).toBeVisible();
 
