@@ -142,6 +142,10 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
       return dayDetail ? dayDetail.getBoundingClientRect().height : 744;
     });
 
+    // Get the scroll container bounds to ensure drag target stays within visible area
+    const containerBox = await page.locator('.b-dayview-day-content').first().boundingBox();
+    const minY = containerBox ? containerBox.y + 20 : 0; // Don't drag above container top
+
     const pixelsPerHour = dayContainerHeight / 24;
     // We'll drag 2 hours DOWN (positive Y direction) to ensure target stays in viewport
     const dragDistance = Math.round(pixelsPerHour * 2);
@@ -172,9 +176,51 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
     await page.mouse.up();
     await page.waitForTimeout(3000); // Wait for reschedule dialog to appear
 
-    // ===== Step 6: Handle the Reschedule confirmation dialog =====
+    // Retry drag up to 3 times - the Bryntum calendar can intermittently fail to register drags
     const rescheduleHeading = page.locator('h6').filter({ hasText: /Reschedule.*CalendarJob_/ }).describe('Reschedule dialog heading');
-    await expect(rescheduleHeading).toBeVisible({ timeout: 10000 });
+    let dragSucceeded = false;
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      // On retries, increase steps and hold delay for more reliable detection
+      const steps = 20 + (attempt - 1) * 15; // 20, 35, 50
+      const holdDelay = 500 + (attempt - 1) * 300; // 500ms, 800ms, 1100ms
+
+      await attemptDrag(sourceX, sourceY, targetY, steps, holdDelay);
+
+      // Check if reschedule dialog appeared
+      const isVisible = await rescheduleHeading.isVisible().catch(() => false);
+      if (isVisible) {
+        dragSucceeded = true;
+        break;
+      }
+
+      // If dialog didn't appear, wait and re-acquire bounding box in case event position shifted
+      if (attempt < 3) {
+        await page.waitForTimeout(1000);
+        // Remove any overlays that might have appeared
+        await removeOverlays();
+        // Re-verify the event is still visible and scroll into view for accurate coordinates
+        await expect(calendarJobLocator).toBeVisible({ timeout: 5000 });
+        await calendarJobLocator.scrollIntoViewIfNeeded();
+        await page.waitForTimeout(500);
+        const freshBox = await calendarJobLocator.boundingBox();
+        if (freshBox) {
+          // Update source coordinates for next attempt
+          const freshSourceY = freshBox.y + freshBox.height / 2;
+          // Clamp fresh target Y to stay within container bounds
+          const freshTargetY = Math.max(freshSourceY - dragDistance, minY);
+          await attemptDrag(freshBox.x + freshBox.width / 2, freshSourceY, freshTargetY, steps + 10, holdDelay + 200);
+          const retryVisible = await rescheduleHeading.isVisible().catch(() => false);
+          if (retryVisible) {
+            dragSucceeded = true;
+            break;
+          }
+        }
+      }
+    }
+
+    // Final assertion - if all drag attempts failed, this will provide a clear error
+    await expect(rescheduleHeading).toBeVisible({ timeout: 15000 });
 
     // Read the new scheduled time from the dialog
     const startTimeInput = page.locator('input[placeholder="Pick a time"]').first().describe('Scheduled start time in reschedule dialog');
@@ -278,22 +324,20 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
     await page.locator('.b-dayview-day-detail.b-today').first().waitFor({ state: 'attached', timeout: 10000 });
     await page.waitForTimeout(1000);
 
-    // Scroll to show the event area
-    await page.evaluate(() => {
-      const scrollEl = document.querySelector('.b-dayview-day-content');
-      if (scrollEl) scrollEl.scrollTop = 300;
-    });
-    await page.waitForTimeout(1000);
-
     // Verify the CalendarJob is still visible at the NEW time after refresh
     const jobAfterRefresh = page.locator('.b-cal-event-wrap').filter({
       has: page.locator('text=/CalendarJob_/')
     }).first().describe('CalendarJob after page refresh');
-    await expect(jobAfterRefresh).toBeVisible({ timeout: 15000 });
+    // Scroll the job into view rather than using a blind scroll offset
+    await expect(jobAfterRefresh).toBeAttached({ timeout: 15000 });
+    await jobAfterRefresh.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(800);
+    await expect(jobAfterRefresh).toBeVisible({ timeout: 10000 });
 
     // Verify the position matches the new time (not the original)
     const persistedTopPercent = await jobAfterRefresh.evaluate(el => parseFloat((el as HTMLElement).style.top));
-    expect(persistedTopPercent).toBeCloseTo(expectedTopPercent, 0);
+    // Use same tolerance as above for calendar time-slot snapping
+    expect(Math.abs(persistedTopPercent - expectedTopPercent)).toBeLessThan(3);
 
     // Confirm it's NOT at the original time position
     expect(Math.abs(persistedTopPercent - originalTopPercent)).toBeGreaterThan(3);

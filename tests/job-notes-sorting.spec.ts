@@ -92,10 +92,43 @@ test.describe('Job Notes - Sorting', () => {
     const allNotesHeader = page.getByText('All Notes').describe('All Notes section header');
     await expect(allNotesHeader).toBeVisible({ timeout: 15000 });
 
-    // Verify there are at least 2 notes to test sorting
+    // Ensure there are at least 2 notes to test sorting - create if needed
     const timestampLocator = page.locator('[data-testid="notes_timestamp"]');
-    await timestampLocator.first().waitFor({ state: 'visible', timeout: 15000 });
-    const noteCount = await timestampLocator.count();
+    await timestampLocator.first().waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+    let noteCount = await timestampLocator.count();
+
+    // If fewer than 2 notes exist, create notes until we have at least 2
+    while (noteCount < 2) {
+      const noteEditorButton = page
+        .getByRole('button', { name: 'Enter your notes here...' })
+        .describe('Note editor placeholder');
+      await noteEditorButton.waitFor({ state: 'visible', timeout: 15000 });
+      await noteEditorButton.click();
+
+      const postNoteButton = page
+        .getByRole('button', { name: 'Post Note' })
+        .describe('Post Note button');
+      await expect(postNoteButton).toBeVisible({ timeout: 10000 });
+
+      const noteEditor = page.locator('.ce-paragraph').describe('Note text editor');
+      await noteEditor.waitFor({ state: 'visible', timeout: 10000 });
+      await noteEditor.click();
+      await page.keyboard.type(`Sorting test note ${Date.now()}`);
+      await postNoteButton.click();
+
+      // Wait for note creation success
+      const successToast = page
+        .getByText('Note Created successfully')
+        .describe('Note creation toast');
+      await expect(successToast).toBeVisible({ timeout: 20000 });
+
+      // Wait for the toast to disappear and new note to render
+      await page.waitForTimeout(2000);
+
+      // Re-count notes
+      noteCount = await timestampLocator.count();
+    }
+
     expect(noteCount, 'Need at least 2 notes to verify sorting').toBeGreaterThanOrEqual(2);
 
     // ── Helper: parse timestamps and verify sort order ────────────────────
