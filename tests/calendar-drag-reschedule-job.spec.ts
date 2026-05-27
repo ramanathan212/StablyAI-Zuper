@@ -192,6 +192,21 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
     await page.mouse.up();
     await page.waitForTimeout(3000);
 
+    // Helper: Perform a drag from source to target with configurable steps and hold delay
+    async function attemptDrag(sx: number, sy: number, ty: number, steps: number, holdDelay: number) {
+      await page.mouse.move(sx, sy);
+      await page.waitForTimeout(300);
+      await page.mouse.down();
+      await page.waitForTimeout(holdDelay);
+      await page.mouse.move(sx, ty, { steps });
+      await page.waitForTimeout(500);
+      await page.mouse.up();
+      await page.waitForTimeout(3000);
+    }
+
+    // Minimum Y coordinate to clamp drag target within the day container
+    const minY = dayContainerBounds.top + 10;
+
     // Retry drag up to 3 times - the Bryntum calendar can intermittently fail to register drags
     const rescheduleHeading = page.locator('h6').filter({ hasText: /Reschedule.*CalendarJob_/ }).describe('Reschedule dialog heading');
     let dragSucceeded = false;
