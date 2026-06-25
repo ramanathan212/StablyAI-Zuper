@@ -25,7 +25,7 @@ interface FilterConfig {
 
 const FILTER_CONFIGS: FilterConfig[] = [
   {
-    filterName: 'Work Order Number',
+    filterName: 'Job ID',
     operatorDropdownId: 'operator_work_order_number',
     value: '11',
     valueInputType: 'spinbutton',
