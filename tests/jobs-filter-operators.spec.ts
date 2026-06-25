@@ -1,8 +1,8 @@
 import { test, expect } from '@stablyai/playwright-test';
 import type { Page } from '@playwright/test';
 
-// Increase timeout for this long test (17 filters × multiple operators)
-test.setTimeout(900000);
+// Increase timeout for this long test (21 filters x multiple operators)
+test.setTimeout(1200000);
 
 /**
  * Filter configuration: each entry defines a filter to test with its
@@ -10,10 +10,16 @@ test.setTimeout(900000);
  * value, value input type, and the list of operators to cycle through.
  *
  * valueInputType:
- *   - 'textbox'    → plain text input (e.g., Job Title, Address fields)
- *   - 'spinbutton' → numeric input (e.g., Work Order Number)
- *   - 'combobox'   → ng-select dropdown with field_value_xxx ID
- *   - 'daterange'  → ng-select dropdown with range_xxx ID (Today/Yesterday/Tomorrow/Custom Date)
+ *   - 'textbox'    -> plain text input (e.g., Job Title, Address fields)
+ *   - 'spinbutton' -> numeric input (e.g., Job ID / Work Order Number)
+ *   - 'combobox'   -> ng-select dropdown with field_value_xxx ID
+ *   - 'daterange'  -> ng-select dropdown with range_xxx ID (Today/Yesterday/Tomorrow/Custom Date)
+ *
+ * Default operators per input type (set by the UI when a filter is first added):
+ *   - textbox:    "Equal To"
+ *   - spinbutton: "Equal To"
+ *   - daterange:  "Equal To"
+ *   - combobox:   "Contains"
  */
 interface FilterConfig {
   filterName: string;
@@ -23,9 +29,54 @@ interface FilterConfig {
   operators: string[];
 }
 
+/**
+ * Returns the default operator for a given filter input type.
+ */
+function getDefaultOperator(valueInputType: FilterConfig['valueInputType']): string {
+  switch (valueInputType) {
+    case 'combobox':
+      return 'Contains';
+    case 'textbox':
+    case 'spinbutton':
+    case 'daterange':
+    default:
+      return 'Equal To';
+  }
+}
+
 const FILTER_CONFIGS: FilterConfig[] = [
+  // ── Group 1: Filters with user-specified operators ─────────────────────
   {
-    filterName: 'Work Order Number',
+    filterName: 'Job Title',
+    operatorDropdownId: 'operator_job_title',
+    value: 'ParentJob',
+    valueInputType: 'textbox',
+    operators: ['Equal To', 'Not Equal To', 'Contains', 'Not Contains'],
+  },
+  {
+    filterName: 'Job Category',
+    operatorDropdownId: 'operator_job_category_uid',
+    value: 'TestRCategory',
+    valueInputType: 'combobox',
+    operators: ['Contains', 'Not Contains'],
+  },
+  {
+    filterName: 'Job Priority',
+    operatorDropdownId: 'operator_job_priority',
+    value: 'Low',
+    valueInputType: 'combobox',
+    operators: ['Contains', 'Not Contains', 'Is Empty', 'Is Not Empty'],
+  },
+  {
+    filterName: 'Job Status Type',
+    operatorDropdownId: 'operator_current_job_status.status_type',
+    value: 'New',
+    valueInputType: 'combobox',
+    operators: ['Contains', 'Not Contains', 'Is Empty', 'Is Not Empty'],
+  },
+  // ── Group 2: Same flow as Title with all available operators ────────────
+  {
+    filterName: 'Job ID',
     operatorDropdownId: 'operator_work_order_number',
     value: '11',
     valueInputType: 'spinbutton',
@@ -137,35 +188,43 @@ const FILTER_CONFIGS: FilterConfig[] = [
     operators: ['Equal To', 'Greater than', 'Less than', 'Within'],
   },
   {
-    filterName: 'Contact Address - Street',
+    filterName: 'Service Address - Street',
     operatorDropdownId: 'operator_customer_address.street',
     value: 'Nkl',
     valueInputType: 'textbox',
-    operators: ['Equal To', 'Not Equal To', 'Contains', 'Not Contains', 'Is Empty', 'Is Not Empty'],
+    operators: ['Equal To', 'Not Equal To', 'Contains', 'Not Contains'],
   },
 ];
 
 test.describe('Jobs Filter Operator Workflow', () => {
   /**
    * User Prompt:
-   * - Work Order Number, value : 11
-   * - Job Category, value: Fixes
-   * - Job Priority: High
-   * - Job Status Type: New
-   * - Job Recurrence Type: Yes
-   * - Job Delayed: Yes
-   * - Job Type: New
-   * - Job Status: New
-   * - Contact Request, value: Sanity Test Request
-   * - Assigned to Team, value: QATest
-   * - Assigned to User, value: Ragupathy Selvaraj
-   * - Assignment Status, value: Assigned Jobs
-   * - Scheduled Status, value: Scheduled
-   * - Scheduled Start Time, value: Today's date
-   * - Scheduled End Time, value: Today's date
-   * - Due Date, value: Today's date
-   * - Customer Address Street, value: Nkl
-   * - Note: Apply all the available operator for each filter
+   * - After logged in cancel the pop ups in the Dashboard page
+   * - Go to the Jobs module Click on the filter button
+   * - Delete all the added pinned filters
+   * - click on the "Add Filter" button
+   * - Select the choose filter as "Title"
+   * - Add the operator as "Equal To"
+   * - Provide the value as "ParentJob"
+   * - Click on the "Add button
+   * - Print the No of rows count for this filter
+   * - Click on the "edit" button in the filter
+   * - Change the operator as "Not Equal To"
+   * - Click on the "Update" button
+   * - Print the No of rows count for this filter
+   * - Continue for Contains, Not Contains
+   * - Delete the added filter
+   * - Perform same steps as per "Title" filter for below filters:
+   *   Filter name: Job Category, value: TestRCategory (Contains, NotContains only)
+   *   Filter name: Priority, value: Low (Contains, NotContains, IsEmpty, IsNotEmpty)
+   *   Filter name: Job StatusType, value: New (Contains, NotContains, IsEmpty, IsNotEmpty)
+   *   Job ID: 11, Job Category: Fixes, Job Priority: High, Job Status Type: New,
+   *   Job Recurrence Type: Yes, Job Delayed: Yes, Job Type: New, Job Status: New,
+   *   Contact Request: Sanity Test Request, Assigned to Team: QATest,
+   *   Assigned to User: Ragupathy Selvaraj, Assignment Status: Assigned Jobs,
+   *   Scheduled Status: Scheduled, Scheduled Start Time: Today's date,
+   *   Scheduled End Time: Today's date, Due Date: Today's date,
+   *   Customer Address Street: Nkl
    */
   test('should filter jobs by multiple filters with all available operators and print row counts', async ({ page }) => {
     // ── Step 1: Login ──────────────────────────────────────────────────
@@ -247,6 +306,11 @@ test.describe('Jobs Filter Operator Workflow', () => {
         // Change operator
         await changeOperator(page, config.operatorDropdownId, operator);
 
+        // For Is Empty / Is Not Empty operators, clear the value field if needed
+        if (operator === 'Is Empty' || operator === 'Is Not Empty') {
+          await clearValueFieldIfPresent(page, config);
+        }
+
         // Click Update
         await page.getByRole('button', { name: 'Update' }).click();
         await page.waitForTimeout(3000);
@@ -256,10 +320,8 @@ test.describe('Jobs Filter Operator Workflow', () => {
         console.log(`  [${config.filterName} ${operator} "${config.value}"] Row count: ${rowCount}`);
       }
 
-      // Delete the filter before adding the next one (unless it's the last filter)
-      if (i < FILTER_CONFIGS.length - 1) {
-        await deleteAppliedFilter(page);
-      }
+      // Delete the filter before adding the next one
+      await deleteAppliedFilter(page);
     }
 
     console.log('\n' + '='.repeat(80));
@@ -322,8 +384,10 @@ async function removeAllPinnedFilters(page: Page): Promise<void> {
 
 /**
  * Adds a new filter using the provided configuration.
- * Clicks "Add Filter", selects the filter name, sets the first operator (default),
- * enters the value, and clicks "Add".
+ * Uses the default operator for the filter type, then changes it if the first
+ * desired operator differs from the default.
+ *
+ * Default operators per type: textbox/spinbutton/daterange = "Equal To", combobox = "Contains"
  */
 async function addFilter(page: Page, config: FilterConfig): Promise<void> {
   // Click "Add Filter" button
@@ -336,53 +400,67 @@ async function addFilter(page: Page, config: FilterConfig): Promise<void> {
   await page.getByRole('option', { name: config.filterName, exact: true }).click();
   await page.waitForTimeout(500);
 
-  // Enter the value based on input type
-  if (config.valueInputType === 'textbox') {
-    await page.getByRole('textbox', { name: 'Field Value' }).fill(config.value);
-  } else if (config.valueInputType === 'spinbutton') {
-    // Number input fields render as spinbutton role
-    await page.getByRole('spinbutton').fill(config.value);
-  } else if (config.valueInputType === 'daterange') {
-    // Date filters use ng-select with range_xxx ID pattern
-    const rangeFieldId = config.operatorDropdownId.replace('operator_', 'range_');
-    const rangeNgSelect = page.locator(`[id="${rangeFieldId}"]`);
-    const rangeInput = rangeNgSelect.locator('input');
-    await rangeInput.click();
-    await page.waitForTimeout(500);
-    // Select the date option (Today, Yesterday, Tomorrow, Custom Date)
-    const option = page.getByRole('option', { name: config.value, exact: true });
-    if (await option.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await option.click();
-    }
-  } else {
-    // For combobox values, derive the value field ng-select ID from the operator dropdown ID.
-    // Pattern: operator_xxx -> field_value_xxx
-    const valueFieldId = config.operatorDropdownId.replace('operator_', 'field_value_');
-    const valueNgSelect = page.locator(`[id="${valueFieldId}"]`);
-    const valueInput = valueNgSelect.locator('input');
-    await valueInput.click();
-    // Type to search/filter the dropdown options
-    await valueInput.fill(config.value);
-    await page.waitForTimeout(1000);
-    // Select the matching option
-    const option = page.getByRole('option', { name: config.value, exact: true });
-    if (await option.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await option.click();
+  // Determine the default operator for this filter type
+  const defaultOp = getDefaultOperator(config.valueInputType);
+  const firstDesiredOp = config.operators[0];
+
+  // Only change operator if the first desired operator differs from the default
+  if (firstDesiredOp !== defaultOp) {
+    await changeOperator(page, config.operatorDropdownId, firstDesiredOp);
+  }
+
+  // For Is Empty / Is Not Empty, no value needs to be entered
+  const isEmptyOperator = firstDesiredOp === 'Is Empty' || firstDesiredOp === 'Is Not Empty';
+
+  if (!isEmptyOperator) {
+    // Enter the value based on input type
+    if (config.valueInputType === 'textbox') {
+      await page.getByRole('textbox', { name: 'Field Value' }).fill(config.value);
+    } else if (config.valueInputType === 'spinbutton') {
+      // Number input fields render as spinbutton role
+      await page.getByRole('spinbutton').fill(config.value);
+    } else if (config.valueInputType === 'daterange') {
+      // Date filters use ng-select with range_xxx ID pattern
+      const rangeFieldId = config.operatorDropdownId.replace('operator_', 'range_');
+      const rangeNgSelect = page.locator(`[id="${rangeFieldId}"]`);
+      const rangeInput = rangeNgSelect.locator('input');
+      await rangeInput.click();
+      await page.waitForTimeout(500);
+      // Select the date option (Today, Yesterday, Tomorrow, Custom Date)
+      const option = page.getByRole('option', { name: config.value, exact: true });
+      if (await option.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await option.click();
+      }
     } else {
-      // If exact match not found, try partial match then first available option
-      const partialOption = page.getByRole('option').filter({ hasText: config.value }).first();
-      if (await partialOption.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await partialOption.click();
+      // For combobox values, derive the value field ng-select ID from the operator dropdown ID.
+      // Pattern: operator_xxx -> field_value_xxx
+      const valueFieldId = config.operatorDropdownId.replace('operator_', 'field_value_');
+      const valueNgSelect = page.locator(`[id="${valueFieldId}"]`);
+      const valueInput = valueNgSelect.locator('input');
+      await valueInput.click();
+      // Type to search/filter the dropdown options
+      await valueInput.fill(config.value);
+      await page.waitForTimeout(1000);
+      // Select the matching option
+      const option = page.getByRole('option', { name: config.value, exact: true });
+      if (await option.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await option.click();
       } else {
-        // Close the "No items found" dropdown by pressing Escape on the ng-select
-        await page.keyboard.press('Escape');
-        await page.waitForTimeout(300);
-        // Clear the search and select the first available option
-        await valueInput.clear();
-        await page.waitForTimeout(500);
-        const anyOption = page.getByRole('option').first();
-        if (await anyOption.isVisible({ timeout: 2000 }).catch(() => false)) {
-          await anyOption.click();
+        // If exact match not found, try partial match then first available option
+        const partialOption = page.getByRole('option').filter({ hasText: config.value }).first();
+        if (await partialOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await partialOption.click();
+        } else {
+          // Close the "No items found" dropdown by pressing Escape on the ng-select
+          await page.keyboard.press('Escape');
+          await page.waitForTimeout(300);
+          // Clear the search and select the first available option
+          await valueInput.clear();
+          await page.waitForTimeout(500);
+          const anyOption = page.getByRole('option').first();
+          if (await anyOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+            await anyOption.click();
+          }
         }
       }
     }
@@ -439,6 +517,29 @@ async function changeOperator(page: Page, operatorDropdownId: string, operatorNa
   await operatorCombobox.click();
 
   await page.getByRole('option', { name: operatorName, exact: true }).click();
+}
+
+/**
+ * Clears the value field if present (used when switching to Is Empty / Is Not Empty operators).
+ */
+async function clearValueFieldIfPresent(page: Page, config: FilterConfig): Promise<void> {
+  try {
+    if (config.valueInputType === 'textbox') {
+      const textbox = page.getByRole('textbox', { name: 'Field Value' });
+      if (await textbox.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await textbox.clear();
+      }
+    } else if (config.valueInputType === 'combobox') {
+      // For combobox, try to clear via the "Clear all" button if visible
+      const valueFieldId = config.operatorDropdownId.replace('operator_', 'field_value_');
+      const clearBtn = page.locator(`[id="${valueFieldId}"]`).locator('[aria-label="Clear all"]');
+      if (await clearBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await clearBtn.click();
+      }
+    }
+  } catch {
+    // Value field may not be present for Is Empty/Is Not Empty operators - that's fine
+  }
 }
 
 /**
