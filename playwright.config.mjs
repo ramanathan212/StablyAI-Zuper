@@ -202,7 +202,7 @@ export default defineConfig({
     },
     {
       name: 'job_api_test',
-      grep: /.^/,
+      grep: /(Jobs API - Smoke Tests List jobs - GET \/jobs returns success with array data|Jobs API - Smoke Tests Job details - GET \/jobs\/\{job_uid\} returns matching job|Jobs API - Smoke Tests Negative - Invalid job UID returns error|Jobs API - Smoke Tests Negative - Invalid API key returns 401 or 403|Jobs API - CRUD E2E Flow Create Job - POST \/jobs returns success with job_uid|Jobs API - CRUD E2E Flow Get created job - GET \/jobs\/\{job_uid\} returns correct details|Jobs API - CRUD E2E Flow Update Job - PUT \/jobs updates title and priority|Jobs API - CRUD E2E Flow Update Status - PUT \/jobs\/\{job_uid\}\/status changes job status|Jobs API - CRUD E2E Flow Verify update - GET \/jobs\/\{job_uid\} reflects changes|Jobs API - CRUD E2E Flow Delete Job - DELETE \/jobs\/\{job_uid\}\/delete removes the job|Jobs API - CRUD E2E Flow Verify deletion - GET \/jobs\/\{job_uid\} confirms job is gone)$/i,
       use: {
         ...devices['Desktop Chrome'],
       },
