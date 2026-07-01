@@ -147,6 +147,10 @@ test.describe('Jobs Bulk Update Fields', () => {
 
     // ===== NAVIGATE TO JOBS =====
     await page.goto('https://uat.zuperpro.com/jobs');
+    // Wait for the table to be attached to the DOM first (not visibility, since popups may overlay)
+    await page.locator('table').first().waitFor({ state: 'attached', timeout: 60000 });
+    // Dismiss timezone/notification popups that create CDK overlay backdrops blocking visibility
+    await dismissPopups();
     await page.getByRole('checkbox', { name: 'Select all' }).waitFor({ state: 'visible', timeout: 30000 });
     await page.waitForTimeout(2000);
     await dismissPopups();
