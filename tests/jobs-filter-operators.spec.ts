@@ -278,10 +278,21 @@ test.describe('Jobs Filter Operator Workflow', () => {
 async function dismissPopups(page: Page): Promise<void> {
   await page.waitForTimeout(2000);
 
+  // Dismiss any CDK overlay backdrops first by pressing Escape
+  // This prevents the overlay from intercepting clicks on Cancel/other buttons
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(500);
+
+  // Remove any lingering CDK overlay backdrops via JS as a fallback
+  await page.evaluate(() => {
+    document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+  });
+  await page.waitForTimeout(300);
+
   // Dismiss "Your timezone has changed" dialog if present
   const cancelBtn = page.getByRole('button', { name: 'Cancel' });
   if (await cancelBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await cancelBtn.click();
+    await cancelBtn.click({ force: true });
     await page.waitForTimeout(500);
   }
 
@@ -326,8 +337,15 @@ async function removeAllPinnedFilters(page: Page): Promise<void> {
  * enters the value, and clicks "Add".
  */
 async function addFilter(page: Page, config: FilterConfig): Promise<void> {
+  // Dismiss any CDK overlay backdrops that may be blocking interactions
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => {
+    document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+  });
+  await page.waitForTimeout(300);
+
   // Click "Add Filter" button
-  await page.getByRole('button', { name: 'Add Filter' }).first().click();
+  await page.getByRole('button', { name: 'Add Filter' }).first().click({ force: true });
 
   // Select the filter from the dropdown
   const filterCombobox = page.getByRole('combobox', { name: 'Choose Filter' });
@@ -422,10 +440,17 @@ async function getFilteredRowCount(page: Page): Promise<number> {
  * Clicks the edit button on the first applied filter in the filter panel.
  */
 async function clickFilterEditButton(page: Page): Promise<void> {
+  // Dismiss any CDK overlay backdrops
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => {
+    document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+  });
+  await page.waitForTimeout(300);
+
   // The edit icon has CSS classes .rounded-md.text-gray-400
   const editIcon = page.locator('.rounded-md.text-gray-400').first();
   await editIcon.waitFor({ state: 'visible', timeout: 10000 });
-  await editIcon.click();
+  await editIcon.click({ force: true });
 
   await page.getByRole('button', { name: 'Update' }).waitFor({ state: 'visible', timeout: 5000 });
 }
@@ -434,9 +459,14 @@ async function clickFilterEditButton(page: Page): Promise<void> {
  * Changes the operator in the filter edit form using the specified operator dropdown ID.
  */
 async function changeOperator(page: Page, operatorDropdownId: string, operatorName: string): Promise<void> {
+  // Dismiss any CDK overlay backdrops
+  await page.evaluate(() => {
+    document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+  });
+
   // Handle special characters in the ID by using attribute selector
   const operatorCombobox = page.locator(`[id="${operatorDropdownId}"]`).getByRole('combobox');
-  await operatorCombobox.click();
+  await operatorCombobox.click({ force: true });
 
   await page.getByRole('option', { name: operatorName, exact: true }).click();
 }

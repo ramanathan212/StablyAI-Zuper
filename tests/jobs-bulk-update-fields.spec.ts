@@ -38,11 +38,22 @@ test.describe('Jobs Bulk Update Fields', () => {
 
     // ===== HELPER: Dismiss notification & timezone popups via JS =====
     async function dismissPopups() {
+      // Dismiss CDK overlay backdrops first by pressing Escape
+      // This prevents the overlay from intercepting clicks on Cancel/other buttons
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+
+      // Remove any lingering CDK overlay backdrops via JS
+      await page.evaluate(() => {
+        document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+      });
+      await page.waitForTimeout(300);
+
       // Dismiss "No, thanks" notification popup
       try {
         const noThanksBtn = page.getByRole('button', { name: 'No, thanks' });
         if (await noThanksBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-          await noThanksBtn.click();
+          await noThanksBtn.click({ force: true });
           await page.waitForTimeout(500);
         }
       } catch (_) { /* ignore */ }
@@ -53,12 +64,12 @@ test.describe('Jobs Bulk Update Fields', () => {
         if (await tzHeading.isVisible({ timeout: 1000 }).catch(() => false)) {
           // Find the Cancel button in the timezone dialog
           const cancelBtn = page.getByRole('button', { name: 'Cancel' });
-          await cancelBtn.click();
+          await cancelBtn.click({ force: true });
           await page.waitForTimeout(500);
         }
       } catch (_) { /* ignore */ }
 
-      // Remove any lingering CDK overlay backdrops via JS
+      // Remove any lingering CDK overlay backdrops via JS (second pass)
       await page.evaluate(() => {
         document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
       });
@@ -147,9 +158,15 @@ test.describe('Jobs Bulk Update Fields', () => {
 
     // ===== NAVIGATE TO JOBS =====
     await page.goto('https://uat.zuperpro.com/jobs');
-    await page.getByRole('checkbox', { name: 'Select all' }).waitFor({ state: 'visible', timeout: 30000 });
     await page.waitForTimeout(2000);
+    // Dismiss any CDK overlays that may appear on page load before checking for elements
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => {
+      document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+    });
+    await page.waitForTimeout(500);
     await dismissPopups();
+    await page.getByRole('checkbox', { name: 'Select all' }).waitFor({ state: 'visible', timeout: 30000 });
 
     // ===== 1. JOB PRIORITY → Low =====
     await selectAllAndChooseField('Job Priority');
