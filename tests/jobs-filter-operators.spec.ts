@@ -225,7 +225,7 @@ test.describe('Jobs Filter Operator Workflow', () => {
       console.log(`${'─'.repeat(60)}`);
 
       // Dismiss any popups that may have appeared during the loop
-      await tryDismissNotification(page);
+      await dismissPopups(page);
 
       // Add filter with first operator
       await addFilter(page, config);
@@ -278,22 +278,56 @@ test.describe('Jobs Filter Operator Workflow', () => {
 async function dismissPopups(page: Page): Promise<void> {
   await page.waitForTimeout(2000);
 
-  // Dismiss "Your timezone has changed" dialog if present
-  const cancelBtn = page.getByRole('button', { name: 'Cancel' });
-  if (await cancelBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await cancelBtn.click();
-    await page.waitForTimeout(500);
-  }
+  // 1. Remove Zuper Connect iframe overlay and all CDK overlay panes/backdrops via JS
+  await page.evaluate(() => {
+    // Remove the Zuper Connect iframe container
+    const connectFrame = document.querySelector('#zuper-connect-frame');
+    if (connectFrame) {
+      const overlayPane = connectFrame.closest('.cdk-overlay-pane');
+      if (overlayPane) overlayPane.remove();
+    }
+    // Remove all CDK overlay backdrops
+    document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+    // Remove any remaining overlay panes that contain the zuper connect or guide widgets
+    document.querySelectorAll('.cdk-overlay-pane').forEach(el => {
+      if (el.querySelector('#zuper-connect-frame') || el.querySelector('.zuper-connect-iframe')) {
+        el.remove();
+      }
+    });
+  });
+  await page.waitForTimeout(300);
 
-  // Dismiss notification permission dialog
+  // 2. Close Zuper Guide popup if visible
+  try {
+    const guideCloseBtn = page.getByRole('button', { name: 'Close' });
+    if (await guideCloseBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await guideCloseBtn.click({ force: true });
+      await page.waitForTimeout(300);
+    }
+  } catch (_) { /* ignore */ }
+
+  // 3. Dismiss notification permission dialog
   await tryDismissNotification(page);
 
-  // Dismiss any remaining CDK overlay backdrops
-  const backdrop = page.locator('.cdk-overlay-backdrop');
-  if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await backdrop.click({ force: true });
-    await page.waitForTimeout(500);
-  }
+  // 4. Dismiss "Your timezone has changed" dialog if present
+  try {
+    const cancelBtn = page.getByRole('button', { name: 'Cancel' });
+    if (await cancelBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await cancelBtn.click({ force: true });
+      await page.waitForTimeout(500);
+    }
+  } catch (_) { /* ignore */ }
+
+  // 5. Final cleanup of any remaining overlays
+  await page.evaluate(() => {
+    document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+    document.querySelectorAll('.cdk-overlay-pane').forEach(el => {
+      if (el.querySelector('#zuper-connect-frame') || el.querySelector('.zuper-connect-iframe')) {
+        el.remove();
+      }
+    });
+  });
+  await page.waitForTimeout(300);
 }
 
 /**

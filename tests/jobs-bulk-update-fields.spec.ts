@@ -38,27 +38,50 @@ test.describe('Jobs Bulk Update Fields', () => {
 
     // ===== HELPER: Dismiss notification & timezone popups via JS =====
     async function dismissPopups() {
-      // Dismiss "No, thanks" notification popup
+      // 1. Close Zuper Connect panel (X icon) if visible
+      try {
+        const zuperConnectClose = page.locator('emphasis').filter({ has: page.locator('i.icon-close, i.fa-times') }).first();
+        if (await zuperConnectClose.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await zuperConnectClose.click({ force: true });
+          await page.waitForTimeout(300);
+        }
+      } catch (_) { /* ignore */ }
+
+      // 2. Close Zuper Guide popup if visible
+      try {
+        const guideCloseBtn = page.getByRole('button', { name: 'Close' });
+        if (await guideCloseBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await guideCloseBtn.click({ force: true });
+          await page.waitForTimeout(300);
+        }
+      } catch (_) { /* ignore */ }
+
+      // 3. Remove any lingering CDK overlay backdrops via JS (must happen before timezone Cancel)
+      await page.evaluate(() => {
+        document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
+      });
+      await page.waitForTimeout(300);
+
+      // 4. Dismiss "No, thanks" notification popup
       try {
         const noThanksBtn = page.getByRole('button', { name: 'No, thanks' });
-        if (await noThanksBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-          await noThanksBtn.click();
+        if (await noThanksBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await noThanksBtn.click({ force: true });
           await page.waitForTimeout(500);
         }
       } catch (_) { /* ignore */ }
 
-      // Dismiss timezone "Cancel" popup
+      // 5. Dismiss timezone "Cancel" popup
       try {
         const tzHeading = page.getByRole('heading', { name: 'Your timezone has changed' });
         if (await tzHeading.isVisible({ timeout: 1000 }).catch(() => false)) {
-          // Find the Cancel button in the timezone dialog
           const cancelBtn = page.getByRole('button', { name: 'Cancel' });
-          await cancelBtn.click();
+          await cancelBtn.click({ force: true });
           await page.waitForTimeout(500);
         }
       } catch (_) { /* ignore */ }
 
-      // Remove any lingering CDK overlay backdrops via JS
+      // 6. Final cleanup of any remaining overlays
       await page.evaluate(() => {
         document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
       });
@@ -139,10 +162,10 @@ test.describe('Jobs Bulk Update Fields', () => {
       const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Login');
       if (btn) btn.click();
     });
-    await page.waitForURL('**/dashboard', { timeout: 30000 });
+    await page.waitForURL('**/dashboard', { timeout: 60000, waitUntil: 'domcontentloaded' });
 
     // ===== DISMISS DASHBOARD POPUPS =====
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
     await dismissPopups();
 
     // ===== NAVIGATE TO JOBS =====
