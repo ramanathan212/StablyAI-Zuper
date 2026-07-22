@@ -276,22 +276,50 @@ test.describe('Jobs Filter Operator Workflow', () => {
  * This version includes a longer initial wait for popups to appear.
  */
 async function dismissPopups(page: Page): Promise<void> {
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(3000);
 
-  // Dismiss "Your timezone has changed" dialog if present
-  const cancelBtn = page.getByRole('button', { name: 'Cancel' });
-  if (await cancelBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await cancelBtn.click();
+  // 1. Remove "Zuper Connect" phone widget iframe from the DOM entirely
+  // This iframe sits inside the CDK overlay container and blocks all pointer events on the page
+  await page.evaluate(() => {
+    const connectFrame = document.querySelector('#zuper-connect-frame');
+    if (connectFrame) connectFrame.remove();
+    // Also remove any CDK overlay pane that contained the connect widget
+    const overlayPanes = document.querySelectorAll('.cdk-overlay-pane');
+    overlayPanes.forEach(pane => {
+      if (pane.querySelector('.zuper-connect-iframe') || pane.innerHTML.includes('zuper-connect')) {
+        pane.remove();
+      }
+    });
+  });
+  await page.waitForTimeout(500);
+
+  // 2. Close the "Zuper Guide" chat widget if present
+  const zuperGuideClose = page.getByRole('button', { name: 'Close' });
+  if (await zuperGuideClose.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await zuperGuideClose.click({ force: true });
     await page.waitForTimeout(500);
   }
 
-  // Dismiss notification permission dialog
+  // 3. Dismiss any CDK overlay backdrops that block interactions
+  const backdrop = page.locator('.cdk-overlay-backdrop');
+  if (await backdrop.first().isVisible({ timeout: 1000 }).catch(() => false)) {
+    await backdrop.first().click({ force: true });
+    await page.waitForTimeout(500);
+  }
+
+  // 4. Dismiss "Your timezone has changed" dialog if present (use force to bypass any remaining overlays)
+  const cancelBtn = page.getByRole('button', { name: 'Cancel' });
+  if (await cancelBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await cancelBtn.click({ force: true });
+    await page.waitForTimeout(500);
+  }
+
+  // 5. Dismiss notification permission dialog
   await tryDismissNotification(page);
 
-  // Dismiss any remaining CDK overlay backdrops
-  const backdrop = page.locator('.cdk-overlay-backdrop');
-  if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await backdrop.click({ force: true });
+  // 6. Dismiss any remaining CDK overlay backdrops after all dialogs are handled
+  if (await backdrop.first().isVisible({ timeout: 1000 }).catch(() => false)) {
+    await backdrop.first().click({ force: true });
     await page.waitForTimeout(500);
   }
 }
