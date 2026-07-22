@@ -50,10 +50,27 @@ test.describe('Jobs Bulk Update Fields', () => {
       // Dismiss timezone "Cancel" popup
       try {
         const tzHeading = page.getByRole('heading', { name: 'Your timezone has changed' });
-        if (await tzHeading.isVisible({ timeout: 1000 }).catch(() => false)) {
-          // Find the Cancel button in the timezone dialog
+        if (await tzHeading.isVisible({ timeout: 2000 }).catch(() => false)) {
           const cancelBtn = page.getByRole('button', { name: 'Cancel' });
           await cancelBtn.click();
+          await page.waitForTimeout(500);
+        }
+      } catch (_) { /* ignore */ }
+
+      // Dismiss Zuper Connect popup (close button or X icon)
+      try {
+        const zuperConnectClose = page.locator('.zuper-connect-close, [aria-label="Close"], .connect-popup-close').first();
+        if (await zuperConnectClose.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await zuperConnectClose.click();
+          await page.waitForTimeout(500);
+        }
+      } catch (_) { /* ignore */ }
+
+      // Dismiss Zuper Guide popup
+      try {
+        const guideClose = page.locator('.guide-close, .zuper-guide-close, button[aria-label="Close guide"]').first();
+        if (await guideClose.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await guideClose.click();
           await page.waitForTimeout(500);
         }
       } catch (_) { /* ignore */ }
@@ -142,11 +159,15 @@ test.describe('Jobs Bulk Update Fields', () => {
     await page.waitForURL('**/dashboard', { timeout: 30000 });
 
     // ===== DISMISS DASHBOARD POPUPS =====
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(4000);
+    await dismissPopups();
+    await page.waitForTimeout(1000);
     await dismissPopups();
 
     // ===== NAVIGATE TO JOBS =====
     await page.goto('https://uat.zuperpro.com/jobs');
+    await page.waitForTimeout(3000);
+    await dismissPopups();
     await page.getByRole('checkbox', { name: 'Select all' }).waitFor({ state: 'visible', timeout: 30000 });
     await page.waitForTimeout(2000);
     await dismissPopups();
