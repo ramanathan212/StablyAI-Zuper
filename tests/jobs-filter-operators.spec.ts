@@ -281,7 +281,9 @@ async function dismissPopups(page: Page): Promise<void> {
   // Dismiss "Your timezone has changed" dialog if present
   const cancelBtn = page.getByRole('button', { name: 'Cancel' });
   if (await cancelBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await cancelBtn.click();
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    await cancelBtn.click({ force: true });
     await page.waitForTimeout(500);
   }
 
