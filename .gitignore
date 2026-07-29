@@ -27,4 +27,15 @@ tests/.auth/
 
 # Environment variables
 .env
-.env.local
+.env.*
+.stably-agent.env
+.stably-playwright-wrapper.config.*
+
+# Stably
+.stably/*
+!.stably/docs/
+/patches
+/.playwright-mcp
+/.stably-browser
+/blob-report
+.last-run.json
