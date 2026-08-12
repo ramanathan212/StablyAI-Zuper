@@ -279,14 +279,26 @@ async function dismissPopups(page: Page): Promise<void> {
   await page.waitForTimeout(2000);
 
   // Dismiss "Your timezone has changed" dialog if present
+  // Use { force: true } to bypass CDK overlay backdrop that intercepts pointer events
   const cancelBtn = page.getByRole('button', { name: 'Cancel' });
   if (await cancelBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await cancelBtn.click();
+    await cancelBtn.click({ force: true });
     await page.waitForTimeout(500);
   }
 
   // Dismiss notification permission dialog
   await tryDismissNotification(page);
+
+  // Dismiss Zuper Connect / Zuper Guide popups if present
+  const closeIcons = page.locator('.cdk-overlay-pane button[aria-label="Close"], .cdk-overlay-pane .close-btn, .cdk-overlay-pane button:has(mat-icon)');
+  const closeCount = await closeIcons.count().catch(() => 0);
+  for (let i = 0; i < closeCount; i++) {
+    const closeBtn = closeIcons.nth(i);
+    if (await closeBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await closeBtn.click({ force: true });
+      await page.waitForTimeout(500);
+    }
+  }
 
   // Dismiss any remaining CDK overlay backdrops
   const backdrop = page.locator('.cdk-overlay-backdrop');
@@ -303,7 +315,7 @@ async function dismissPopups(page: Page): Promise<void> {
 async function tryDismissNotification(page: Page): Promise<void> {
   const noThanksBtn = page.getByRole('button', { name: /no,?\s*thanks/i });
   if (await noThanksBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await noThanksBtn.click();
+    await noThanksBtn.click({ force: true });
     await page.waitForTimeout(500);
   }
 }
