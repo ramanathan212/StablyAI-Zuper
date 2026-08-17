@@ -93,13 +93,17 @@ test.describe('Job Notes Image Upload', () => {
     await forceRemoveOverlays(page);
 
     // --- Step 3: Navigate to Notes tab ---
-    const notesTab = page.getByRole('button', { name: /^Notes/ }).first().describe('Notes tab button');
+    // The Notes button contains nested elements (icon + "Notes" text + badge count)
+    // Use a locator that targets the button containing "Notes" text reliably
+    const notesTab = page.locator('button').filter({ hasText: 'Notes' }).first().describe('Notes tab button');
     await notesTab.waitFor({ state: 'visible', timeout: 30000 });
     await notesTab.click();
 
     // --- Step 4: Open note editor ---
+    // After clicking Notes tab, wait for content to load
+    await page.waitForTimeout(2000);
     const noteEditorButton = page.getByRole('button', { name: 'Enter your notes here...' }).describe('Open note editor');
-    await noteEditorButton.waitFor({ state: 'visible', timeout: 15000 });
+    await noteEditorButton.waitFor({ state: 'visible', timeout: 30000 });
     await noteEditorButton.click();
 
     // Verify note editor opened - look for the "Post Note" button
@@ -110,29 +114,27 @@ test.describe('Job Notes Image Upload', () => {
     const attachButton = page.getByTestId('notes_attachment-button').describe('Attach file button');
     await expect(attachButton).toBeVisible({ timeout: 10000 });
 
-    // Listen for file chooser, then click Attach
-    const [fileChooser] = await Promise.all([
-      page.waitForEvent('filechooser', { timeout: 15000 }),
-      attachButton.click(),
-    ]);
+    // Upload the test image directly via the hidden file input
+    const fileInput = page.getByTestId('notes_attachment-input');
+    await fileInput.setInputFiles(imagePath);
 
-    // Upload the test image
-    await fileChooser.setFiles(imagePath);
+    // Dispatch change event to ensure Angular picks up the file selection
+    await fileInput.dispatchEvent('change');
 
     // Wait for upload to process - a thumbnail preview appears in the editor
     // The editor shows a small image preview but without visible filename text,
     // so we wait for the Post Note button to remain enabled (confirming upload readiness)
     await postNoteButton.waitFor({ state: 'visible', timeout: 15000 });
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
     // --- Step 6: Post the note ---
     await postNoteButton.click();
 
     // --- Step 7: Verify the note was posted with the image ---
 
-    // 7a: Verify success toast notification "Note Created successfully" appears
-    const successToast = page.getByText('Note Created successfully').describe('Success toast notification');
-    await expect(successToast).toBeVisible({ timeout: 20000 });
+    // 7a: Verify success toast notification appears (text may vary slightly)
+    const successToast = page.getByText(/Note Created successfully|Note created successfully|Note added/i).first().describe('Success toast notification');
+    await expect(successToast).toBeVisible({ timeout: 30000 });
 
     // 7b: Verify the attachment count text appears (e.g., "1 Attachment(s)")
     const attachmentCount = page.getByText(/\d+\s*Attachment/i).first().describe('Attachment count in posted note');

@@ -149,9 +149,9 @@ test.describe('Job Notes - Pin and Unpin Note', () => {
     expect(noteTextContent).toBeTruthy();
 
     // ── Pin the note via the more-options menu ───────────────────────────
-    // Find the menu button within the note card (has aria-haspopup="menu")
+    // Find the menu button within the note card (the dots-vertical icon button)
     const menuButton = firstNoteCard
-      .locator('button[aria-haspopup="menu"]')
+      .locator('button:has(.ti-dots-vertical)')
       .describe('Note menu button');
 
     // Click with force to bypass CDK overlay backdrop
@@ -159,7 +159,7 @@ test.describe('Job Notes - Pin and Unpin Note', () => {
 
     // Click "Pin Note" from the context menu
     const pinNoteMenuItem = page
-      .getByRole('menuitem', { name: /Pin Note/i })
+      .getByRole('button', { name: /Pin Note/i })
       .describe('Pin Note menu item');
     await pinNoteMenuItem.waitFor({ state: 'visible', timeout: 10000 });
     await pinNoteMenuItem.click();
@@ -191,14 +191,14 @@ test.describe('Job Notes - Pin and Unpin Note', () => {
       .describe('Pinned note card');
 
     const pinnedMenuButton = pinnedNoteCard
-      .locator('button[aria-haspopup="menu"]')
+      .locator('button:has(.ti-dots-vertical)')
       .describe('Pinned note menu button');
 
     await pinnedMenuButton.click({ force: true, timeout: 10000 });
 
     // Click "Unpin Note" from the context menu
     const unpinNoteMenuItem = page
-      .getByRole('menuitem', { name: /Unpin Note/i })
+      .getByRole('button', { name: /Unpin Note/i })
       .describe('Unpin Note menu item');
     await unpinNoteMenuItem.waitFor({ state: 'visible', timeout: 10000 });
     await unpinNoteMenuItem.click();
