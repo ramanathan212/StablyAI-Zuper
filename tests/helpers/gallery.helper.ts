@@ -470,7 +470,7 @@ export async function deleteAlbumOnJob(
 
   // Verify album removed
   await expect(
-    page.locator('p', { hasText: albumName })
+    page.locator(`p[title="${albumName}"]`)
   ).toBeHidden({ timeout: 15000 });
 }
 
