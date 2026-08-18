@@ -4,6 +4,8 @@ import { forceRemoveOverlays } from './Helper/overlay-helper.js';
 import fs from 'fs';
 import path from 'path';
 
+test.use({ video: 'off' });
+
 test.describe('Job Notes Image Upload', () => {
   /**
    * User Prompt:
@@ -50,8 +52,8 @@ test.describe('Job Notes Image Upload', () => {
     // --- Step 1: Login ---
     const loginPage = new LoginPage(page);
     await loginPage.login(
-      process.env.companyName!,
-      process.env.email!,
+      process.env.company_name!,
+      process.env.user_name!,
       process.env.password!
     );
 
@@ -78,29 +80,33 @@ test.describe('Job Notes Image Upload', () => {
     await expect(page).toHaveURL(/\/jobs\/.*\/details/, { timeout: 30000 });
     await forceRemoveOverlays(page);
 
+    // Dismiss all CDK overlays first
+    await forceRemoveOverlays(page);
+
     // Dismiss notification popup if present
     const notifBtn = page.getByRole('button', { name: 'No, thanks' });
     await notifBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-    if (await notifBtn.isVisible()) await notifBtn.click();
+    if (await notifBtn.isVisible()) await notifBtn.click({ force: true });
 
     // Dismiss timezone popup if present
+    await forceRemoveOverlays(page);
     const tzCancelBtn = page.getByRole('button', { name: 'Cancel' });
     await tzCancelBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-    if (await tzCancelBtn.isVisible()) await tzCancelBtn.click();
+    if (await tzCancelBtn.isVisible()) await tzCancelBtn.click({ force: true });
 
     // Wait briefly for dialogs to dismiss
     await page.waitForTimeout(500);
     await forceRemoveOverlays(page);
 
     // --- Step 3: Navigate to Notes tab ---
-    const notesTab = page.getByRole('button', { name: /^Notes/ }).first().describe('Notes tab button');
+    const notesTab = page.locator('nav button').filter({ hasText: 'Notes' }).first();
     await notesTab.waitFor({ state: 'visible', timeout: 30000 });
-    await notesTab.click();
+    await notesTab.click({ force: true });
 
     // --- Step 4: Open note editor ---
-    const noteEditorButton = page.getByRole('button', { name: 'Enter your notes here...' }).describe('Open note editor');
+    const noteEditorButton = page.locator('button').filter({ hasText: 'Enter your notes here' });
     await noteEditorButton.waitFor({ state: 'visible', timeout: 15000 });
-    await noteEditorButton.click();
+    await noteEditorButton.click({ force: true });
 
     // Verify note editor opened - look for the "Post Note" button
     const postNoteButton = page.getByRole('button', { name: 'Post Note' }).describe('Post Note button');
