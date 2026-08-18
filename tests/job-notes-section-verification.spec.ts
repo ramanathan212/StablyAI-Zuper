@@ -48,6 +48,29 @@ test.describe('Job Notes Section Verification', () => {
       await noThanksButton.click();
     }
 
+    // Dismiss "Introducing Agent Studio" promo modal if present
+    const agentStudioButton = page
+      .getByRole('button', { name: 'Maybe later' })
+      .describe('Dismiss Agent Studio promo');
+    await agentStudioButton
+      .waitFor({ state: 'visible', timeout: 5000 })
+      .catch(() => {});
+    if (await agentStudioButton.isVisible()) {
+      await agentStudioButton.click();
+    }
+
+    // Dismiss "Zuper Guide" onboarding overlay if present
+    const zuperGuideCloseButton = page
+      .getByRole('button', { name: 'Close' })
+      .first()
+      .describe('Dismiss Zuper Guide overlay');
+    await zuperGuideCloseButton
+      .waitFor({ state: 'visible', timeout: 5000 })
+      .catch(() => {});
+    if (await zuperGuideCloseButton.isVisible()) {
+      await zuperGuideCloseButton.click();
+    }
+
     // ── Step 3: Navigate to Job module ─────────────────────────────────
     const jobGroupIcon = page
       .locator('#job_group')

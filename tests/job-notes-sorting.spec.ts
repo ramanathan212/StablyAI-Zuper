@@ -60,6 +60,22 @@ test.describe('Job Notes - Sorting', () => {
     await notifBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     if (await notifBtn.isVisible()) await notifBtn.click();
 
+    // Dismiss "Introducing Agent Studio" promo modal if present
+    const agentStudioBtn = page.getByRole('button', { name: 'Maybe later' });
+    await agentStudioBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    if (await agentStudioBtn.isVisible()) await agentStudioBtn.click();
+
+    // Dismiss "Zuper Guide" onboarding overlay if present
+    const zuperGuideCloseBtn = page.getByRole('button', { name: 'Close' }).first();
+    await zuperGuideCloseBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    if (await zuperGuideCloseBtn.isVisible()) await zuperGuideCloseBtn.click();
+
+    // Minimize the "Zuper Connect" dialer widget - its floating overlay can
+    // intercept clicks elsewhere on the page depending on its overlay state
+    const zuperConnectMinimizeBtn = page.locator('.zuper-connect-action-icon').first();
+    await zuperConnectMinimizeBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    if (await zuperConnectMinimizeBtn.isVisible()) await zuperConnectMinimizeBtn.click();
+
     // ── Navigate to an existing job ──────────────────────────────────────
     await page.goto('/jobs');
     await forceRemoveOverlays(page);
@@ -193,6 +209,10 @@ test.describe('Job Notes - Sorting', () => {
 
     // Verify the sort button label shows "Newest"
     await expect(sortToggle).toContainText('Newest');
+
+    // Ensure the dropdown has fully closed before reopening it, otherwise the
+    // reopen click can land on the previous overlay instance mid-close
+    await sortOverlay.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
     // ── Apply sorting: Oldest first ──────────────────────────────────────
     await sortToggle.click({ force: true });

@@ -66,6 +66,24 @@ test.describe('Job Notes - Pin and Unpin Note', () => {
     await notifBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     if (await notifBtn.isVisible()) await notifBtn.click();
 
+    // Dismiss "Introducing Agent Studio" promo modal if present
+    const agentStudioBtn = page.getByRole('button', { name: 'Maybe later' });
+    await agentStudioBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    if (await agentStudioBtn.isVisible()) await agentStudioBtn.click();
+
+    // Dismiss "Zuper Guide" onboarding overlay if present
+    const zuperGuideCloseBtn = page.getByRole('button', { name: 'Close' }).first();
+    await zuperGuideCloseBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    if (await zuperGuideCloseBtn.isVisible()) await zuperGuideCloseBtn.click();
+
+    // Minimize the "Zuper Connect" dialer widget - its iframe floats over the
+    // bottom-right of the page and physically intercepts clicks on note cards
+    // underneath it, even with force:true (force skips Playwright's checks,
+    // but the browser still delivers the click to whatever is topmost)
+    const zuperConnectMinimizeBtn = page.locator('.zuper-connect-action-icon').first();
+    await zuperConnectMinimizeBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    if (await zuperConnectMinimizeBtn.isVisible()) await zuperConnectMinimizeBtn.click();
+
     // ── Navigate to an existing job ──────────────────────────────────────
     await page.goto('/jobs');
     await forceRemoveOverlays(page);
@@ -103,11 +121,13 @@ test.describe('Job Notes - Pin and Unpin Note', () => {
     // "All Notes" header may only appear once notes exist; define locator for later use
     const allNotesHeader = page.getByText('All Notes').describe('All Notes section header');
 
-    // Check if any note cards exist
+    // Check if any note cards exist with actual text content (attachment-only
+    // notes have no text paragraph and can't be verified via getByText later)
     const firstNoteCard = page
       .locator('[data-testid="notes_card"]')
+      .filter({ has: page.locator('p').filter({ hasText: /\S/ }) })
       .first()
-      .describe('First note card');
+      .describe('First note card with text');
 
     // Wait briefly for notes to render, then check visibility
     await page.waitForTimeout(2000);
