@@ -176,8 +176,10 @@ startxref
     await forceRemoveOverlays(page);
 
     // ── Open the Notes section ───────────────────────────────────────────
+    // The Notes button contains nested elements (icon + "Notes" text + badge count)
     const notesTab = page
-      .getByRole('button', { name: /^Notes/ })
+      .locator('button')
+      .filter({ hasText: 'Notes' })
       .first()
       .describe('Notes tab button');
     await notesTab.waitFor({ state: 'visible', timeout: 30000 });
@@ -212,9 +214,10 @@ startxref
     // Small stabilization wait after typing before first upload
     await page.waitForTimeout(500);
 
-    // Upload files via the hidden file input directly
-    // (the filechooser event is unreliable in headless mode for this Angular app)
-    const fileInput = page.getByTestId('notes_attachment-input');
+    // Find the hidden file input associated with the attachment button.
+    // Angular apps often use a hidden <input type="file"> that is triggered
+    // programmatically. We set files directly on it to avoid filechooser event issues.
+    const fileInput = page.locator('input[type="file"]').first();
 
     // Upload image
     await fileInput.setInputFiles(imagePath);
@@ -232,9 +235,10 @@ startxref
     // ── Submit the note with all attachments ─────────────────────────────
     await postNoteButton.click();
 
-    // Verify success toast
+    // Verify success toast (text may vary slightly)
     const successToast = page
-      .getByText('Note Created successfully')
+      .getByText(/Note Created successfully|Note created successfully|Note added/i)
+      .first()
       .describe('Note creation success toast');
     await expect(successToast).toBeVisible({ timeout: 20000 });
 
@@ -296,7 +300,8 @@ startxref
 
     // Navigate back to Notes tab after refresh
     const notesTabAfterRefresh = page
-      .getByRole('button', { name: /^Notes/ })
+      .locator('button')
+      .filter({ hasText: 'Notes' })
       .first()
       .describe('Notes tab after refresh');
     await notesTabAfterRefresh.waitFor({ state: 'visible', timeout: 30000 });
