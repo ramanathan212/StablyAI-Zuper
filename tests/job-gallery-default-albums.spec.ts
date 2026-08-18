@@ -304,11 +304,12 @@ test.describe('Job Gallery Default Albums', () => {
       const names: string[] = [];
       for (const p of paragraphs) {
         const text = (p.textContent || '').trim();
-        // Skip "0 Items", "X Items", "Create New Album", and empty strings
+        // Skip "0 Items", "X Items", "Create New Album", "Deleted Items" (system album), and empty strings
         if (
           text &&
           !/^\d+\s+Items?$/.test(text) &&
           text !== 'Create New Album' &&
+          text !== 'Deleted Items' &&
           text.length > 0
         ) {
           // Check if next sibling paragraph has "X Items" pattern

@@ -234,7 +234,7 @@ test.describe('Gallery Album CRUD', () => {
 
     // ── Verify the album is removed successfully ───────────────────────
     await expect(
-      page.locator('p', { hasText: renamedAlbumName })
+      page.locator(`p[title="${renamedAlbumName}"]`)
     ).toBeHidden({ timeout: 15000 });
   });
 });
