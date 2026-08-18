@@ -212,29 +212,22 @@ startxref
     // Small stabilization wait after typing before first upload
     await page.waitForTimeout(500);
 
+    // Find the hidden file input associated with the attachment button.
+    // Angular apps often use a hidden <input type="file"> that is triggered
+    // programmatically. We set files directly on it to avoid filechooser event issues.
+    const fileInput = page.locator('input[type="file"]').first();
+
     // Upload image
-    const [imageChooser] = await Promise.all([
-      page.waitForEvent('filechooser', { timeout: 15000 }),
-      attachButton.click(),
-    ]);
-    await imageChooser.setFiles(imagePath);
+    await fileInput.setInputFiles(imagePath);
     // Wait for upload to process and UI to update
     await page.waitForTimeout(3000);
 
     // Upload video
-    const [videoChooser] = await Promise.all([
-      page.waitForEvent('filechooser', { timeout: 15000 }),
-      attachButton.click(),
-    ]);
-    await videoChooser.setFiles(videoPath);
+    await fileInput.setInputFiles(videoPath);
     await page.waitForTimeout(3000);
 
     // Upload PDF
-    const [pdfChooser] = await Promise.all([
-      page.waitForEvent('filechooser', { timeout: 15000 }),
-      attachButton.click(),
-    ]);
-    await pdfChooser.setFiles(pdfPath);
+    await fileInput.setInputFiles(pdfPath);
     await page.waitForTimeout(3000);
 
     // ── Submit the note with all attachments ─────────────────────────────
