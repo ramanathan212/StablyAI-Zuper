@@ -126,13 +126,22 @@ test.describe('Job Notes Image Upload', () => {
     await page.waitForTimeout(3000);
 
     // --- Step 6: Post the note ---
-    await postNoteButton.click();
+    // Start watching for the toast BEFORE clicking to avoid missing a fast-disappearing notification.
+    // Also wait for the note creation API response to complete.
+    const toastLocator = page.getByText('Note Created successfully');
+    const [response] = await Promise.all([
+      page.waitForResponse(
+        resp => resp.url().includes('note') && resp.request().method() === 'POST' && resp.status() < 400,
+        { timeout: 30000 }
+      ).catch(() => null),
+      postNoteButton.click(),
+    ]);
 
     // --- Step 7: Verify the note was posted with the image ---
 
-    // 7a: Verify success toast notification appears (text may vary slightly)
-    const successToast = page.getByText(/Note Created successfully|Note created successfully|Note added/i).first().describe('Success toast notification');
-    await expect(successToast).toBeVisible({ timeout: 30000 });
+    // 7a: Verify success toast notification "Note Created successfully" appears
+    // After API response completes, give the toast time to render
+    await expect(toastLocator).toBeVisible({ timeout: 15000 });
 
     // 7b: Verify the attachment count text appears (e.g., "1 Attachment(s)")
     const attachmentCount = page.getByText(/\d+\s*Attachment/i).first().describe('Attachment count in posted note');
