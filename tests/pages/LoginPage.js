@@ -1,3 +1,5 @@
+import { dismissPromoOverlays, installOverlayAutoDismiss } from '../Helper/overlay-helper.js';
+
 export class LoginPage {
   constructor(page, baseURL = null) {
     this.page = page;
@@ -7,6 +9,7 @@ export class LoginPage {
     this.emailInput = page.getByRole('textbox', { name: 'Email address' });
     this.passwordInput = page.getByRole('textbox', { name: 'Password Forgot password?' });
     this.loginButton = page.getByRole('button', { name: 'Login', exact: true });
+    installOverlayAutoDismiss(page);
   }
 
   async navigate() {
@@ -41,6 +44,11 @@ export class LoginPage {
   }
 
   async dismissOnboarding() {
+    // Give the "Introducing Agent Studio" / "Zuper Guide" overlays a moment
+    // to render before checking for them
+    await this.page.waitForTimeout(1500);
+    await dismissPromoOverlays(this.page);
+
     // Dismiss "Trial Period Ending Soon" modal if present
     try {
       const trialCloseBtn = this.page.locator('button').filter({ has: this.page.locator('i, em') }).first();

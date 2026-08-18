@@ -117,7 +117,7 @@ test.describe('Maps Module Verification', () => {
         'Routes',
         'Assets',
         'Properties',
-        'Customers',
+        'Contacts',
         'Organizations',
       ];
       for (const tabName of expectedTabs) {
@@ -142,9 +142,17 @@ test.describe('Maps Module Verification', () => {
         'Users panel should display a count of entries (e.g. "Users 44"). If not visible, location-based data may not be loading.'
       ).toBeVisible({ timeout: 10000 });
 
-      // Verify pagination select is attached (it exists in DOM but is below the scroll area)
-      const paginationSelect = page.locator('select#page-size');
-      await expect(paginationSelect).toBeAttached();
+      // Pagination controls only render once there's more than one page of
+      // results - only assert they're attached when the entry count implies
+      // multiple pages (this account currently has few enough Users that a
+      // single page covers them all, so no pagination select exists at all).
+      const usersHeaderText = await usersHeader.textContent();
+      const entryCount = parseInt(usersHeaderText?.match(/\d+/)?.[0] ?? '0', 10);
+      const DEFAULT_PAGE_SIZE = 15;
+      if (entryCount > DEFAULT_PAGE_SIZE) {
+        const paginationSelect = page.locator('select#page-size');
+        await expect(paginationSelect).toBeAttached();
+      }
     });
 
     await test.step('Verify switching to Jobs tab loads data', async () => {

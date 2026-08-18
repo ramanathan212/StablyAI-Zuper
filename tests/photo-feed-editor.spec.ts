@@ -1,5 +1,5 @@
 import { test, expect } from '@stablyai/playwright-test';
-import { forceRemoveOverlays } from './Helper/overlay-helper.js';
+import { forceRemoveOverlays, installOverlayAutoDismiss } from './Helper/overlay-helper.js';
 
 test.describe('Photo Feed Editor', () => {
   /**
@@ -19,6 +19,7 @@ test.describe('Photo Feed Editor', () => {
   }) => {
     // ── Authentication ─────────────────────────────────────────────────
     await page.goto('/login');
+    installOverlayAutoDismiss(page);
     const companyInput = page
       .getByRole('textbox', { name: 'Company Name' })
       .describe('Company name input');
@@ -231,6 +232,12 @@ test.describe('Photo Feed Editor', () => {
     //  2. The editor auto-closes and returns to the Photo Feed listing
     // If save fails, the editor stays open with the Save button still enabled.
     await expect(photoEditorHeading).toBeHidden({ timeout: 30000 });
+
+    // The editor dialog's heading hides as soon as the close animation
+    // starts, but the mat-dialog container itself can still be mid-teardown
+    // for a moment - give it time so a newly-opened details panel below
+    // doesn't end up coexisting with a stale one (both showing "Details").
+    await page.waitForTimeout(1000);
 
     // Verify we are back on Photo Feed listing
     const photoFeedBreadcrumb = page

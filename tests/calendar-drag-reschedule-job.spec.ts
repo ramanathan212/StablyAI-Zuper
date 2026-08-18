@@ -1,4 +1,5 @@
 import { test, expect } from '@stablyai/playwright-test';
+import { dismissPromoOverlays, installOverlayAutoDismiss } from './Helper/overlay-helper.js';
 
 test.describe('Calendar - Drag and Drop Reschedule Job', () => {
   /**
@@ -18,6 +19,7 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
   // Login setup - authenticate before the test
   test.beforeEach(async ({ page }) => {
     await page.goto('/login');
+    installOverlayAutoDismiss(page);
     await page.getByRole('textbox', { name: 'Company Name' }).waitFor({ state: 'visible', timeout: 30000 });
     await page.getByRole('textbox', { name: 'Company Name' }).fill(process.env.companyName!);
     await page.evaluate(() => {
@@ -43,6 +45,7 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
       const noThanksBtn = page.getByRole('button', { name: 'No, thanks' });
       if (await noThanksBtn.isVisible({ timeout: 3000 }).catch(() => false)) await noThanksBtn.click();
     } catch (_) { /* ignore */ }
+    await dismissPromoOverlays(page);
   });
 
   test('should drag and drop a calendar job to reschedule it by at least one hour', async ({ page }) => {
@@ -72,6 +75,7 @@ test.describe('Calendar - Drag and Drop Reschedule Job', () => {
       const noThanksBtn = page.getByRole('button', { name: 'No, thanks' });
       if (await noThanksBtn.isVisible({ timeout: 2000 }).catch(() => false)) await noThanksBtn.click();
     } catch (_) { /* ignore */ }
+    await dismissPromoOverlays(page);
 
     // Verify calendar view is visible
     const todayButton = page.getByRole('button', { name: 'Today' }).describe('Today button');

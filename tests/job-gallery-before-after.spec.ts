@@ -1,5 +1,5 @@
 import { test, expect } from '@stablyai/playwright-test';
-import { forceRemoveOverlays } from './Helper/overlay-helper.js';
+import { forceRemoveOverlays, installOverlayAutoDismiss } from './Helper/overlay-helper.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -22,6 +22,7 @@ test.describe('Job Gallery - Before & After Comparison', () => {
   }) => {
     // ── Authentication ─────────────────────────────────────────────────
     await page.goto('/login');
+    installOverlayAutoDismiss(page);
     const companyInput = page
       .getByRole('textbox', { name: 'Company Name' })
       .describe('Company name input');
@@ -167,11 +168,10 @@ test.describe('Job Gallery - Before & After Comparison', () => {
           .describe('Attach file button');
         await expect(attachButton).toBeVisible({ timeout: 10000 });
 
-        const [fileChooser] = await Promise.all([
-          page.waitForEvent('filechooser', { timeout: 15000 }),
-          attachButton.click(),
-        ]);
-        await fileChooser.setFiles(imagePath);
+        // The filechooser event is unreliable in headless mode for this
+        // Angular app - upload via the hidden file input directly instead
+        const fileInput = page.getByTestId('notes_attachment-input');
+        await fileInput.setInputFiles(imagePath);
         await page.waitForTimeout(3000);
 
         await postNoteButton.click();

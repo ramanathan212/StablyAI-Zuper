@@ -1,5 +1,5 @@
 import { test, expect } from '@stablyai/playwright-test';
-import { forceRemoveOverlays } from './Helper/overlay-helper.js';
+import { forceRemoveOverlays, installOverlayAutoDismiss } from './Helper/overlay-helper.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -19,6 +19,7 @@ test.describe('Job Gallery - Tags and Description', () => {
   test('should add tags and description to a gallery image', async ({ page }) => {
     // ── Authentication ─────────────────────────────────────────────────
     await page.goto('/login');
+    installOverlayAutoDismiss(page);
     const companyInput = page
       .getByRole('textbox', { name: 'Company Name' })
       .describe('Company name input');
@@ -156,17 +157,15 @@ test.describe('Job Gallery - Tags and Description', () => {
         Buffer.concat([pngHeader, ihdrChunk, idatChunk, iendChunk])
       );
 
-      // Upload via the attach button
+      // Upload via the hidden file input directly - the filechooser event
+      // is unreliable in headless mode for this Angular app
       const attachButton = page
         .getByTestId('notes_attachment-button')
         .describe('Attach file button');
       await expect(attachButton).toBeVisible({ timeout: 10000 });
 
-      const [fileChooser] = await Promise.all([
-        page.waitForEvent('filechooser', { timeout: 15000 }),
-        attachButton.click(),
-      ]);
-      await fileChooser.setFiles(imagePath);
+      const fileInput = page.getByTestId('notes_attachment-input');
+      await fileInput.setInputFiles(imagePath);
       await page.waitForTimeout(3000);
 
       // Post the note
@@ -202,9 +201,15 @@ test.describe('Job Gallery - Tags and Description', () => {
     expect(finalImageCount).toBeGreaterThan(0);
 
     // ── Click on the first image to open the detail panel ──────────────
-    // Images have a hover overlay that intercepts clicks —
-    // use the overlay container (`.absolute.w-full.h-full` positioned on top)
+    // Images have a hover overlay that intercepts clicks — use the overlay
+    // container (`.absolute.w-full.h-full` positioned on top). Scoped to the
+    // first gallery tile (`.group.relative.rounded-md.overflow-hidden`)
+    // because the unscoped selector also matches an unrelated notification
+    // badge's ping-animation span elsewhere on the page, which happens to
+    // sort first in DOM order.
     const imageOverlay = page
+      .locator('.group.relative.rounded-md.overflow-hidden')
+      .first()
       .locator('.absolute.w-full.h-full')
       .first()
       .describe('First image hover overlay');
@@ -295,9 +300,24 @@ test.describe('Job Gallery - Tags and Description', () => {
       .describe('Tag update success toast');
     await expect(tagSuccessToast).toBeVisible({ timeout: 20000 });
 
-    // Re-open the image detail panel (it closes after tag update)
-    await imageOverlay.click({ force: true, timeout: 15000 });
-    await expect(tagsHeading).toBeVisible({ timeout: 15000 });
+    // Wait for the success toast to clear - it can still overlap the
+    // gallery grid and intercept the re-open click below
+    await tagSuccessToast.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
+
+    // The gallery grid also refetches attachments in the background after
+    // the tag update, which can swap out the tile DOM right as the click
+    // below fires - retry the click a few times rather than once.
+    await page.waitForTimeout(1500);
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await imageOverlay.click({ force: true, timeout: 15000 });
+      try {
+        await expect(tagsHeading).toBeVisible({ timeout: 5000 });
+        break;
+      } catch {
+        if (attempt === 2) throw new Error('Tags panel did not reopen after tag update');
+        await page.waitForTimeout(1000);
+      }
+    }
 
     // Verify the selected tag is displayed in the Tags section
     const savedTag = page
@@ -308,7 +328,14 @@ test.describe('Job Gallery - Tags and Description', () => {
     // ── Add description to the image ────────────────────────────────────
     // When no description exists: "Add your description" placeholder is clickable.
     // When description exists: a pencil edit button appears next to the heading.
-    const addDescPlaceholder = page.getByText('Add your description');
+    // getByText('Add your description') matches both the outer wrapper div
+    // and the inner clickable div (both have the exact same text content,
+    // since the wrapper has no other children) - target the inner one
+    // directly by its cursor-pointer class rather than guessing match order.
+    const addDescPlaceholder = page.locator('div.cursor-pointer', {
+      hasText: 'Add your description',
+    });
+    await addDescPlaceholder.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     const hasPlaceholder = await addDescPlaceholder.isVisible().catch(() => false);
 
     if (hasPlaceholder) {

@@ -1,4 +1,5 @@
 import { Page, expect } from '@playwright/test';
+import { installOverlayAutoDismiss } from '../Helper/overlay-helper.js';
 
 /**
  * Dismisses the Beamer push notification modal if it appears.
@@ -37,6 +38,7 @@ export async function dismissBeamerModal(page: Page): Promise<void> {
  */
 export async function loginAndDismissPopups(page: Page): Promise<void> {
   await page.goto('/login');
+  installOverlayAutoDismiss(page);
   const companyInput = page
     .getByRole('textbox', { name: 'Company Name' })
     .describe('Company name input');

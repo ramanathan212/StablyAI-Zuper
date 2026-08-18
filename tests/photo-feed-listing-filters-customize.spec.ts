@@ -1,5 +1,5 @@
 import { test, expect } from '@stablyai/playwright-test';
-import { forceRemoveOverlays } from './Helper/overlay-helper.js';
+import { forceRemoveOverlays, installOverlayAutoDismiss } from './Helper/overlay-helper.js';
 
 test.describe('Photo Feed Listing, Filters, and Customize', () => {
   /**
@@ -24,6 +24,7 @@ test.describe('Photo Feed Listing, Filters, and Customize', () => {
   }) => {
     // ── Authentication ─────────────────────────────────────────────────
     await page.goto('/login');
+    installOverlayAutoDismiss(page);
     const companyInput = page
       .getByRole('textbox', { name: 'Company Name' })
       .describe('Company name input');
@@ -88,13 +89,15 @@ test.describe('Photo Feed Listing, Filters, and Customize', () => {
       .describe('First lazy-loaded photo image');
     await firstImage.waitFor({ state: 'visible', timeout: 30000 });
 
-    // Verify date group headings are visible (photos are grouped by date)
-    // Use a specific date pattern to avoid matching the hidden "Getting things ready" h3
+    // Verify date group headings are visible (photos are grouped by date).
+    // Groups can be labeled with a relative date ("Yesterday", "Today") or
+    // an absolute one - exclude the loading-spinner h3 by text instead of
+    // requiring a year, since a relative label won't contain one.
     const visibleDateHeading = page
       .locator('h3')
-      .filter({ hasText: /\d{4}/ })
+      .filter({ hasNotText: 'Getting things ready' })
       .first()
-      .describe('Visible date group heading with year');
+      .describe('Visible date group heading');
     await expect(visibleDateHeading).toBeVisible({ timeout: 15000 });
 
     // Count initial images to compare later

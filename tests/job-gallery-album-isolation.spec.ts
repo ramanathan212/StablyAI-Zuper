@@ -142,11 +142,15 @@ test.describe('Job Gallery Album Isolation', () => {
     const jobBAlbums = await getJobAlbumNames(page);
     console.log('Job B albums:', jobBAlbums);
 
-    // Job B should have the baseline settings albums (not Job A's modifications)
+    // Job B should have the same default albums Job A started with (not Job
+    // A's modifications). Compare against Job A's initial count, not the
+    // Settings page count directly - every job also gets a system-generated
+    // "Deleted Items" album that Gallery Settings doesn't list, so the raw
+    // settings count is always one short of a fresh job's real album count.
     expect(
       jobBAlbums.length,
-      'Job B should have the same count as baseline settings'
-    ).toBe(baselineSettingsAlbums.length);
+      'Job B should have the same album count Job A started with'
+    ).toBe(initialJobAAlbums.length);
 
     for (const settingsAlbum of baselineSettingsAlbums) {
       expect(
@@ -214,11 +218,14 @@ test.describe('Job Gallery Album Isolation', () => {
     const jobCAlbums = await getJobAlbumNames(page);
     console.log('Job C albums:', jobCAlbums);
 
-    // Job C should have all updated settings albums including the new master album
+    // Job C should have all updated settings albums including the new master
+    // album, plus the system-generated "Deleted Items" album every job gets
+    // (see the Job B count check above for why we can't compare directly
+    // against the Settings page count).
     expect(
       jobCAlbums.length,
       'Job C should have the updated settings album count'
-    ).toBe(updatedSettingsAlbums.length);
+    ).toBe(initialJobAAlbums.length + 1);
 
     expect(
       jobCAlbums,
