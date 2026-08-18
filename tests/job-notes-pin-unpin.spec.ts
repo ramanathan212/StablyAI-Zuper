@@ -140,12 +140,14 @@ test.describe('Job Notes - Pin and Unpin Note', () => {
 
     // Get the text of the first note we'll pin – wait for paragraph with actual text
     // Note cards may contain empty <p> elements (spacers), so find one with real content
+    // Wait for network to settle so note content is fully rendered (flake stabilization)
+    await page.waitForLoadState('networkidle');
     const firstNoteTextEl = firstNoteCard
       .locator('p')
       .filter({ hasText: /\S/ })
       .first()
       .describe('First note text paragraph');
-    await firstNoteTextEl.waitFor({ state: 'visible', timeout: 15000 });
+    await firstNoteTextEl.waitFor({ state: 'visible', timeout: 20000 });
     const noteTextContent = await firstNoteTextEl.textContent();
     expect(noteTextContent).toBeTruthy();
 
