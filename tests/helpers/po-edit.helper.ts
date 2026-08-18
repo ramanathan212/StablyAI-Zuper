@@ -27,19 +27,29 @@ export async function loginToStaging({
   }
 
   const companyInput = page.getByRole('textbox', { name: 'Company Name' });
-  await companyInput.waitFor({ state: 'visible', timeout: 30000 });
-  await companyInput.fill(process.env.company_name || '');
-
-  // Use JS click to bypass potential banner overlay
-  await page.evaluate(() => {
-    const btn = Array.from(document.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === 'Continue'
-    );
-    if (btn) btn.click();
-  });
-
   const emailInput = page.getByRole('textbox', { name: 'Email address' });
-  await emailInput.waitFor({ state: 'visible', timeout: 15000 });
+
+  // The login page may skip the company step if the company is already remembered.
+  // Race both possible states: company input visible OR email input visible.
+  const firstVisible = await Promise.race([
+    companyInput.waitFor({ state: 'visible', timeout: 30000 }).then(() => 'company' as const),
+    emailInput.waitFor({ state: 'visible', timeout: 30000 }).then(() => 'email' as const),
+  ]);
+
+  if (firstVisible === 'company') {
+    await companyInput.fill(process.env.company_name || '');
+
+    // Use JS click to bypass potential banner overlay
+    await page.evaluate(() => {
+      const btn = Array.from(document.querySelectorAll('button')).find(
+        (b) => b.textContent?.trim() === 'Continue'
+      );
+      if (btn) btn.click();
+    });
+
+    await emailInput.waitFor({ state: 'visible', timeout: 15000 });
+  }
+
   await emailInput.fill(process.env.user_name || '');
 
   // Wait for the password field to be visible and fill it explicitly
