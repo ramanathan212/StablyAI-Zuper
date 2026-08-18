@@ -110,14 +110,10 @@ test.describe('Job Notes Image Upload', () => {
     const attachButton = page.getByTestId('notes_attachment-button').describe('Attach file button');
     await expect(attachButton).toBeVisible({ timeout: 10000 });
 
-    // Listen for file chooser, then click Attach
-    const [fileChooser] = await Promise.all([
-      page.waitForEvent('filechooser', { timeout: 15000 }),
-      attachButton.click(),
-    ]);
-
-    // Upload the test image
-    await fileChooser.setFiles(imagePath);
+    // Upload the test image via the hidden file input directly
+    // (the filechooser event is unreliable in headless mode for this Angular app)
+    const fileInput = page.getByTestId('notes_attachment-input');
+    await fileInput.setInputFiles(imagePath);
 
     // Wait for upload to process - a thumbnail preview appears in the editor
     // The editor shows a small image preview but without visible filename text,

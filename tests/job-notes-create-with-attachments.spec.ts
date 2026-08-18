@@ -212,29 +212,21 @@ startxref
     // Small stabilization wait after typing before first upload
     await page.waitForTimeout(500);
 
+    // Upload files via the hidden file input directly
+    // (the filechooser event is unreliable in headless mode for this Angular app)
+    const fileInput = page.getByTestId('notes_attachment-input');
+
     // Upload image
-    const [imageChooser] = await Promise.all([
-      page.waitForEvent('filechooser', { timeout: 15000 }),
-      attachButton.click(),
-    ]);
-    await imageChooser.setFiles(imagePath);
+    await fileInput.setInputFiles(imagePath);
     // Wait for upload to process and UI to update
     await page.waitForTimeout(3000);
 
     // Upload video
-    const [videoChooser] = await Promise.all([
-      page.waitForEvent('filechooser', { timeout: 15000 }),
-      attachButton.click(),
-    ]);
-    await videoChooser.setFiles(videoPath);
+    await fileInput.setInputFiles(videoPath);
     await page.waitForTimeout(3000);
 
     // Upload PDF
-    const [pdfChooser] = await Promise.all([
-      page.waitForEvent('filechooser', { timeout: 15000 }),
-      attachButton.click(),
-    ]);
-    await pdfChooser.setFiles(pdfPath);
+    await fileInput.setInputFiles(pdfPath);
     await page.waitForTimeout(3000);
 
     // ── Submit the note with all attachments ─────────────────────────────
