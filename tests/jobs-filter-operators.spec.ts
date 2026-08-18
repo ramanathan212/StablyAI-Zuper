@@ -278,16 +278,12 @@ test.describe('Jobs Filter Operator Workflow', () => {
 async function dismissPopups(page: Page): Promise<void> {
   await page.waitForTimeout(2000);
 
-  // Dismiss any CDK overlay backdrops first by pressing Escape
-  // This prevents the overlay from intercepting clicks on Cancel/other buttons
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(500);
-
-  // Remove any lingering CDK overlay backdrops via JS as a fallback
-  await page.evaluate(() => {
-    document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
-  });
-  await page.waitForTimeout(300);
+  // Dismiss any CDK overlay backdrops first (they block pointer events on buttons)
+  const backdrop = page.locator('.cdk-overlay-backdrop');
+  if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(500);
+  }
 
   // Dismiss "Your timezone has changed" dialog if present
   const cancelBtn = page.getByRole('button', { name: 'Cancel' });
@@ -300,7 +296,6 @@ async function dismissPopups(page: Page): Promise<void> {
   await tryDismissNotification(page);
 
   // Dismiss any remaining CDK overlay backdrops
-  const backdrop = page.locator('.cdk-overlay-backdrop');
   if (await backdrop.isVisible({ timeout: 1000 }).catch(() => false)) {
     await backdrop.click({ force: true });
     await page.waitForTimeout(500);

@@ -61,15 +61,32 @@ test.describe('Jobs Bulk Update Fields', () => {
       // Dismiss timezone "Cancel" popup
       try {
         const tzHeading = page.getByRole('heading', { name: 'Your timezone has changed' });
-        if (await tzHeading.isVisible({ timeout: 1000 }).catch(() => false)) {
-          // Find the Cancel button in the timezone dialog
+        if (await tzHeading.isVisible({ timeout: 2000 }).catch(() => false)) {
           const cancelBtn = page.getByRole('button', { name: 'Cancel' });
           await cancelBtn.click({ force: true });
           await page.waitForTimeout(500);
         }
       } catch (_) { /* ignore */ }
 
-      // Remove any lingering CDK overlay backdrops via JS (second pass)
+      // Dismiss Zuper Connect popup (close button or X icon)
+      try {
+        const zuperConnectClose = page.locator('.zuper-connect-close, [aria-label="Close"], .connect-popup-close').first();
+        if (await zuperConnectClose.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await zuperConnectClose.click();
+          await page.waitForTimeout(500);
+        }
+      } catch (_) { /* ignore */ }
+
+      // Dismiss Zuper Guide popup
+      try {
+        const guideClose = page.locator('.guide-close, .zuper-guide-close, button[aria-label="Close guide"]').first();
+        if (await guideClose.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await guideClose.click();
+          await page.waitForTimeout(500);
+        }
+      } catch (_) { /* ignore */ }
+
+      // Remove any lingering CDK overlay backdrops via JS
       await page.evaluate(() => {
         document.querySelectorAll('.cdk-overlay-backdrop').forEach(el => el.remove());
       });
@@ -153,11 +170,18 @@ test.describe('Jobs Bulk Update Fields', () => {
     await page.waitForURL('**/dashboard', { timeout: 30000 });
 
     // ===== DISMISS DASHBOARD POPUPS =====
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(4000);
+    await dismissPopups();
+    await page.waitForTimeout(1000);
     await dismissPopups();
 
     // ===== NAVIGATE TO JOBS =====
     await page.goto('https://uat.zuperpro.com/jobs');
+    // Wait for the table to be attached to the DOM first (not visibility, since popups may overlay)
+    await page.locator('table').first().waitFor({ state: 'attached', timeout: 60000 });
+    // Dismiss timezone/notification popups that create CDK overlay backdrops blocking visibility
+    await dismissPopups();
+    await page.getByRole('checkbox', { name: 'Select all' }).waitFor({ state: 'visible', timeout: 30000 });
     await page.waitForTimeout(2000);
     // Dismiss any CDK overlays that may appear on page load before checking for elements
     await page.keyboard.press('Escape');
