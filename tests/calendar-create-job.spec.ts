@@ -1,4 +1,5 @@
 import { test, expect } from '@stablyai/playwright-test';
+import { dismissPromoOverlays, installOverlayAutoDismiss } from './Helper/overlay-helper.js';
 
 test.describe('Calendar - Create Job from Calendar View', () => {
   /**
@@ -19,6 +20,7 @@ test.describe('Calendar - Create Job from Calendar View', () => {
   // Login setup - authenticate before the test
   test.beforeEach(async ({ page }) => {
     await page.goto('/login');
+    installOverlayAutoDismiss(page);
     await page.getByRole('textbox', { name: 'Company Name' }).waitFor({ state: 'visible', timeout: 30000 });
     await page.getByRole('textbox', { name: 'Company Name' }).fill(process.env.companyName!);
     await page.evaluate(() => {
@@ -44,6 +46,7 @@ test.describe('Calendar - Create Job from Calendar View', () => {
       const noThanksBtn = page.getByRole('button', { name: 'No, thanks' });
       if (await noThanksBtn.isVisible({ timeout: 3000 }).catch(() => false)) await noThanksBtn.click();
     } catch (_) { /* ignore */ }
+    await dismissPromoOverlays(page);
   });
 
   test('should create a job from calendar with Repair category and one-hour duration', async ({ page }) => {
@@ -74,6 +77,7 @@ test.describe('Calendar - Create Job from Calendar View', () => {
       const noThanksBtn = page.getByRole('button', { name: 'No, thanks' });
       if (await noThanksBtn.isVisible({ timeout: 2000 }).catch(() => false)) await noThanksBtn.click();
     } catch (_) { /* ignore */ }
+    await dismissPromoOverlays(page);
 
     // Verify calendar view is visible - check for week/day/month navigation tabs
     const calendarTabs = page.locator('nav').filter({ hasText: /Month|Week|Day/ }).describe('Calendar view navigation tabs');

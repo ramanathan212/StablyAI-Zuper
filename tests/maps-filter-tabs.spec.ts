@@ -19,7 +19,7 @@ test.use({
  * Tab configuration for the Maps module filter testing.
  * Each tab has a name, header label, search placeholder, search term, and optional dropdown info.
  * Dropdown configs are provided only for tabs that have ng-select dropdown filters
- * (verified via browser exploration: Users has Online/Offline, Jobs/Assets/Properties/Customers/Orgs do not
+ * (verified via browser exploration: Users has Online/Offline, Jobs/Assets/Properties/Contacts/Orgs do not
  * have pre-populated ng-select dropdowns — Jobs has "Select Team"/"Select User" which are empty by default,
  * and Assets has a combobox-style "Any Category" which uses a different DOM structure).
  */
@@ -64,9 +64,9 @@ const TAB_CONFIGS: TabConfig[] = [
     searchTerm: 'Printo',
   },
   {
-    tabName: 'Customers',
-    headerLabel: 'Customers',
-    searchPlaceholder: 'Search Customer',
+    tabName: 'Contacts',
+    headerLabel: 'Contacts',
+    searchPlaceholder: 'Search Contact',
     searchTerm: 'Karthik',
   },
   {
@@ -94,7 +94,7 @@ test.describe('Maps Module - Tab Filter Interactions', () => {
    * - Navigate to the Maps module. Verify the map is visible and loaded.
    * - Verify that data is loaded in the default tab (e.g., Users/Jobs list or entries are visible).
    * - If no data is loaded, fail the test indicating possible location permission issue.
-   * - For each tab: Users, Jobs, Assets, Properties, Customers, Organisation
+   * - For each tab: Users, Jobs, Assets, Properties, Contacts, Organisation
    *   --- Switch to the tab
    *   --- Verify the tab loads with data (list or entries visible).
    *   --- Click on the Filter button.

@@ -1,5 +1,5 @@
 import { test, expect } from '@stablyai/playwright-test';
-import { forceRemoveOverlays } from './Helper/overlay-helper.js';
+import { forceRemoveOverlays, installOverlayAutoDismiss } from './Helper/overlay-helper.js';
 
 test.describe('Gallery Album CRUD', () => {
   /**
@@ -18,6 +18,7 @@ test.describe('Gallery Album CRUD', () => {
   }) => {
     // ── Authentication ─────────────────────────────────────────────────
     await page.goto('/login');
+    installOverlayAutoDismiss(page);
     const companyInput = page
       .getByRole('textbox', { name: 'Company Name' })
       .describe('Company name input');

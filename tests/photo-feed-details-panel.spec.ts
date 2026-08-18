@@ -1,5 +1,5 @@
 import { test, expect } from '@stablyai/playwright-test';
-import { forceRemoveOverlays } from './Helper/overlay-helper.js';
+import { forceRemoveOverlays, installOverlayAutoDismiss } from './Helper/overlay-helper.js';
 
 test.describe('Photo Feed Details Panel', () => {
   /**
@@ -23,6 +23,7 @@ test.describe('Photo Feed Details Panel', () => {
   }) => {
     // ── Authentication ─────────────────────────────────────────────────
     await page.goto('/login');
+    installOverlayAutoDismiss(page);
     const companyInput = page
       .getByRole('textbox', { name: 'Company Name' })
       .describe('Company name input');
@@ -165,8 +166,9 @@ test.describe('Photo Feed Details Panel', () => {
       .describe('Customer redirection link');
 
     const nextSlideBtn = page.getByRole('button', { name: 'Next slide' });
-    const maxSlides = 20;
+    const maxSlides = 40;
     for (let i = 0; i < maxSlides; i++) {
+      await customerLink.waitFor({ state: 'visible', timeout: 800 }).catch(() => {});
       if (await customerLink.isVisible().catch(() => false)) break;
       if (await nextSlideBtn.isEnabled().catch(() => false)) {
         await nextSlideBtn.click();

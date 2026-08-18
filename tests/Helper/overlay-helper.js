@@ -4,6 +4,22 @@
  */
 
 /**
+ * Registers a listener that automatically runs dismissPromoOverlays after
+ * every full page navigation (page.load event). page.goto() causes a full
+ * reload, remounting the Angular app and re-triggering the Agent
+ * Studio/Zuper Guide/Zuper Connect overlays regardless of whether a
+ * previous dismiss already ran earlier in the test - relying on call-sites
+ * to remember a manual dismiss after every goto is what let this slip
+ * through. Call this once per test right after the page is available.
+ * @param {import('@playwright/test').Page} page - Playwright page object
+ */
+export function installOverlayAutoDismiss(page) {
+  page.on('load', () => {
+    dismissPromoOverlays(page).catch(() => {});
+  });
+}
+
+/**
  * Waits for any CDK overlay backdrops to disappear
  * @param {import('@playwright/test').Page} page - Playwright page object
  * @param {number} timeout - Maximum time to wait in milliseconds
@@ -23,12 +39,79 @@ export async function waitForOverlayToDisappear(page, timeout = 5000) {
 }
 
 /**
+ * Dismisses known promo/onboarding overlays (the "Introducing Agent Studio"
+ * modal and the "Zuper Guide" onboarding card) and minimizes the persistent
+ * "Zuper Connect" dialer widget. All three appear unpredictably across pages
+ * and their floating iframes/overlays intercept clicks on elements
+ * underneath them even with force:true, since force only skips Playwright's
+ * own actionability checks - the browser still delivers the click to
+ * whatever element is topmost at that pixel. Each check waits briefly
+ * (these overlays can take ~1s to render after a navigation) but bails out
+ * fast when nothing is there, so it stays cheap to call repeatedly.
+ * @param {import('@playwright/test').Page} page - Playwright page object
+ */
+export async function dismissPromoOverlays(page) {
+  try {
+    // The Agent Studio modal has more than one visual variant (a features
+    // list, a marketplace agent card with ratings/images) and the heavier
+    // ones take longer to render - dismissing it is a one-time, non-stateful
+    // action, so a longer wait here is safe (unlike the Zuper Connect toggle
+    // below, which must not be clicked speculatively).
+    const maybeLaterBtn = page.getByRole('button', { name: 'Maybe later' });
+    await maybeLaterBtn.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+    if (await maybeLaterBtn.isVisible().catch(() => false)) {
+      await maybeLaterBtn.click();
+      await page.waitForTimeout(300);
+    }
+  } catch { /* not present */ }
+
+  // The "Zuper Guide" card's Close button has the same generic aria-label as
+  // other dialogs' Close buttons, so only click one confirmed to sit inside
+  // the actual Zuper Guide card (avoids closing an unrelated Close button).
+  try {
+    await page
+      .getByText('Start Guided Tour')
+      .waitFor({ state: 'visible', timeout: 3000 })
+      .catch(() => {});
+    const dismissed = await page.evaluate(() => {
+      const closeButtons = Array.from(document.querySelectorAll('button[aria-label="Close"]'));
+      for (const btn of closeButtons) {
+        let node = btn.parentElement;
+        for (let depth = 0; depth < 5 && node; depth++, node = node.parentElement) {
+          if (node.textContent?.includes('Zuper Guide') && node.textContent?.includes('Start Guided Tour')) {
+            btn.click();
+            return true;
+          }
+        }
+      }
+      return false;
+    });
+    if (dismissed) await page.waitForTimeout(300);
+  } catch { /* not present */ }
+
+  // Clicking the widget's minimize button is a stateful toggle, and with
+  // both the page-load listener and explicit dismiss calls able to fire
+  // concurrently, two overlapping clicks can flip it back to expanded
+  // instead of collapsing it. A CSS override is deterministic regardless of
+  // timing or how many times it's applied. display:none (not just
+  // pointer-events:none) because the widget occupying screen width also
+  // triggers the app's own responsive layout to reflow the job details
+  // page's tab bar, which hid tabs some tests rely on.
+  try {
+    await page.addStyleTag({
+      content: '#zuper-connect-frame, .zuper-connect-iframe, #zuper-connect-container { display: none !important; }',
+    });
+  } catch { /* page navigating or closed */ }
+}
+
+/**
  * Forcibly removes all CDK overlay backdrops and blocking overlay panes from the DOM via JavaScript.
  * Removes backdrops and overlay panes that contain mat-dialog content.
  * Does NOT remove overlay panes used for navigation menus, dropdowns, tooltips, etc.
  * @param {import('@playwright/test').Page} page - Playwright page object
  */
 export async function forceRemoveOverlays(page) {
+  await dismissPromoOverlays(page);
   try {
     await page.evaluate(() => {
       // Remove all backdrop elements (these are always blocking)
