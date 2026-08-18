@@ -44,6 +44,7 @@ test.describe('Job Notes - Pin and Unpin Note', () => {
       .getByRole('textbox', { name: 'Password Forgot password?' })
       .describe('Password input');
     await passwordInput.waitFor({ state: 'visible', timeout: 10000 });
+    await passwordInput.click();
     await passwordInput.fill(process.env.password!);
 
     await page.evaluate(() => {
@@ -149,15 +150,16 @@ test.describe('Job Notes - Pin and Unpin Note', () => {
     expect(noteTextContent).toBeTruthy();
 
     // ── Pin the note via the more-options menu ───────────────────────────
-    // Find the menu button within the note card (the dots-vertical icon button)
+    // The menu trigger is the second button in the note card (empty text, no aria-haspopup)
     const menuButton = firstNoteCard
-      .locator('button:has(.ti-dots-vertical)')
-      .describe('Note menu button');
+      .locator('button')
+      .nth(1)
+      .describe('Note menu button (three-dot)');
 
     // Click with force to bypass CDK overlay backdrop
     await menuButton.click({ force: true, timeout: 10000 });
 
-    // Click "Pin Note" from the context menu
+    // Click "Pin Note" from the popup menu (items are buttons, not menuitem role)
     const pinNoteMenuItem = page
       .getByRole('button', { name: /Pin Note/i })
       .describe('Pin Note menu item');
@@ -191,12 +193,13 @@ test.describe('Job Notes - Pin and Unpin Note', () => {
       .describe('Pinned note card');
 
     const pinnedMenuButton = pinnedNoteCard
-      .locator('button:has(.ti-dots-vertical)')
-      .describe('Pinned note menu button');
+      .locator('button')
+      .nth(1)
+      .describe('Pinned note menu button (three-dot)');
 
     await pinnedMenuButton.click({ force: true, timeout: 10000 });
 
-    // Click "Unpin Note" from the context menu
+    // Click "Unpin Note" from the popup menu (items are buttons, not menuitem role)
     const unpinNoteMenuItem = page
       .getByRole('button', { name: /Unpin Note/i })
       .describe('Unpin Note menu item');
