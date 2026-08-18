@@ -114,9 +114,9 @@ test.describe('Job Notes Image Upload', () => {
     const attachButton = page.getByTestId('notes_attachment-button').describe('Attach file button');
     await expect(attachButton).toBeVisible({ timeout: 10000 });
 
-    // Angular apps often use a hidden <input type="file"> that is triggered
-    // programmatically. We set files directly on it to avoid filechooser event issues.
-    const fileInput = page.locator('input[type="file"]').first();
+    // Upload the test image via the hidden file input directly
+    // (the filechooser event is unreliable in headless mode for this Angular app)
+    const fileInput = page.getByTestId('notes_attachment-input');
     await fileInput.setInputFiles(imagePath);
 
     // Wait for upload to process - a thumbnail preview appears in the editor
