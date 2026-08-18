@@ -83,6 +83,16 @@ test.describe('Job Notes Image Upload', () => {
     await notifBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     if (await notifBtn.isVisible()) await notifBtn.click();
 
+    // Dismiss "Introducing Agent Studio" promo modal if present
+    const agentStudioBtn = page.getByRole('button', { name: 'Maybe later' });
+    await agentStudioBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    if (await agentStudioBtn.isVisible()) await agentStudioBtn.click();
+
+    // Dismiss "Zuper Guide" onboarding overlay if present
+    const zuperGuideCloseBtn = page.getByRole('button', { name: 'Close' }).first();
+    await zuperGuideCloseBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    if (await zuperGuideCloseBtn.isVisible()) await zuperGuideCloseBtn.click();
+
     // Dismiss timezone popup if present
     const tzCancelBtn = page.getByRole('button', { name: 'Cancel' });
     await tzCancelBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});

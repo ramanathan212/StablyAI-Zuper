@@ -154,6 +154,16 @@ startxref
     await notifBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     if (await notifBtn.isVisible()) await notifBtn.click();
 
+    // Dismiss "Introducing Agent Studio" promo modal if present
+    const agentStudioBtn = page.getByRole('button', { name: 'Maybe later' });
+    await agentStudioBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    if (await agentStudioBtn.isVisible()) await agentStudioBtn.click();
+
+    // Dismiss "Zuper Guide" onboarding overlay if present
+    const zuperGuideCloseBtn = page.getByRole('button', { name: 'Close' }).first();
+    await zuperGuideCloseBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    if (await zuperGuideCloseBtn.isVisible()) await zuperGuideCloseBtn.click();
+
     // ── Navigate to an existing job ──────────────────────────────────────
     await page.goto('/jobs');
     await forceRemoveOverlays(page);
@@ -297,6 +307,10 @@ startxref
     const noThanksBtn = page.getByRole('button', { name: 'No, thanks' });
     await noThanksBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     if (await noThanksBtn.isVisible()) await noThanksBtn.click();
+
+    const agentStudioBtnAfterRefresh = page.getByRole('button', { name: 'Maybe later' });
+    await agentStudioBtnAfterRefresh.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    if (await agentStudioBtnAfterRefresh.isVisible()) await agentStudioBtnAfterRefresh.click();
 
     // Navigate back to Notes tab after refresh
     const notesTabAfterRefresh = page
