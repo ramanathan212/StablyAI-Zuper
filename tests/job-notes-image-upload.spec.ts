@@ -1,6 +1,7 @@
 import { test, expect } from '@stablyai/playwright-test';
 import { LoginPage } from './pages/LoginPage.js';
 import { forceRemoveOverlays } from './Helper/overlay-helper.js';
+import { testData } from './test-data.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -50,9 +51,9 @@ test.describe('Job Notes Image Upload', () => {
     // --- Step 1: Login ---
     const loginPage = new LoginPage(page);
     await loginPage.login(
-      process.env.companyName!,
-      process.env.email!,
-      process.env.password!
+      testData.login.companyName,
+      testData.login.email,
+      testData.login.password
     );
 
     // Dismiss any popups after login
@@ -72,52 +73,31 @@ test.describe('Job Notes Image Upload', () => {
       .first()
       .describe('First job link');
     await firstJobLink.waitFor({ state: 'visible', timeout: 15000 });
-    const jobHref = await firstJobLink.getAttribute('href');
-    await page.goto(jobHref!);
+    await firstJobLink.click();
 
     await expect(page).toHaveURL(/\/jobs\/.*\/details/, { timeout: 30000 });
     await forceRemoveOverlays(page);
 
-    // Dismiss notification popup if present
-    const notifBtn = page.getByRole('button', { name: 'No, thanks' });
-    await notifBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-    if (await notifBtn.isVisible()) await notifBtn.click();
-
-    // Dismiss "Introducing Agent Studio" promo modal if present
-    const agentStudioBtn = page.getByRole('button', { name: 'Maybe later' });
-    await agentStudioBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-    if (await agentStudioBtn.isVisible()) await agentStudioBtn.click();
-
-    // Dismiss "Zuper Guide" onboarding overlay if present
-    const zuperGuideCloseBtn = page.getByRole('button', { name: 'Close' }).first();
-    await zuperGuideCloseBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-    if (await zuperGuideCloseBtn.isVisible()) await zuperGuideCloseBtn.click();
-
-    // Dismiss timezone popup if present
-    const tzCancelBtn = page.getByRole('button', { name: 'Cancel' });
-    await tzCancelBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-    if (await tzCancelBtn.isVisible()) await tzCancelBtn.click();
-
-    // Wait briefly for dialogs to dismiss
-    await page.waitForTimeout(500);
-    await forceRemoveOverlays(page);
-
     // --- Step 3: Navigate to Notes tab ---
-    // The Notes button contains nested elements (icon + "Notes" text + badge count)
-    // Use a locator that targets the button containing "Notes" text reliably
-    const notesTab = page.locator('button').filter({ hasText: 'Notes' }).first().describe('Notes tab button');
+    // Use CSS text selector - getByRole unreliable after page.goto navigation
+    const notesTab = page.locator('button:has-text("Notes")').first()
+      .describe('Notes tab button');
     await notesTab.waitFor({ state: 'visible', timeout: 30000 });
-    await notesTab.click();
+    await notesTab.click({ force: true });
 
     // --- Step 4: Open note editor ---
     // After clicking Notes tab, wait for content to load
     await page.waitForTimeout(2000);
-    const noteEditorButton = page.getByRole('button', { name: 'Enter your notes here...' }).describe('Open note editor');
+    const noteEditorButton = page
+      .locator('button:has-text("Enter your notes here")')
+      .first()
+      .describe('Open note editor');
     await noteEditorButton.waitFor({ state: 'visible', timeout: 30000 });
     await noteEditorButton.click();
 
     // Verify note editor opened - look for the "Post Note" button
-    const postNoteButton = page.getByRole('button', { name: 'Post Note' }).describe('Post Note button');
+    const postNoteButton = page.locator('button:has-text("Post Note")').first()
+      .describe('Post Note button');
     await expect(postNoteButton).toBeVisible({ timeout: 10000 });
 
     // --- Step 5: Upload image via hidden file input ---
