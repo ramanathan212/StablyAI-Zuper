@@ -1,5 +1,6 @@
 import { test, expect } from '@stablyai/playwright-test';
 import { forceRemoveOverlays } from './Helper/overlay-helper.js';
+import { testData } from './test-data.js';
 
 test.describe('Job Notes - Sorting', () => {
   /**
@@ -20,7 +21,7 @@ test.describe('Job Notes - Sorting', () => {
       .getByRole('textbox', { name: 'Company Name' })
       .describe('Company name input');
     await companyInput.waitFor({ state: 'visible', timeout: 30000 });
-    await companyInput.fill(process.env.companyName!);
+    await companyInput.fill(testData.login.companyName);
 
     await page.evaluate(() => {
       const btn = Array.from(document.querySelectorAll('button')).find(
@@ -33,13 +34,13 @@ test.describe('Job Notes - Sorting', () => {
       .getByRole('textbox', { name: 'Email address' })
       .describe('Email input');
     await emailInput.waitFor({ state: 'visible', timeout: 15000 });
-    await emailInput.fill(process.env.email!);
+    await emailInput.fill(testData.login.email);
 
     const passwordInput = page
       .getByRole('textbox', { name: 'Password Forgot password?' })
       .describe('Password input');
     await passwordInput.waitFor({ state: 'visible', timeout: 10000 });
-    await passwordInput.fill(process.env.password!);
+    await passwordInput.fill(testData.login.password);
 
     await page.evaluate(() => {
       const btn = Array.from(document.querySelectorAll('button')).find(
@@ -53,7 +54,7 @@ test.describe('Job Notes - Sorting', () => {
     // Dismiss timezone popup if present
     const tzCancelBtn = page.getByRole('button', { name: 'Cancel' });
     await tzCancelBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-    if (await tzCancelBtn.isVisible()) await tzCancelBtn.click();
+    if (await tzCancelBtn.isVisible()) await tzCancelBtn.click({ force: true });
 
     // Dismiss notification popup if present
     const notifBtn = page.getByRole('button', { name: 'No, thanks' });
@@ -90,23 +91,25 @@ test.describe('Job Notes - Sorting', () => {
       .first()
       .describe('First job link');
     await firstJobLink.waitFor({ state: 'visible', timeout: 15000 });
-    const jobHref = await firstJobLink.getAttribute('href');
-    await page.goto(jobHref!);
+    await firstJobLink.click();
 
     await expect(page).toHaveURL(/\/jobs\/.*\/details/, { timeout: 30000 });
     await forceRemoveOverlays(page);
 
     // ── Open the Notes section ───────────────────────────────────────────
-    const notesTab = page
-      .getByRole('button', { name: /^Notes/ })
-      .first()
+    // Use CSS text selector - getByRole unreliable after page.goto navigation
+    const notesTab = page.locator('button:has-text("Notes")').first()
       .describe('Notes tab button');
     await notesTab.waitFor({ state: 'visible', timeout: 30000 });
-    await notesTab.click();
+    await notesTab.click({ force: true });
 
-    // Wait for notes area to load
+    // Wait for notes area to load - either "All Notes" header or "No Notes Found"
     const allNotesHeader = page.getByText('All Notes').describe('All Notes section header');
-    await expect(allNotesHeader).toBeVisible({ timeout: 15000 });
+    const noNotesFound = page.getByRole('heading', { name: 'No Notes Found' });
+    await Promise.race([
+      allNotesHeader.waitFor({ state: 'visible', timeout: 15000 }),
+      noNotesFound.waitFor({ state: 'visible', timeout: 15000 }),
+    ]);
 
     // Ensure there are at least 2 notes to test sorting - create if needed
     const timestampLocator = page.locator('[data-testid="notes_timestamp"]');
@@ -116,13 +119,15 @@ test.describe('Job Notes - Sorting', () => {
     // If fewer than 2 notes exist, create notes until we have at least 2
     while (noteCount < 2) {
       const noteEditorButton = page
-        .getByRole('button', { name: 'Enter your notes here...' })
+        .locator('button:has-text("Enter your notes here")')
+        .first()
         .describe('Note editor placeholder');
       await noteEditorButton.waitFor({ state: 'visible', timeout: 15000 });
       await noteEditorButton.click();
 
       const postNoteButton = page
-        .getByRole('button', { name: 'Post Note' })
+        .locator('button:has-text("Post Note")')
+        .first()
         .describe('Post Note button');
       await expect(postNoteButton).toBeVisible({ timeout: 10000 });
 

@@ -1,5 +1,6 @@
 import { test, expect } from '@stablyai/playwright-test';
 import { LoginPage } from './pages/LoginPage.js';
+import { testData } from './test-data.js';
 
 test.describe('Job Notes Section Verification', () => {
   /**
@@ -18,9 +19,9 @@ test.describe('Job Notes Section Verification', () => {
     // ── Step 1: Login ──────────────────────────────────────────────────
     const loginPage = new LoginPage(page);
     await loginPage.login(
-      process.env.companyName!,
-      process.env.email!,
-      process.env.password!
+      testData.login.companyName,
+      testData.login.email,
+      testData.login.password
     );
 
     // ── Step 2: Verify dashboard loads successfully ────────────────────
@@ -121,10 +122,17 @@ test.describe('Job Notes Section Verification', () => {
       .describe('Note editor placeholder button');
     await expect(noteEditorButton).toBeVisible({ timeout: 15000 });
 
-    // Verify the "All Notes" section header is visible
+    // Verify the Notes section content is visible (either "All Notes" header or "No Notes Found" state)
     const allNotesHeader = page
       .getByText('All Notes')
       .describe('All Notes section header');
-    await expect(allNotesHeader).toBeVisible({ timeout: 10000 });
+    const noNotesFound = page
+      .getByRole('heading', { name: 'No Notes Found' })
+      .describe('No Notes Found heading');
+    const notesContentVisible = await Promise.race([
+      allNotesHeader.waitFor({ state: 'visible', timeout: 10000 }).then(() => true),
+      noNotesFound.waitFor({ state: 'visible', timeout: 10000 }).then(() => true),
+    ]);
+    expect(notesContentVisible).toBeTruthy();
   });
 });

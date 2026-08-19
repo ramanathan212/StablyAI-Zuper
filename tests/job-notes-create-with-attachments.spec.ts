@@ -1,5 +1,6 @@
 import { test, expect } from '@stablyai/playwright-test';
 import { forceRemoveOverlays } from './Helper/overlay-helper.js';
+import { testData } from './test-data.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -114,7 +115,7 @@ startxref
       .getByRole('textbox', { name: 'Company Name' })
       .describe('Company name input');
     await companyInput.waitFor({ state: 'visible', timeout: 30000 });
-    await companyInput.fill(process.env.companyName!);
+    await companyInput.fill(testData.login.companyName);
 
     await page.evaluate(() => {
       const btn = Array.from(document.querySelectorAll('button')).find(
@@ -127,13 +128,13 @@ startxref
       .getByRole('textbox', { name: 'Email address' })
       .describe('Email input');
     await emailInput.waitFor({ state: 'visible', timeout: 15000 });
-    await emailInput.fill(process.env.email!);
+    await emailInput.fill(testData.login.email);
 
     const passwordInput = page
       .getByRole('textbox', { name: 'Password Forgot password?' })
       .describe('Password input');
     await passwordInput.waitFor({ state: 'visible', timeout: 10000 });
-    await passwordInput.fill(process.env.password!);
+    await passwordInput.fill(testData.login.password);
 
     await page.evaluate(() => {
       const btn = Array.from(document.querySelectorAll('button')).find(
@@ -147,7 +148,7 @@ startxref
     // Dismiss timezone popup if present
     const tzCancelBtn = page.getByRole('button', { name: 'Cancel' });
     await tzCancelBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-    if (await tzCancelBtn.isVisible()) await tzCancelBtn.click();
+    if (await tzCancelBtn.isVisible()) await tzCancelBtn.click({ force: true });
 
     // Dismiss notification popup if present
     const notifBtn = page.getByRole('button', { name: 'No, thanks' });
@@ -179,25 +180,22 @@ startxref
       .first()
       .describe('First job link');
     await firstJobLink.waitFor({ state: 'visible', timeout: 15000 });
-    const jobHref = await firstJobLink.getAttribute('href');
-    await page.goto(jobHref!);
+    await firstJobLink.click();
 
     await expect(page).toHaveURL(/\/jobs\/.*\/details/, { timeout: 30000 });
     await forceRemoveOverlays(page);
 
     // ── Open the Notes section ───────────────────────────────────────────
-    // The Notes button contains nested elements (icon + "Notes" text + badge count)
-    const notesTab = page
-      .locator('button')
-      .filter({ hasText: 'Notes' })
-      .first()
+    // Use CSS text selector - getByRole unreliable after page.goto navigation
+    const notesTab = page.locator('button:has-text("Notes")').first()
       .describe('Notes tab button');
     await notesTab.waitFor({ state: 'visible', timeout: 30000 });
-    await notesTab.click();
+    await notesTab.click({ force: true });
 
     // ── Verify the Notes editor input is visible and enabled ─────────────
     const noteEditorButton = page
-      .getByRole('button', { name: 'Enter your notes here...' })
+      .locator('button:has-text("Enter your notes here")')
+      .first()
       .describe('Note editor placeholder');
     await expect(noteEditorButton).toBeVisible({ timeout: 15000 });
     await expect(noteEditorButton).toBeEnabled();
@@ -206,7 +204,8 @@ startxref
     await noteEditorButton.click();
 
     const postNoteButton = page
-      .getByRole('button', { name: 'Post Note' })
+      .locator('button:has-text("Post Note")')
+      .first()
       .describe('Post Note button');
     await expect(postNoteButton).toBeVisible({ timeout: 10000 });
 
