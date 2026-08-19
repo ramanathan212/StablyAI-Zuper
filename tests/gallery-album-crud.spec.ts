@@ -1,5 +1,6 @@
 import { test, expect } from '@stablyai/playwright-test';
 import { forceRemoveOverlays, installOverlayAutoDismiss } from './Helper/overlay-helper.js';
+import { testData } from './config/test-data-config.js';
 
 test.describe('Gallery Album CRUD', () => {
   /**
@@ -23,7 +24,7 @@ test.describe('Gallery Album CRUD', () => {
       .getByRole('textbox', { name: 'Company Name' })
       .describe('Company name input');
     await companyInput.waitFor({ state: 'visible', timeout: 30000 });
-    await companyInput.fill(process.env.companyName!);
+    await companyInput.fill(process.env.companyName || testData.login.companyName);
 
     await page
       .getByRole('button', { name: 'Continue' })
@@ -34,13 +35,13 @@ test.describe('Gallery Album CRUD', () => {
       .getByRole('textbox', { name: 'Email address' })
       .describe('Email input');
     await emailInput.waitFor({ state: 'visible', timeout: 15000 });
-    await emailInput.fill(process.env.email!);
+    await emailInput.fill(process.env.email || testData.login.email);
 
     const passwordInput = page
       .getByRole('textbox', { name: 'Password Forgot password?' })
       .describe('Password input');
     await passwordInput.waitFor({ state: 'visible', timeout: 10000 });
-    await passwordInput.fill(process.env.password!);
+    await passwordInput.fill(process.env.password || testData.login.password);
 
     await page
       .getByRole('button', { name: 'Login', exact: true })
