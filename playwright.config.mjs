@@ -159,6 +159,14 @@ export default defineConfig({
       },
     },
     {
+      name: 'Jobs-Filter-Panel',
+      grep: /(Jobs Filter Panel - Operators and Conditions should verify every Jobs filter field, operator, AND\/OR condition, edit, remove and clear behaviour)$/i,
+      testMatch: ['jobs-filter-panel-operators.spec.ts'],
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
+    {
       name: 'JobNotes',
       grep: /(Job Notes Image Upload should upload an image in job notes and verify it appears)$/i,
       use: {

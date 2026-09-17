@@ -1,0 +1,932 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - generic [ref=e8]:
+        - img [ref=e11]
+        - link [ref=e14] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e16]:
+            - img [ref=e17]
+        - link [ref=e21] [cursor=pointer]:
+          - /url: /sense
+          - img [ref=e23]:
+            - img [ref=e24]
+        - link [ref=e37] [cursor=pointer]:
+          - /url: /projects
+          - img [ref=e39]:
+            - img [ref=e40]
+        - link [ref=e45] [cursor=pointer]:
+          - /url: /request
+          - img [ref=e47]:
+            - img [ref=e48]
+        - img [ref=e55] [cursor=pointer]:
+          - img [ref=e56]
+        - img [ref=e62] [cursor=pointer]:
+          - img [ref=e63]
+        - img [ref=e68] [cursor=pointer]:
+          - img [ref=e69]
+        - img [ref=e74] [cursor=pointer]:
+          - img [ref=e75]
+        - img [ref=e80] [cursor=pointer]:
+          - img [ref=e81]
+        - img [ref=e86] [cursor=pointer]:
+          - img [ref=e87]
+        - link [ref=e91] [cursor=pointer]:
+          - /url: /maps
+          - img [ref=e93]:
+            - img [ref=e94]
+        - img [ref=e99] [cursor=pointer]:
+          - img [ref=e100]
+        - img [ref=e105] [cursor=pointer]:
+          - img [ref=e106]
+        - img [ref=e112] [cursor=pointer]:
+          - img [ref=e113]
+        - link [ref=e118] [cursor=pointer]:
+          - /url: /connect/conversations
+          - generic [ref=e119]:
+            - img [ref=e120]:
+              - img [ref=e121]
+            - generic [ref=e124]: "30"
+        - link [ref=e128] [cursor=pointer]:
+          - /url: /workflow-builder
+          - img [ref=e130]:
+            - img [ref=e131]
+        - link [ref=e140] [cursor=pointer]:
+          - /url: /settings_new
+          - img [ref=e142]:
+            - img [ref=e143]
+      - generic [ref=e146]:
+        - generic [ref=e147]:
+          - img [ref=e149]
+          - generic [ref=e150]:
+            - generic [ref=e153]:
+              - generic [ref=e154]: New
+              - emphasis [ref=e155] [cursor=pointer]: 
+            - generic [ref=e158]:
+              - generic [ref=e159]: Search
+              - generic [ref=e160] [cursor=pointer]:
+                - generic:
+                  - img
+                - generic [ref=e161]: Search
+                - generic:
+                  - generic:
+                    - generic: Ctrl
+                    - generic: K
+            - button [ref=e162] [cursor=pointer]:
+              - img [ref=e163]
+              - generic [ref=e164]: Zuper Guide
+            - button [ref=e168] [cursor=pointer]:
+              - img [ref=e169]:
+                - img [ref=e170]
+            - button [ref=e176] [cursor=pointer]:
+              - generic [ref=e178]: 99+
+              - img [ref=e179]:
+                - img [ref=e180]
+            - button [ref=e185] [cursor=pointer]:
+              - img [ref=e186]:
+                - img [ref=e187]
+            - button [ref=e191] [cursor=pointer]:
+              - generic [ref=e193]: "22"
+              - generic [ref=e194]: 
+            - button [ref=e197] [cursor=pointer]:
+              - generic [ref=e199]: "5"
+              - img [ref=e200]:
+                - img [ref=e201]
+            - button [ref=e205] [cursor=pointer]:
+              - generic [ref=e207]: V
+        - generic [ref=e210]:
+          - navigation [ref=e211]:
+            - list [ref=e212]:
+              - generic [ref=e213]:
+                - listitem [ref=e214]:
+                  - generic [ref=e216] [cursor=pointer]: Jobs
+                - listitem [ref=e217]:
+                  - generic [ref=e218]: "20925"
+              - listitem [ref=e219]:
+                - generic [ref=e221]:
+                  - button [ref=e222]: All Jobs
+                  - generic [ref=e223]:
+                    - button [ref=e224] [cursor=pointer]:
+                      - generic [ref=e225]: valiation
+                    - button [ref=e226] [cursor=pointer]:
+                      - generic [ref=e227]: Copy of Copy of Create Test Views
+                    - button [ref=e228] [cursor=pointer]:
+                      - generic [ref=e229]: Copy of Create Test Views
+                    - button [ref=e230] [cursor=pointer]:
+                      - generic [ref=e231]: Create Test Views
+                    - button [ref=e232] [cursor=pointer]:
+                      - generic [ref=e233]: 
+                      - generic [ref=e234]: 4 More
+          - link [ref=e237] [cursor=pointer]:
+            - /url: /recurring_jobs
+            - emphasis [ref=e238]: 
+            - generic [ref=e239]: Manage Recurring Jobs
+          - link [ref=e242] [cursor=pointer]:
+            - /url: /jobs/new
+            - emphasis [ref=e243]: 
+            - generic [ref=e244]: New Job
+        - generic [ref=e249]:
+          - generic [ref=e250]:
+            - button [ref=e252] [cursor=pointer]:
+              - img [ref=e253]
+              - generic [ref=e255]: Filter
+            - generic [ref=e259]:
+              - button [ref=e262] [cursor=pointer]:
+                - generic [ref=e263]: ﺶ
+                - generic [ref=e264]: Job Category
+              - button [ref=e267] [cursor=pointer]:
+                - generic [ref=e268]: ﺶ
+                - generic [ref=e269]: Scheduled Date Range
+              - button [ref=e272] [cursor=pointer]:
+                - generic [ref=e273]: ﺶ
+                - generic [ref=e274]: Job Priority
+            - generic [ref=e275]:
+              - generic [ref=e276]:
+                - textbox [ref=e277]:
+                  - /placeholder: Search
+                - generic:
+                  - img
+              - button [ref=e278] [cursor=pointer]:
+                - generic [ref=e279]: 
+                - generic [ref=e280]: Columns
+              - generic [ref=e281]:
+                - button [ref=e282] [cursor=pointer]:
+                  - generic [ref=e283]: 
+                - button [ref=e284] [cursor=pointer]:
+                  - generic [ref=e285]: 
+          - table [ref=e290]:
+            - rowgroup [ref=e291]:
+              - row [ref=e292]:
+                - columnheader [ref=e293]:
+                  - checkbox [ref=e295] [cursor=pointer]
+                - columnheader [ref=e296]:
+                  - generic [ref=e297] [cursor=pointer]:
+                    - generic [ref=e298]: Job ID
+                    - generic [ref=e299]: 
+                - columnheader [ref=e301]:
+                  - generic [ref=e302] [cursor=pointer]:
+                    - generic [ref=e303]: Job Title
+                    - generic [ref=e304]: 
+                - columnheader [ref=e306]:
+                  - generic [ref=e307]: Contact
+                - columnheader [ref=e309]:
+                  - generic [ref=e310]: Users / Teams Assigned
+                - columnheader [ref=e312]:
+                  - generic [ref=e313]: Category
+                - columnheader [ref=e315]:
+                  - generic [ref=e316]: Service Address
+                - columnheader [ref=e318]:
+                  - generic [ref=e319] [cursor=pointer]:
+                    - generic [ref=e320]: Status
+                    - generic [ref=e321]: 
+                - columnheader [ref=e323]:
+                  - generic [ref=e324] [cursor=pointer]:
+                    - generic [ref=e325]: Priority
+                    - generic [ref=e326]: 
+                - columnheader [ref=e328]:
+                  - generic [ref=e329] [cursor=pointer]:
+                    - generic [ref=e330]: Scheduled Date
+                    - generic [ref=e331]: 
+                - columnheader [ref=e333]:
+                  - generic [ref=e334] [cursor=pointer]:
+                    - generic [ref=e335]: Due Date
+                    - generic [ref=e336]: 
+                - columnheader [ref=e338]:
+                  - generic [ref=e339]: Tags
+                - columnheader [ref=e341]:
+                  - generic [ref=e342] [cursor=pointer]:
+                    - generic [ref=e343]: Created On
+                    - generic [ref=e344]: 
+                - columnheader [ref=e346]
+            - rowgroup [ref=e347]:
+              - row [ref=e348]:
+                - cell [ref=e349]:
+                  - checkbox [ref=e350] [cursor=pointer]
+                - cell [ref=e351]:
+                  - generic [ref=e353]:
+                    - link [ref=e354] [cursor=pointer]:
+                      - /url: /jobs/4fdbfb7b-9993-4dee-944b-bf8631b8778e/details
+                      - text: "681734"
+                    - generic [ref=e355] [cursor=pointer]: 
+                    - button [ref=e356] [cursor=pointer]:
+                      - generic [ref=e357]: 
+                      - generic [ref=e358]: "0"
+                - cell [ref=e359]:
+                  - generic [ref=e361]:
+                    - link [ref=e362] [cursor=pointer]:
+                      - /url: /jobs/4fdbfb7b-9993-4dee-944b-bf8631b8778e/details
+                      - text: Test Job 1789558566965
+                    - generic [ref=e363] [cursor=pointer]: 
+                - cell [ref=e364]
+                - cell [ref=e366]:
+                  - generic [ref=e369]:
+                    - generic [ref=e372]: V
+                    - generic [ref=e374]: Vijay N
+                    - generic [ref=e376] [cursor=pointer]: 
+                - cell [ref=e377]:
+                  - generic [ref=e379]: Installation Services
+                - cell [ref=e380]:
+                  - generic [ref=e382]: 705 Pike St, Seattle , Washington , 98101
+                - cell [ref=e383]:
+                  - generic [ref=e385]: New
+                - cell [ref=e386]:
+                  - generic [ref=e388]: High
+                - cell [ref=e389]:
+                  - generic [ref=e392]: Sep 16 06:00PM - 11:59PM
+                - cell [ref=e396]:
+                  - generic [ref=e398]: 09/30/2026
+                - cell [ref=e399]:
+                  - generic [ref=e401]: AC Job
+                - cell [ref=e402]:
+                  - generic [ref=e404]: 09/16/2026 05:06 PM
+                - cell [ref=e405]:
+                  - button [ref=e406] [cursor=pointer]:
+                    - img [ref=e407]
+              - row [ref=e411]:
+                - cell [ref=e412]:
+                  - checkbox [ref=e413] [cursor=pointer]
+                - cell [ref=e414]:
+                  - generic [ref=e416]:
+                    - link [ref=e417] [cursor=pointer]:
+                      - /url: /jobs/ab1d660c-2ed3-4311-9692-355416c06371/details
+                      - text: "681733"
+                    - generic [ref=e418] [cursor=pointer]: 
+                    - button [ref=e419] [cursor=pointer]:
+                      - generic [ref=e420]: 
+                      - generic [ref=e421]: "0"
+                - cell [ref=e422]:
+                  - generic [ref=e424]:
+                    - link [ref=e425] [cursor=pointer]:
+                      - /url: /jobs/ab1d660c-2ed3-4311-9692-355416c06371/details
+                      - text: Test Job UAT manual
+                    - generic [ref=e426] [cursor=pointer]: 
+                - cell [ref=e427]
+                - cell [ref=e429]:
+                  - generic [ref=e432]:
+                    - generic [ref=e435]: S
+                    - generic [ref=e437]: Sriram Palakula (Do not use this user)
+                    - generic [ref=e439] [cursor=pointer]: 
+                - cell [ref=e440]:
+                  - generic [ref=e442]: Installation Services
+                - cell [ref=e443]:
+                  - generic [ref=e445]: 705 Pike St, Seattle , Washington , 98101
+                - cell [ref=e446]:
+                  - generic [ref=e448]: New
+                - cell [ref=e449]:
+                  - generic [ref=e451]: High
+                - cell [ref=e452]:
+                  - generic [ref=e455]: Not Yet Scheduled
+                - cell [ref=e460]:
+                  - generic [ref=e462]: 09/30/2026
+                - cell [ref=e463]:
+                  - generic [ref=e465]: AC Job
+                - cell [ref=e466]:
+                  - generic [ref=e468]: 09/16/2026 04:40 PM
+                - cell [ref=e469]:
+                  - button [ref=e470] [cursor=pointer]:
+                    - img [ref=e471]
+              - row [ref=e475]:
+                - cell [ref=e476]:
+                  - checkbox [ref=e477] [cursor=pointer]
+                - cell [ref=e478]:
+                  - generic [ref=e480]:
+                    - link [ref=e481] [cursor=pointer]:
+                      - /url: /jobs/fcbc925b-497f-4674-ac70-1cc85e54da1f/details
+                      - text: "681732"
+                    - generic [ref=e482] [cursor=pointer]: 
+                    - button [ref=e483] [cursor=pointer]:
+                      - generic [ref=e484]: 
+                      - generic [ref=e485]: "0"
+                - cell [ref=e486]:
+                  - generic [ref=e488]:
+                    - link [ref=e489] [cursor=pointer]:
+                      - /url: /jobs/fcbc925b-497f-4674-ac70-1cc85e54da1f/details
+                      - text: Test Job 1789555488184
+                    - generic [ref=e490] [cursor=pointer]: 
+                - cell [ref=e491]
+                - cell [ref=e493]:
+                  - generic [ref=e495]:
+                    - generic [ref=e496]: No Users / Teams Assigned
+                    - generic [ref=e498] [cursor=pointer]: 
+                - cell [ref=e499]:
+                  - generic [ref=e501]: Installation Services
+                - cell [ref=e502]:
+                  - generic [ref=e504]: 705 Pike St, Seattle , Washington , 98101
+                - cell [ref=e505]:
+                  - generic [ref=e507]: Started
+                - cell [ref=e508]:
+                  - generic [ref=e510]: High
+                - cell [ref=e511]:
+                  - generic [ref=e514]: Not Yet Scheduled
+                - cell [ref=e517]:
+                  - generic [ref=e519]: 09/30/2026
+                - cell [ref=e520]:
+                  - generic [ref=e522]: AC Job
+                - cell [ref=e523]:
+                  - generic [ref=e525]: 09/16/2026 04:16 PM
+                - cell [ref=e526]:
+                  - button [ref=e527] [cursor=pointer]:
+                    - img [ref=e528]
+              - row [ref=e532]:
+                - cell [ref=e533]:
+                  - checkbox [ref=e534] [cursor=pointer]
+                - cell [ref=e535]:
+                  - generic [ref=e537]:
+                    - link [ref=e538] [cursor=pointer]:
+                      - /url: /jobs/fcd5381e-6b95-42bb-8a5b-9442a4c24136/details
+                      - text: "681731"
+                    - generic [ref=e539] [cursor=pointer]: 
+                    - button [ref=e540] [cursor=pointer]:
+                      - generic [ref=e541]: 
+                      - generic [ref=e542]: "0"
+                - cell [ref=e543]:
+                  - link [ref=e545] [cursor=pointer]:
+                    - /url: /jobs/fcd5381e-6b95-42bb-8a5b-9442a4c24136/details
+                    - text: Test Job 1789555387097
+                - cell [ref=e546]
+                - cell [ref=e548]:
+                  - generic [ref=e551]:
+                    - generic [ref=e554]: V
+                    - generic [ref=e556]: Vijay N
+                    - generic [ref=e558] [cursor=pointer]: 
+                - cell [ref=e559]:
+                  - generic [ref=e561]: Installation Services
+                - cell [ref=e562]:
+                  - generic [ref=e564]: 705 Pike St, Seattle , Washington , 98101
+                - cell [ref=e565]:
+                  - generic [ref=e567]: New
+                - cell [ref=e568]:
+                  - generic [ref=e570]: High
+                - cell [ref=e571]:
+                  - generic [ref=e574]: Sep 16 05:00PM - 11:59PM
+                - cell [ref=e579]:
+                  - generic [ref=e581]: 09/30/2026
+                - cell [ref=e582]:
+                  - generic [ref=e584]: AC Job
+                - cell [ref=e585]:
+                  - generic [ref=e587]: 09/16/2026 04:13 PM
+                - cell [ref=e588]:
+                  - button [ref=e589] [cursor=pointer]:
+                    - img [ref=e590]
+              - row [ref=e594]:
+                - cell [ref=e595]:
+                  - checkbox [ref=e596] [cursor=pointer]
+                - cell [ref=e597]:
+                  - generic [ref=e599]:
+                    - link [ref=e600] [cursor=pointer]:
+                      - /url: /jobs/a1d4bfc9-fced-4a03-8f06-30b45398b65c/details
+                      - text: "681730"
+                    - generic [ref=e601] [cursor=pointer]: 
+                    - button [ref=e602] [cursor=pointer]:
+                      - generic [ref=e603]: 
+                      - generic [ref=e604]: "0"
+                - cell [ref=e605]:
+                  - link [ref=e607] [cursor=pointer]:
+                    - /url: /jobs/a1d4bfc9-fced-4a03-8f06-30b45398b65c/details
+                    - text: Test Job 1789555366660
+                - cell [ref=e608]
+                - cell [ref=e610]:
+                  - generic [ref=e613]:
+                    - generic [ref=e616]: V
+                    - generic [ref=e618]: Vijay N
+                    - generic [ref=e620] [cursor=pointer]: 
+                - cell [ref=e621]:
+                  - generic [ref=e623]: Installation Services
+                - cell [ref=e624]:
+                  - generic [ref=e626]: 705 Pike St, Seattle , Washington , 98101
+                - cell [ref=e627]:
+                  - generic [ref=e629]: New
+                - cell [ref=e630]:
+                  - generic [ref=e632]: High
+                - cell [ref=e633]:
+                  - generic [ref=e636]: Sep 16 05:00PM - 11:59PM
+                - cell [ref=e640]:
+                  - generic [ref=e642]: 09/30/2026
+                - cell [ref=e643]:
+                  - generic [ref=e645]: AC Job
+                - cell [ref=e646]:
+                  - generic [ref=e648]: 09/16/2026 04:13 PM
+                - cell [ref=e649]:
+                  - button [ref=e650] [cursor=pointer]:
+                    - img [ref=e651]
+              - row [ref=e655]:
+                - cell [ref=e656]:
+                  - checkbox [ref=e657] [cursor=pointer]
+                - cell [ref=e658]:
+                  - generic [ref=e660]:
+                    - link [ref=e661] [cursor=pointer]:
+                      - /url: /jobs/2809766e-4ee0-483a-89b1-55d2742f9dc0/details
+                      - text: "681729"
+                    - generic [ref=e662] [cursor=pointer]: 
+                    - button [ref=e663] [cursor=pointer]:
+                      - generic [ref=e664]: 
+                      - generic [ref=e665]: "0"
+                - cell [ref=e666]:
+                  - generic [ref=e668]:
+                    - link [ref=e669] [cursor=pointer]:
+                      - /url: /jobs/2809766e-4ee0-483a-89b1-55d2742f9dc0/details
+                      - text: Test Job 1789554242964
+                    - generic [ref=e670] [cursor=pointer]: 
+                - cell [ref=e671]
+                - cell [ref=e673]:
+                  - generic [ref=e675]:
+                    - generic [ref=e676]: No Users / Teams Assigned
+                    - generic [ref=e678] [cursor=pointer]: 
+                - cell [ref=e679]:
+                  - generic [ref=e681]: Installation Services
+                - cell [ref=e682]:
+                  - generic [ref=e684]: 705 Pike St, Seattle , Washington , 98101
+                - cell [ref=e685]:
+                  - generic [ref=e687]: New
+                - cell [ref=e688]:
+                  - generic [ref=e690]: High
+                - cell [ref=e691]:
+                  - generic [ref=e694]: Not Yet Scheduled
+                - cell [ref=e697]:
+                  - generic [ref=e699]: 09/30/2026
+                - cell [ref=e700]:
+                  - generic [ref=e702]: AC Job
+                - cell [ref=e703]:
+                  - generic [ref=e705]: 09/16/2026 03:58 PM
+                - cell [ref=e706]:
+                  - button [ref=e707] [cursor=pointer]:
+                    - img [ref=e708]
+              - row [ref=e712]:
+                - cell [ref=e713]:
+                  - checkbox [ref=e714] [cursor=pointer]
+                - cell [ref=e715]:
+                  - generic [ref=e717]:
+                    - link [ref=e718] [cursor=pointer]:
+                      - /url: /jobs/c8e0fc00-6f90-448f-950c-cc3ad48c6760/details
+                      - text: "681728"
+                    - generic [ref=e719] [cursor=pointer]: 
+                    - button [ref=e720] [cursor=pointer]:
+                      - generic [ref=e721]: 
+                      - generic [ref=e722]: "0"
+                - cell [ref=e723]:
+                  - link [ref=e725] [cursor=pointer]:
+                    - /url: /jobs/c8e0fc00-6f90-448f-950c-cc3ad48c6760/details
+                    - text: Test Job 1789554242964
+                - cell [ref=e726]
+                - cell [ref=e728]:
+                  - generic [ref=e731]:
+                    - generic [ref=e734]: V
+                    - generic [ref=e736]: Vijay N
+                    - generic [ref=e738] [cursor=pointer]: 
+                - cell [ref=e739]:
+                  - generic [ref=e741]: Installation Services
+                - cell [ref=e742]:
+                  - generic [ref=e744]: 705 Pike St, Seattle , Washington , 98101
+                - cell [ref=e745]:
+                  - generic [ref=e747]: New
+                - cell [ref=e748]:
+                  - generic [ref=e750]: High
+                - cell [ref=e751]:
+                  - generic [ref=e754]: Sep 16 04:00PM - 11:59PM
+                - cell [ref=e758]:
+                  - generic [ref=e760]: 09/30/2026
+                - cell [ref=e761]:
+                  - generic [ref=e763]: AC Job
+                - cell [ref=e764]:
+                  - generic [ref=e766]: 09/16/2026 03:55 PM
+                - cell [ref=e767]:
+                  - button [ref=e768] [cursor=pointer]:
+                    - img [ref=e769]
+              - row [ref=e773]:
+                - cell [ref=e774]:
+                  - checkbox [ref=e775] [cursor=pointer]
+                - cell [ref=e776]:
+                  - generic [ref=e778]:
+                    - link [ref=e779] [cursor=pointer]:
+                      - /url: /jobs/5bad63f1-dcec-4ae7-8af4-c5f3db4a1609/details
+                      - text: "681727"
+                    - generic [ref=e780] [cursor=pointer]: 
+                    - button [ref=e781] [cursor=pointer]:
+                      - generic [ref=e782]: 
+                      - generic [ref=e783]: "0"
+                - cell [ref=e784]:
+                  - link [ref=e786] [cursor=pointer]:
+                    - /url: /jobs/5bad63f1-dcec-4ae7-8af4-c5f3db4a1609/details
+                    - text: Test Job 1789552495972
+                - cell [ref=e787]
+                - cell [ref=e789]:
+                  - generic [ref=e791]:
+                    - generic [ref=e792]: No Users / Teams Assigned
+                    - generic [ref=e794] [cursor=pointer]: 
+                - cell [ref=e795]:
+                  - generic [ref=e797]: Installation Services
+                - cell [ref=e798]:
+                  - generic [ref=e800]: 705 Pike St, Seattle , Washington , 98101
+                - cell [ref=e801]:
+                  - generic [ref=e803]: New
+                - cell [ref=e804]:
+                  - generic [ref=e806]: High
+                - cell [ref=e807]:
+                  - generic [ref=e810]: Not Yet Scheduled
+                - cell [ref=e813]:
+                  - generic [ref=e815]: 09/30/2026
+                - cell [ref=e816]:
+                  - generic [ref=e818]: AC Job
+                - cell [ref=e819]:
+                  - generic [ref=e821]: 09/16/2026 03:27 PM
+                - cell [ref=e822]:
+                  - button [ref=e823] [cursor=pointer]:
+                    - img [ref=e824]
+              - row [ref=e828]:
+                - cell [ref=e829]:
+                  - checkbox [ref=e830] [cursor=pointer]
+                - cell [ref=e831]:
+                  - generic [ref=e833]:
+                    - link [ref=e834] [cursor=pointer]:
+                      - /url: /jobs/77132943-a842-4ca1-a76b-0abe3634a7d6/details
+                      - text: "681726"
+                    - generic [ref=e835] [cursor=pointer]: 
+                    - button [ref=e836] [cursor=pointer]:
+                      - generic [ref=e837]: 
+                      - generic [ref=e838]: "0"
+                - cell [ref=e839]:
+                  - link [ref=e841] [cursor=pointer]:
+                    - /url: /jobs/77132943-a842-4ca1-a76b-0abe3634a7d6/details
+                    - text: Test Job 1789552495972
+                - cell [ref=e842]
+                - cell [ref=e844]:
+                  - generic [ref=e847]:
+                    - generic [ref=e850]: V
+                    - generic [ref=e852]: Vijay N
+                    - generic [ref=e854] [cursor=pointer]: 
+                - cell [ref=e855]:
+                  - generic [ref=e857]: Installation Services
+                - cell [ref=e858]:
+                  - generic [ref=e860]: 705 Pike St, Seattle , Washington , 98101
+                - cell [ref=e861]:
+                  - generic [ref=e863]: New
+                - cell [ref=e864]:
+                  - generic [ref=e866]: High
+                - cell [ref=e867]:
+                  - generic [ref=e870]: Sep 16 04:00PM - 11:59PM
+                - cell [ref=e874]:
+                  - generic [ref=e876]: 09/30/2026
+                - cell [ref=e877]:
+                  - generic [ref=e879]: AC Job
+                - cell [ref=e880]:
+                  - generic [ref=e882]: 09/16/2026 03:26 PM
+                - cell [ref=e883]:
+                  - button [ref=e884] [cursor=pointer]:
+                    - img [ref=e885]
+              - row [ref=e889]:
+                - cell [ref=e890]:
+                  - checkbox [ref=e891] [cursor=pointer]
+                - cell [ref=e892]:
+                  - generic [ref=e894]:
+                    - link [ref=e895] [cursor=pointer]:
+                      - /url: /jobs/f3e578da-a93c-4d05-b688-c2f0c2e1d6c0/details
+                      - text: "681725"
+                    - generic [ref=e896] [cursor=pointer]: 
+                    - button [ref=e897] [cursor=pointer]:
+                      - generic [ref=e898]: 
+                      - generic [ref=e899]: "0"
+                - cell [ref=e900]:
+                  - link [ref=e902] [cursor=pointer]:
+                    - /url: /jobs/f3e578da-a93c-4d05-b688-c2f0c2e1d6c0/details
+                    - text: Test Job 1789550142208
+                - cell [ref=e903]
+                - cell [ref=e905]:
+                  - generic [ref=e908]:
+                    - generic [ref=e911]: V
+                    - generic [ref=e913]: Vijay N
+                    - generic [ref=e915] [cursor=pointer]: 
+                - cell [ref=e916]:
+                  - generic [ref=e918]: Installation Services
+                - cell [ref=e919]:
+                  - generic [ref=e921]: 705 Pike St, Seattle , Washington , 98101
+                - cell [ref=e922]:
+                  - generic [ref=e924]: New
+                - cell [ref=e925]:
+                  - generic [ref=e927]: High
+                - cell [ref=e928]:
+                  - generic [ref=e931]: Sep 16 03:00PM - 11:59PM
+                - cell [ref=e935]:
+                  - generic [ref=e937]: 09/30/2026
+                - cell [ref=e938]:
+                  - generic [ref=e940]: AC Job
+                - cell [ref=e941]:
+                  - generic [ref=e943]: 09/16/2026 02:47 PM
+                - cell [ref=e944]:
+                  - button [ref=e945] [cursor=pointer]:
+                    - img [ref=e946]
+              - row [ref=e950]:
+                - cell [ref=e951]:
+                  - checkbox [ref=e952] [cursor=pointer]
+                - cell [ref=e953]:
+                  - generic [ref=e955]:
+                    - link [ref=e956] [cursor=pointer]:
+                      - /url: /jobs/290ce08e-b4ca-4181-b65f-cc420f68ca15/details
+                      - text: "681724"
+                    - generic [ref=e957] [cursor=pointer]: 
+                    - button [ref=e958] [cursor=pointer]:
+                      - generic [ref=e959]: 
+                      - generic [ref=e960]: "0"
+                - cell [ref=e961]:
+                  - link [ref=e963] [cursor=pointer]:
+                    - /url: /jobs/290ce08e-b4ca-4181-b65f-cc420f68ca15/details
+                    - text: Test Job 1789549684453
+                - cell [ref=e964]
+                - cell [ref=e966]:
+                  - generic [ref=e968]:
+                    - generic [ref=e969]: No Users / Teams Assigned
+                    - generic [ref=e971] [cursor=pointer]: 
+                - cell [ref=e972]:
+                  - generic [ref=e974]: Installation Services
+                - cell [ref=e975]:
+                  - generic [ref=e977]: 705 Pike St, Seattle , Washington , 98101
+                - cell [ref=e978]:
+                  - generic [ref=e980]: Started
+                - cell [ref=e981]:
+                  - generic [ref=e983]: High
+                - cell [ref=e984]:
+                  - generic [ref=e987]: Not Yet Scheduled
+                - cell [ref=e990]:
+                  - generic [ref=e992]: 09/30/2026
+                - cell [ref=e993]:
+                  - generic [ref=e995]: AC Job
+                - cell [ref=e996]:
+                  - generic [ref=e998]: 09/16/2026 02:39 PM
+                - cell [ref=e999]:
+                  - button [ref=e1000] [cursor=pointer]:
+                    - img [ref=e1001]
+              - row [ref=e1005]:
+                - cell [ref=e1006]:
+                  - checkbox [ref=e1007] [cursor=pointer]
+                - cell [ref=e1008]:
+                  - generic [ref=e1010]:
+                    - link [ref=e1011] [cursor=pointer]:
+                      - /url: /jobs/a2e3179b-464e-400a-801d-33fffa2417a1/details
+                      - text: "681723"
+                    - generic [ref=e1012] [cursor=pointer]: 
+                    - button [ref=e1013] [cursor=pointer]:
+                      - generic [ref=e1014]: 
+                      - generic [ref=e1015]: "0"
+                - cell [ref=e1016]:
+                  - link [ref=e1018] [cursor=pointer]:
+                    - /url: /jobs/a2e3179b-464e-400a-801d-33fffa2417a1/details
+                    - text: Test Job 1789549563382
+                - cell [ref=e1019]
+                - cell [ref=e1021]:
+                  - generic [ref=e1024]:
+                    - generic [ref=e1027]: V
+                    - generic [ref=e1029]: Vijay N
+                    - generic [ref=e1031] [cursor=pointer]: 
+                - cell [ref=e1032]:
+                  - generic [ref=e1034]: Installation Services
+                - cell [ref=e1035]:
+                  - generic [ref=e1037]: 705 Pike St, Seattle , Washington , 98101
+                - cell [ref=e1038]:
+                  - generic [ref=e1040]: New
+                - cell [ref=e1041]:
+                  - generic [ref=e1043]: High
+                - cell [ref=e1044]:
+                  - generic [ref=e1047]: Sep 16 03:00PM - 11:59PM
+                - cell [ref=e1052]:
+                  - generic [ref=e1054]: 09/30/2026
+                - cell [ref=e1055]:
+                  - generic [ref=e1057]: AC Job
+                - cell [ref=e1058]:
+                  - generic [ref=e1060]: 09/16/2026 02:37 PM
+                - cell [ref=e1061]:
+                  - button [ref=e1062] [cursor=pointer]:
+                    - img [ref=e1063]
+              - row [ref=e1067]:
+                - cell [ref=e1068]:
+                  - checkbox [ref=e1069] [cursor=pointer]
+                - cell [ref=e1070]:
+                  - generic [ref=e1072]:
+                    - link [ref=e1073] [cursor=pointer]:
+                      - /url: /jobs/eedbb275-89d9-491c-91bc-5ceecf0d8365/details
+                      - text: "681722"
+                    - generic [ref=e1074] [cursor=pointer]: 
+                    - button [ref=e1075] [cursor=pointer]:
+                      - generic [ref=e1076]: 
+                      - generic [ref=e1077]: "0"
+                - cell [ref=e1078]:
+                  - link [ref=e1080] [cursor=pointer]:
+                    - /url: /jobs/eedbb275-89d9-491c-91bc-5ceecf0d8365/details
+                    - text: Test QA
+                - cell [ref=e1081]:
+                  - generic [ref=e1083]:
+                    - link [ref=e1085] [cursor=pointer]:
+                      - /url: /customers/84f09af4-1a0d-4e51-9bdd-94bca766ad68/details
+                      - text: 01 oct
+                    - link [ref=e1086] [cursor=pointer]:
+                      - /url: tel:1234567890
+                      - emphasis [ref=e1087]: 
+                    - link [ref=e1088] [cursor=pointer]:
+                      - /url: mailto:vignesh.s@zuper.co
+                      - generic [ref=e1089]: 
+                - cell [ref=e1090]:
+                  - generic [ref=e1092]:
+                    - generic [ref=e1093]: No Users / Teams Assigned
+                    - generic [ref=e1095] [cursor=pointer]: 
+                - cell [ref=e1096]:
+                  - generic [ref=e1098]: Fixes
+                - cell [ref=e1099]:
+                  - generic [ref=e1101]: BSR Mall, OMR Service Road, Seevaram, Thoraipakkam, Tamil Nadu, 600097
+                - cell [ref=e1102]
+                - cell [ref=e1103]:
+                  - generic [ref=e1105]: High
+                - cell [ref=e1106]:
+                  - generic [ref=e1109]: Sep 16 03:00PM - Sep 16 11:59PM
+                - cell [ref=e1112]:
+                  - generic [ref=e1114]: 09/30/2026
+                - cell [ref=e1115]:
+                  - generic [ref=e1117]: AC Job
+                - cell [ref=e1118]:
+                  - generic [ref=e1120]: 09/16/2026 02:34 PM
+                - cell [ref=e1121]:
+                  - button [ref=e1122] [cursor=pointer]:
+                    - img [ref=e1123]
+              - row [ref=e1127]:
+                - cell [ref=e1128]:
+                  - checkbox [ref=e1129] [cursor=pointer]
+                - cell [ref=e1130]:
+                  - generic [ref=e1132]:
+                    - link [ref=e1133] [cursor=pointer]:
+                      - /url: /jobs/3b6b45f2-5661-4003-9cd3-201002f2489a/details
+                      - text: "681721"
+                    - generic [ref=e1134] [cursor=pointer]: 
+                    - button [ref=e1135] [cursor=pointer]:
+                      - generic [ref=e1136]: 
+                      - generic [ref=e1137]: "0"
+                - cell [ref=e1138]:
+                  - generic [ref=e1140]:
+                    - link [ref=e1141] [cursor=pointer]:
+                      - /url: /jobs/3b6b45f2-5661-4003-9cd3-201002f2489a/details
+                      - text: Test Job 1789548487257
+                    - generic [ref=e1142] [cursor=pointer]: 
+                - cell [ref=e1143]
+                - cell [ref=e1145]:
+                  - generic [ref=e1147]:
+                    - generic [ref=e1148]: No Users / Teams Assigned
+                    - generic [ref=e1150] [cursor=pointer]: 
+                - cell [ref=e1151]:
+                  - generic [ref=e1153]: Installation Services
+                - cell [ref=e1154]:
+                  - generic [ref=e1156]: 705 Pike St, Seattle , Washington , 98101
+                - cell [ref=e1157]:
+                  - generic [ref=e1159]: New
+                - cell [ref=e1160]:
+                  - generic [ref=e1162]: High
+                - cell [ref=e1163]:
+                  - generic [ref=e1166]: Not Yet Scheduled
+                - cell [ref=e1169]:
+                  - generic [ref=e1171]: 09/30/2026
+                - cell [ref=e1172]:
+                  - generic [ref=e1174]: AC Job
+                - cell [ref=e1175]:
+                  - generic [ref=e1177]: 09/16/2026 02:19 PM
+                - cell [ref=e1178]:
+                  - button [ref=e1179] [cursor=pointer]:
+                    - img [ref=e1180]
+              - row [ref=e1184]:
+                - cell [ref=e1185]:
+                  - checkbox [ref=e1186] [cursor=pointer]
+                - cell [ref=e1187]:
+                  - generic [ref=e1189]:
+                    - link [ref=e1190] [cursor=pointer]:
+                      - /url: /jobs/a7d86c73-1f47-468a-9c3b-c84e9f0483ac/details
+                      - text: "681720"
+                    - generic [ref=e1191] [cursor=pointer]: 
+                    - button [ref=e1192] [cursor=pointer]:
+                      - generic [ref=e1193]: 
+                      - generic [ref=e1194]: "0"
+                - cell [ref=e1195]:
+                  - link [ref=e1197] [cursor=pointer]:
+                    - /url: /jobs/a7d86c73-1f47-468a-9c3b-c84e9f0483ac/details
+                    - text: Test Job 1789548360091
+                - cell [ref=e1198]
+                - cell [ref=e1200]:
+                  - generic [ref=e1203]:
+                    - generic [ref=e1206]: V
+                    - generic [ref=e1208]: Vijay N
+                    - generic [ref=e1210] [cursor=pointer]: 
+                - cell [ref=e1211]:
+                  - generic [ref=e1213]: Installation Services
+                - cell [ref=e1214]:
+                  - generic [ref=e1216]: 705 Pike St, Seattle , Washington , 98101
+                - cell [ref=e1217]:
+                  - generic [ref=e1219]: New
+                - cell [ref=e1220]:
+                  - generic [ref=e1222]: High
+                - cell [ref=e1223]:
+                  - generic [ref=e1226]: Sep 16 03:00PM - 11:59PM
+                - cell [ref=e1231]:
+                  - generic [ref=e1233]: 09/30/2026
+                - cell [ref=e1234]:
+                  - generic [ref=e1236]: AC Job
+                - cell [ref=e1237]:
+                  - generic [ref=e1239]: 09/16/2026 02:17 PM
+                - cell [ref=e1240]:
+                  - button [ref=e1241] [cursor=pointer]:
+                    - img [ref=e1242]
+          - generic [ref=e1247]:
+            - generic [ref=e1248]:
+              - generic [ref=e1249]: Rows per page
+              - combobox [ref=e1250] [cursor=pointer]
+            - generic [ref=e1251]:
+              - paragraph [ref=e1253]: Page 1 of 1395
+              - navigation [ref=e1254]:
+                - list [ref=e1255]:
+                  - listitem [ref=e1256]:
+                    - button [disabled]:
+                      - img
+                  - listitem [ref=e1257]:
+                    - button [disabled]:
+                      - img
+                  - listitem [ref=e1258]:
+                    - button [ref=e1259] [cursor=pointer]:
+                      - img [ref=e1260]
+                  - listitem [ref=e1262]:
+                    - button [ref=e1263] [cursor=pointer]:
+                      - img [ref=e1264]
+              - button [ref=e1267] [cursor=pointer]:
+                - generic [ref=e1268]: 
+                - generic [ref=e1269]: Export
+    - iframe [ref=e3]:
+      
+  - text:   
+  - generic:
+    - generic [ref=e1278]:
+      - generic [ref=e1280]:
+        - heading "Your timezone has changed" [level=1] [ref=e1281]
+        - paragraph [ref=e1282]: The timezone setting for your computer is different from your account's timezone.
+        - generic [ref=e1283]: Asia/Kolkata
+        - paragraph [ref=e1284]: This may cause date & time fields to display incorrect values. Would you like to update your account timezone in Zuper to your system timezone?
+      - generic [ref=e1285]:
+        - button "Cancel" [ref=e1286] [cursor=pointer]
+        - button "Update" [ref=e1287] [cursor=pointer]
+    - generic [ref=e1290]:
+      - generic [ref=e1293]:
+        - generic [ref=e1294]: Zuper Connect
+        - emphasis [ref=e1296] [cursor=pointer]: 
+      - iframe [ref=e1297]:
+        - generic [ref=f9e5]:
+          - generic [ref=f9e6]:
+            - generic [ref=f9e10]: V
+            - generic [ref=f9e14] [cursor=pointer]:
+              - paragraph [ref=f9e15]: AI Test
+              - img [ref=f9e16]
+          - generic [ref=f9e20]:
+            - generic [ref=f9e24]:
+              - generic [ref=f9e25] [cursor=pointer]:
+                - img "country flag" [ref=f9e26]
+                - img [ref=f9e27]
+              - textbox [ref=f9e29]
+            - generic [ref=f9e30]:
+              - generic [ref=f9e32]:
+                - button "1" [ref=f9e33] [cursor=pointer]:
+                  - generic [ref=f9e35]: "1"
+                - button "2 ABC" [ref=f9e36] [cursor=pointer]:
+                  - generic [ref=f9e37]:
+                    - generic [ref=f9e38]: "2"
+                    - generic [ref=f9e39]: ABC
+                - button "3 DEF" [ref=f9e40] [cursor=pointer]:
+                  - generic [ref=f9e41]:
+                    - generic [ref=f9e42]: "3"
+                    - generic [ref=f9e43]: DEF
+                - button "4 GHI" [ref=f9e44] [cursor=pointer]:
+                  - generic [ref=f9e45]:
+                    - generic [ref=f9e46]: "4"
+                    - generic [ref=f9e47]: GHI
+                - button "5 JKL" [ref=f9e48] [cursor=pointer]:
+                  - generic [ref=f9e49]:
+                    - generic [ref=f9e50]: "5"
+                    - generic [ref=f9e51]: JKL
+                - button "6 MNO" [ref=f9e52] [cursor=pointer]:
+                  - generic [ref=f9e53]:
+                    - generic [ref=f9e54]: "6"
+                    - generic [ref=f9e55]: MNO
+                - button "7 PQRS" [ref=f9e56] [cursor=pointer]:
+                  - generic [ref=f9e57]:
+                    - generic [ref=f9e58]: "7"
+                    - generic [ref=f9e59]: PQRS
+                - button "8 TUV" [ref=f9e60] [cursor=pointer]:
+                  - generic [ref=f9e61]:
+                    - generic [ref=f9e62]: "8"
+                    - generic [ref=f9e63]: TUV
+                - button "9 WXYZ" [ref=f9e64] [cursor=pointer]:
+                  - generic [ref=f9e65]:
+                    - generic [ref=f9e66]: "9"
+                    - generic [ref=f9e67]: WXYZ
+                - button "*" [ref=f9e68] [cursor=pointer]:
+                  - generic [ref=f9e70]: "*"
+                - button "0 +" [ref=f9e71] [cursor=pointer]:
+                  - generic [ref=f9e72]:
+                    - generic [ref=f9e73]: "0"
+                    - generic [ref=f9e74]: +
+                - button "#" [ref=f9e75] [cursor=pointer]:
+                  - generic [ref=f9e77]: "#"
+              - img [ref=f9e80] [cursor=pointer]
+          - generic [ref=f9e81]:
+            - img [ref=f9e84]
+            - img [ref=f9e88]
+            - img [ref=f9e99]
+  - text:   

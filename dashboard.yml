@@ -1,0 +1,734 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e35]:
+      - generic [ref=e38]:
+        - img [ref=e41]
+        - link [ref=e44] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e46]:
+            - img [ref=e47]
+        - link [ref=e51] [cursor=pointer]:
+          - /url: /sense
+          - img [ref=e53]:
+            - img [ref=e54]
+        - link [ref=e67] [cursor=pointer]:
+          - /url: /projects
+          - img [ref=e69]:
+            - img [ref=e70]
+        - link [ref=e75] [cursor=pointer]:
+          - /url: /request
+          - img [ref=e77]:
+            - img [ref=e78]
+        - img [ref=e85] [cursor=pointer]:
+          - img [ref=e86]
+        - img [ref=e92] [cursor=pointer]:
+          - img [ref=e93]
+        - img [ref=e98] [cursor=pointer]:
+          - img [ref=e99]
+        - img [ref=e104] [cursor=pointer]:
+          - img [ref=e105]
+        - img [ref=e110] [cursor=pointer]:
+          - img [ref=e111]
+        - img [ref=e116] [cursor=pointer]:
+          - img [ref=e117]
+        - link [ref=e121] [cursor=pointer]:
+          - /url: /maps
+          - img [ref=e123]:
+            - img [ref=e124]
+        - img [ref=e129] [cursor=pointer]:
+          - img [ref=e130]
+        - img [ref=e135] [cursor=pointer]:
+          - img [ref=e136]
+        - img [ref=e142] [cursor=pointer]:
+          - img [ref=e143]
+        - link [ref=e148] [cursor=pointer]:
+          - /url: /connect/conversations
+          - generic [ref=e149]:
+            - img [ref=e150]:
+              - img [ref=e151]
+            - generic [ref=e154]: "30"
+        - link [ref=e158] [cursor=pointer]:
+          - /url: /workflow-builder
+          - img [ref=e160]:
+            - img [ref=e161]
+        - link [ref=e170] [cursor=pointer]:
+          - /url: /settings_new
+          - img [ref=e172]:
+            - img [ref=e173]
+      - generic [ref=e176]:
+        - generic [ref=e177]:
+          - img [ref=e179]
+          - generic [ref=e180]:
+            - generic [ref=e183]:
+              - generic [ref=e184]: New
+              - emphasis [ref=e185] [cursor=pointer]: 
+            - generic [ref=e188]:
+              - generic [ref=e189]: Search
+              - generic [ref=e190] [cursor=pointer]:
+                - generic:
+                  - img
+                - generic [ref=e191]: Search
+                - generic:
+                  - generic:
+                    - generic: Ctrl
+                    - generic: K
+            - button [ref=e192] [cursor=pointer]:
+              - img [ref=e193]
+              - generic [ref=e194]: Zuper Guide
+            - button [ref=e198] [cursor=pointer]:
+              - img [ref=e199]:
+                - img [ref=e1065]
+            - button [ref=e206] [cursor=pointer]:
+              - generic [ref=e208]: 99+
+              - img [ref=e209]:
+                - img [ref=e210]
+            - button [ref=e215] [cursor=pointer]:
+              - img [ref=e216]:
+                - img [ref=e217]
+            - button [ref=e221] [cursor=pointer]:
+              - generic [ref=e223]: "22"
+              - generic [ref=e224]: 
+            - button [ref=e227] [cursor=pointer]:
+              - generic [ref=e229]: "5"
+              - img [ref=e230]:
+                - img [ref=e231]
+            - button [ref=e235] [cursor=pointer]:
+              - generic [ref=e237]: V
+        - generic [ref=e240]:
+          - generic [ref=e242]:
+            - navigation [ref=e243]:
+              - list [ref=e244]:
+                - listitem [ref=e245]:
+                  - generic [ref=e248]:
+                    - generic [ref=e249]: Dashboard
+                    - emphasis [ref=e251] [cursor=pointer]: 
+            - generic [ref=e253]:
+              - button [ref=e258] [cursor=pointer]:
+                - generic [ref=e259]:
+                  - generic [ref=e260]: Today
+                  - generic [ref=e262]: 
+              - generic [ref=e265] [cursor=pointer]:
+                - generic [ref=e266]: All Trade Types
+                - emphasis [ref=e267]: 
+              - generic [ref=e270] [cursor=pointer]:
+                - generic [ref=e271]: All Categories
+                - emphasis [ref=e272]: 
+              - generic [ref=e275] [cursor=pointer]:
+                - generic [ref=e276]: All Teams
+                - emphasis [ref=e277]: 
+              - generic [ref=e281]:
+                - emphasis [ref=e282] [cursor=pointer]: 
+                - generic [ref=e283]: Customize
+          - generic [ref=e287]:
+            - generic [ref=e289]:
+              - generic [ref=e290]:
+                - generic [ref=e291]:
+                  - generic [ref=e292]: Jobs By Category
+                  - generic [ref=e294] [cursor=pointer]: 
+                - generic [ref=e1072] [cursor=pointer]: 
+              - img [ref=e1077]:
+                - generic [ref=e1079]:
+                  - generic [ref=e1082]:
+                    - generic:
+                      - generic:
+                        - generic: "1"
+                      - generic:
+                        - generic: "1"
+                  - generic [ref=e1087]:
+                    - generic [ref=e1088]: Fixes
+                    - generic [ref=e1089]: Requirements Collection1
+                  - generic [ref=e1091]:
+                    - generic [ref=e1092]: "1.0"
+                    - generic [ref=e1093]: "0.8"
+                    - generic [ref=e1094]: "0.6"
+                    - generic [ref=e1095]: "0.4"
+                    - generic [ref=e1096]: "0.2"
+                    - generic [ref=e1097]: "0.0"
+            - generic [ref=e323]:
+              - generic [ref=e324]:
+                - generic [ref=e325]:
+                  - generic [ref=e326]: Job Scheduled By Status
+                  - generic [ref=e328] [cursor=pointer]: 
+                - generic [ref=e1098]:
+                  - combobox [ref=e1100]:
+                    - generic [ref=e1101] [cursor=pointer]:
+                      - generic [ref=e1104]: All Category
+                      - img [ref=e1107]
+                  - generic [ref=e1110] [cursor=pointer]: 
+              - img [ref=e1115]:
+                - generic [ref=e1117]:
+                  - generic [ref=e1118] [cursor=pointer]:
+                    - generic [ref=e1119]:
+                      - img
+                    - generic [ref=e1120]: Yet to Start
+                  - generic [ref=e1121] [cursor=pointer]:
+                    - generic [ref=e1122]:
+                      - img
+                    - generic [ref=e1123]: In-Progress
+                  - generic [ref=e1124] [cursor=pointer]:
+                    - generic [ref=e1125]:
+                      - img
+                    - generic [ref=e1126]: Cancelled
+                  - generic [ref=e1127] [cursor=pointer]:
+                    - generic [ref=e1128]:
+                      - img
+                    - generic [ref=e1129]: Incomplete
+                  - generic [ref=e1130] [cursor=pointer]:
+                    - generic [ref=e1131]:
+                      - img
+                    - generic [ref=e1132]: Completed
+            - generic [ref=e336]:
+              - generic [ref=e340] [cursor=pointer]: 
+              - generic [ref=e1148]:
+                - img [ref=e1149]
+                - heading [level=4] [ref=e1150]: No Jobs Found
+            - generic [ref=e369]:
+              - generic [ref=e371]:
+                - generic [ref=e372]: Jobs By Team
+                - generic [ref=e374] [cursor=pointer]: 
+              - generic [ref=e1151]:
+                - img [ref=e1152]
+                - heading [level=4] [ref=e1153]: No Jobs Found
+            - generic [ref=e404]:
+              - generic [ref=e405]:
+                - generic [ref=e406]: Jobs By Type
+                - generic [ref=e408] [cursor=pointer]: 
+              - generic [ref=e1154]:
+                - generic [ref=e1156] [cursor=pointer]:
+                  - paragraph [ref=e1157]: New Visits
+                  - paragraph [ref=e1158]: "2"
+                - generic [ref=e1160] [cursor=pointer]:
+                  - paragraph [ref=e1161]: Return Visits
+                  - paragraph [ref=e1162]: "0"
+            - generic [ref=e424]:
+              - generic [ref=e425]:
+                - generic [ref=e426]: Jobs By Recurrence Type
+                - generic [ref=e428] [cursor=pointer]: 
+              - generic [ref=e1163]:
+                - generic [ref=e1165] [cursor=pointer]:
+                  - paragraph [ref=e1166]: One-Off Jobs
+                  - paragraph [ref=e1167]: "2"
+                - generic [ref=e1169] [cursor=pointer]:
+                  - paragraph [ref=e1170]: Recurring Jobs
+                  - paragraph [ref=e1171]: "0"
+            - generic [ref=e444]:
+              - combobox [ref=e1173]:
+                - generic [ref=e1174] [cursor=pointer]:
+                  - generic [ref=e1177]: All Category
+                  - img [ref=e1180]
+              - generic [ref=e445]:
+                - generic [ref=e446]: Job Statistics
+                - generic [ref=e448] [cursor=pointer]: 
+              - generic [ref=e1182]:
+                - generic [ref=e1184] [cursor=pointer]:
+                  - paragraph [ref=e1185]: Total Jobs
+                  - paragraph [ref=e1186]: "2"
+                - generic [ref=e1188] [cursor=pointer]:
+                  - paragraph [ref=e1189]: Yet to Start
+                  - paragraph [ref=e1190]: "2"
+                - generic [ref=e1192] [cursor=pointer]:
+                  - paragraph [ref=e1193]: In-Progress
+                  - paragraph [ref=e1194]: "0"
+                - generic [ref=e1196] [cursor=pointer]:
+                  - paragraph [ref=e1197]: Canceled
+                  - paragraph [ref=e1198]: "0"
+                - generic [ref=e1200] [cursor=pointer]:
+                  - paragraph [ref=e1201]: Incomplete
+                  - paragraph [ref=e1202]: "0"
+                - generic [ref=e1204] [cursor=pointer]:
+                  - paragraph [ref=e1205]: Completed
+                  - paragraph [ref=e1206]: "0"
+            - generic [ref=e487]:
+              - generic [ref=e488]:
+                - generic [ref=e489]:
+                  - generic [ref=e490]: Jobs By Source
+                  - generic [ref=e492] [cursor=pointer]: 
+                - generic [ref=e1209] [cursor=pointer]: 
+              - img [ref=e1214]:
+                - generic [ref=e1216]:
+                  - generic [ref=e1219]:
+                    - generic:
+                      - generic:
+                        - generic: "1"
+                      - generic:
+                        - generic: "1"
+                  - generic [ref=e1224]:
+                    - generic [ref=e1225]: Website
+                    - generic [ref=e1226]: Unknown Source
+                  - generic [ref=e1228]:
+                    - generic [ref=e1229]: "1.0"
+                    - generic [ref=e1230]: "0.8"
+                    - generic [ref=e1231]: "0.6"
+                    - generic [ref=e1232]: "0.4"
+                    - generic [ref=e1233]: "0.2"
+                    - generic [ref=e1234]: "0.0"
+            - generic [ref=e522]:
+              - generic [ref=e1235]:
+                - button [disabled] [ref=e1236]:
+                  - generic [ref=e1237] [cursor=pointer]: 
+                - generic [ref=e1238]: 1 / 2
+                - button [ref=e1239] [cursor=pointer]:
+                  - generic [ref=e1240]: 
+              - generic [ref=e523]:
+                - generic [ref=e524]: Customer Feedback
+                - generic [ref=e526] [cursor=pointer]: 
+              - generic [ref=e1241]:
+                - generic [ref=e1243] [cursor=pointer]:
+                  - paragraph [ref=e1244]: Total Responses
+                  - paragraph [ref=e1245]:
+                    - generic [ref=e1246]: "0"
+                - generic [ref=e1248] [cursor=pointer]:
+                  - paragraph [ref=e1249]: Happy
+                  - paragraph [ref=e1250]:
+                    - generic [ref=e1251]: "0"
+                - generic [ref=e1253] [cursor=pointer]:
+                  - paragraph [ref=e1254]: Neutral
+                  - paragraph [ref=e1255]:
+                    - generic [ref=e1256]: "0"
+            - generic [ref=e548]:
+              - generic [ref=e549]:
+                - generic [ref=e550]:
+                  - generic [ref=e551]: Unassigned Jobs
+                  - generic [ref=e1257]: (2)
+                  - generic [ref=e553] [cursor=pointer]: 
+                - button [ref=e1259] [cursor=pointer]: View All
+              - table [ref=e1260]:
+                - rowgroup [ref=e1261]:
+                  - row [ref=e1262]:
+                    - columnheader [ref=e1263]: Job
+                    - columnheader [ref=e1264]: Contact
+                    - columnheader [ref=e1265]: Schedule Date
+                    - columnheader [ref=e1266]: Actions
+                - rowgroup [ref=e1267]:
+                  - row [ref=e1268]:
+                    - cell [ref=e1269]:
+                      - link [ref=e1270] [cursor=pointer]:
+                        - /url: /jobs/2c596f91-2115-4e34-bef0-425aba9f011a/details
+                        - text: 681708 - sept 16 prelude
+                    - cell [ref=e1271]:
+                      - link [ref=e1272] [cursor=pointer]:
+                        - /url: /customers/84f09af4-1a0d-4e51-9bdd-94bca766ad68/details
+                        - text: 01 oct
+                    - cell [ref=e1273]: 09/17/2026 05:30 AM to 09/17/2026 06:30 AM
+                    - cell [ref=e1274]:
+                      - emphasis [ref=e1277] [cursor=pointer]: 
+                  - row [ref=e1278]:
+                    - cell [ref=e1279]:
+                      - link [ref=e1280] [cursor=pointer]:
+                        - /url: /jobs/eedbb275-89d9-491c-91bc-5ceecf0d8365/details
+                        - text: 681722 - Test QA
+                    - cell [ref=e1281]:
+                      - link [ref=e1282] [cursor=pointer]:
+                        - /url: /customers/84f09af4-1a0d-4e51-9bdd-94bca766ad68/details
+                        - text: 01 oct
+                    - cell [ref=e1283]: 09/17/2026 07:30 AM to 09/17/2026 04:29 PM
+                    - cell [ref=e1284]:
+                      - emphasis [ref=e1287] [cursor=pointer]: 
+            - generic [ref=e593]:
+              - generic [ref=e594]:
+                - generic [ref=e595]:
+                  - generic [ref=e596]: Jobs By Schedule
+                  - generic [ref=e598] [cursor=pointer]: 
+                - generic [ref=e1290] [cursor=pointer]: 
+              - img [ref=e1295]:
+                - generic [ref=e1297]:
+                  - generic [ref=e1301]:
+                    - generic:
+                      - generic:
+                        - generic: "6"
+                      - generic:
+                        - generic: "2"
+                      - generic:
+                        - generic: "3"
+                      - generic:
+                        - generic: "0"
+                  - generic [ref=e1307]:
+                    - generic [ref=e1308]: Due Jobs
+                    - generic [ref=e1309]: Scheduled
+                    - generic [ref=e1310]: Unscheduled
+                    - generic [ref=e1311]: New Jobs
+                  - generic [ref=e1313]:
+                    - generic [ref=e1314]: "6"
+                    - generic [ref=e1315]: "4"
+                    - generic [ref=e1316]: "2"
+                    - generic [ref=e1317]: "0"
+            - generic [ref=e622]:
+              - generic [ref=e623]:
+                - generic [ref=e624]: Team Availability
+                - generic [ref=e626] [cursor=pointer]: 
+              - generic [ref=e1318]:
+                - generic [ref=e1320] [cursor=pointer]:
+                  - paragraph [ref=e1321]: Total Users
+                  - paragraph [ref=e1322]: "23"
+                - generic [ref=e1324] [cursor=pointer]:
+                  - paragraph [ref=e1325]: Punched In
+                  - paragraph [ref=e1326]: "0"
+                - generic [ref=e1328] [cursor=pointer]:
+                  - paragraph [ref=e1329]: Break
+                  - paragraph [ref=e1330]: "0"
+                - generic [ref=e1332] [cursor=pointer]:
+                  - paragraph [ref=e1333]: Punched Out
+                  - paragraph [ref=e1334]: "0"
+            - generic [ref=e654]:
+              - generic [ref=e655]:
+                - generic [ref=e656]: Timeoff Requests
+                - generic [ref=e658] [cursor=pointer]: 
+              - list [ref=e1335] [cursor=pointer]:
+                - listitem [ref=e1336]:
+                  - generic [ref=e1337]:
+                    - generic [ref=e1339]: "Y"
+                    - generic [ref=e1340]:
+                      - heading [level=3] [ref=e1343]: Yashika s
+                      - generic [ref=e1344]: 09/17/2026 to 09/23/2026
+            - generic [ref=e686]:
+              - generic [ref=e687]:
+                - generic [ref=e688]: Quote Stats
+                - generic [ref=e690] [cursor=pointer]: 
+              - generic [ref=e1345]:
+                - generic [ref=e1347] [cursor=pointer]:
+                  - paragraph [ref=e1348]: Total
+                  - paragraph [ref=e1349]: "0"
+                - generic [ref=e1351] [cursor=pointer]:
+                  - paragraph [ref=e1352]: Draft
+                  - paragraph [ref=e1353]: "0"
+                - generic [ref=e1355] [cursor=pointer]:
+                  - paragraph [ref=e1356]: Sent
+                  - paragraph [ref=e1357]: "0"
+                - generic [ref=e1359] [cursor=pointer]:
+                  - paragraph [ref=e1360]: Accepted
+                  - paragraph [ref=e1361]: "0"
+                - generic [ref=e1363] [cursor=pointer]:
+                  - paragraph [ref=e1364]: Declined
+                  - paragraph [ref=e1365]: "0"
+                - generic [ref=e1367] [cursor=pointer]:
+                  - paragraph [ref=e1368]: Converted to Invoice
+                  - paragraph [ref=e1369]: "0"
+            - generic [ref=e730]:
+              - generic [ref=e732]:
+                - generic [ref=e733]: Quotes Expiring Soon
+                - generic [ref=e735] [cursor=pointer]: 
+              - generic [ref=e1370]:
+                - img [ref=e1371]
+                - heading [level=4] [ref=e1372]: No Quotes Found
+            - generic [ref=e776]:
+              - generic [ref=e777]:
+                - generic [ref=e778]: Invoice Stats
+                - generic [ref=e780] [cursor=pointer]: 
+              - generic [ref=e1373]:
+                - generic [ref=e1375] [cursor=pointer]:
+                  - paragraph [ref=e1376]: Pending Payments
+                  - paragraph [ref=e1377]: "0"
+                - generic [ref=e1379] [cursor=pointer]:
+                  - paragraph [ref=e1380]: Partially Paid
+                  - paragraph [ref=e1381]: "0"
+                - generic [ref=e1383] [cursor=pointer]:
+                  - paragraph [ref=e1384]: Paid
+                  - paragraph [ref=e1385]: "0"
+                - generic [ref=e1387] [cursor=pointer]:
+                  - paragraph [ref=e1388]: Overdue
+                  - paragraph [ref=e1389]: "0"
+                - generic [ref=e1391] [cursor=pointer]:
+                  - paragraph [ref=e1392]: Bad Debt
+                  - paragraph [ref=e1393]: "0"
+            - generic [ref=e820]:
+              - generic [ref=e821]:
+                - generic [ref=e822]:
+                  - generic [ref=e823]: Invoices Expiring Soon
+                  - generic [ref=e1394]: (2)
+                  - generic [ref=e825] [cursor=pointer]: 
+                - button [ref=e1396] [cursor=pointer]: View All
+              - table [ref=e1397]:
+                - rowgroup [ref=e1398]:
+                  - row [ref=e1399]:
+                    - columnheader [ref=e1400]: Invoice
+                    - columnheader [ref=e1401]: Contact
+                    - columnheader [ref=e1402]: Invoice Date
+                    - columnheader [ref=e1403]: Due Date
+                    - columnheader [ref=e1404]: Actions
+                - rowgroup [ref=e1405]:
+                  - row [ref=e1406]:
+                    - cell [ref=e1407]:
+                      - link [ref=e1408] [cursor=pointer]:
+                        - /url: /invoices/9913959e-429a-44c7-9482-c5a3901e31c4/details
+                        - text: "1252"
+                    - cell [ref=e1409]:
+                      - link [ref=e1410] [cursor=pointer]:
+                        - /url: /customers/84f09af4-1a0d-4e51-9bdd-94bca766ad68/details
+                        - text: 01 oct
+                    - cell [ref=e1411]: 09/16/2026
+                    - cell [ref=e1412]: 09/17/2026
+                    - cell [ref=e1413]:
+                      - emphasis [ref=e1416] [cursor=pointer]: 
+                  - row [ref=e1417]:
+                    - cell [ref=e1418]:
+                      - link [ref=e1419] [cursor=pointer]:
+                        - /url: /invoices/ecbc68f4-b47d-4a25-9809-750a76878757/details
+                        - text: "1251"
+                    - cell [ref=e1420]:
+                      - link [ref=e1421] [cursor=pointer]:
+                        - /url: /customers/24df5740-6b91-11ed-91b4-6563741b40ac/details
+                        - text: Avalara Test
+                    - cell [ref=e1422]: 09/16/2026
+                    - cell [ref=e1423]: 09/17/2026
+                    - cell [ref=e1424]:
+                      - emphasis [ref=e1427] [cursor=pointer]: 
+            - generic [ref=e866]:
+              - generic [ref=e1428]:
+                - button [disabled] [ref=e1429]:
+                  - generic [ref=e1430] [cursor=pointer]: 
+                - generic [ref=e1431]: 1 / 54
+                - button [ref=e1432] [cursor=pointer]:
+                  - generic [ref=e1433]: 
+              - generic [ref=e867]:
+                - generic [ref=e868]: Request Statistics
+                - generic [ref=e870] [cursor=pointer]: 
+              - generic [ref=e1434]:
+                - generic [ref=e1436] [cursor=pointer]:
+                  - paragraph [ref=e1437]: Open
+                  - paragraph [ref=e1438]: "0"
+                - generic [ref=e1440] [cursor=pointer]:
+                  - paragraph [ref=e1441]: In Progress
+                  - paragraph [ref=e1442]: "0"
+            - generic [ref=e886]:
+              - generic [ref=e887]:
+                - generic [ref=e888]:
+                  - generic [ref=e889]: Overdue Transfer Orders
+                  - generic [ref=e1443]: (6)
+                  - generic [ref=e891] [cursor=pointer]: 
+                - button [ref=e1445] [cursor=pointer]: View All
+              - table [ref=e1446]:
+                - rowgroup [ref=e1447]:
+                  - row [ref=e1448]:
+                    - columnheader [ref=e1449]: Transfer Order Number
+                    - columnheader [ref=e1450]: Status
+                    - columnheader [ref=e1451]: Required Date
+                    - columnheader [ref=e1452]: Actions
+                - rowgroup [ref=e1453]:
+                  - row [ref=e1454]:
+                    - cell [ref=e1455]:
+                      - link [ref=e1456] [cursor=pointer]:
+                        - /url: /transfer_orders/2dc7f32f-ae4e-48b1-8c19-9e5dd643ea42/details
+                        - text: "306"
+                    - cell [ref=e1457]:
+                      - generic [ref=e1460]: Draft
+                    - cell [ref=e1461]:
+                      - paragraph [ref=e1462]: 09/16/2026
+                    - cell [ref=e1463]:
+                      - emphasis [ref=e1466] [cursor=pointer]: 
+                  - row [ref=e1467]:
+                    - cell [ref=e1468]:
+                      - link [ref=e1469] [cursor=pointer]:
+                        - /url: /transfer_orders/2f820068-60a0-4e90-b9d6-7cdfbdce479f/details
+                        - text: "305"
+                    - cell [ref=e1470]:
+                      - generic [ref=e1473]: Draft
+                    - cell [ref=e1474]:
+                      - paragraph [ref=e1475]: 09/16/2026
+                    - cell [ref=e1476]:
+                      - emphasis [ref=e1479] [cursor=pointer]: 
+                  - row [ref=e1480]:
+                    - cell [ref=e1481]:
+                      - link [ref=e1482] [cursor=pointer]:
+                        - /url: /transfer_orders/95bb59d1-e84e-47be-8aab-cf5643d9e358/details
+                        - text: "299"
+                    - cell [ref=e1483]:
+                      - generic [ref=e1486]: In-Transit
+                    - cell [ref=e1487]:
+                      - paragraph [ref=e1488]: 08/26/2026
+                    - cell [ref=e1489]:
+                      - emphasis [ref=e1492] [cursor=pointer]: 
+                  - row [ref=e1493]:
+                    - cell [ref=e1494]:
+                      - link [ref=e1495] [cursor=pointer]:
+                        - /url: /transfer_orders/1c9b844b-5867-4aa1-89e4-6c1e9001cc33/details
+                        - text: "297"
+                    - cell [ref=e1496]:
+                      - generic [ref=e1499]: In-Transit
+                    - cell [ref=e1500]:
+                      - paragraph [ref=e1501]: 08/19/2026
+                    - cell [ref=e1502]:
+                      - emphasis [ref=e1505] [cursor=pointer]: 
+                  - row [ref=e1506]:
+                    - cell [ref=e1507]:
+                      - link [ref=e1508] [cursor=pointer]:
+                        - /url: /transfer_orders/9aa9b9b5-a1a5-4da9-8139-b0d9be400544/details
+                        - text: "293"
+                    - cell [ref=e1509]:
+                      - generic [ref=e1512]: Draft
+                    - cell [ref=e1513]:
+                      - paragraph [ref=e1514]: 08/13/2026
+                    - cell [ref=e1515]:
+                      - emphasis [ref=e1518] [cursor=pointer]: 
+                  - row [ref=e1519]:
+                    - cell [ref=e1520]:
+                      - link [ref=e1521] [cursor=pointer]:
+                        - /url: /transfer_orders/e958d715-e121-4af4-9294-450c3aef5880/details
+                        - text: "8"
+                    - cell [ref=e1522]:
+                      - generic [ref=e1525]: Draft
+                    - cell [ref=e1526]:
+                      - paragraph [ref=e1527]: 10/08/2025
+                    - cell [ref=e1528]:
+                      - emphasis [ref=e1531] [cursor=pointer]: 
+            - generic [ref=e932]:
+              - combobox [ref=e1533]:
+                - generic [ref=e1534] [cursor=pointer]:
+                  - generic [ref=e1537]: All Category
+                  - img [ref=e1540]
+              - generic [ref=e1542]:
+                - button [disabled] [ref=e1543]:
+                  - generic [ref=e1544] [cursor=pointer]: 
+                - generic [ref=e1545]: 1 / 3
+                - button [ref=e1546] [cursor=pointer]:
+                  - generic [ref=e1547]: 
+              - generic [ref=e933]:
+                - generic [ref=e934]: Project Stats
+                - generic [ref=e936] [cursor=pointer]: 
+              - generic [ref=e1548]:
+                - generic [ref=e1550] [cursor=pointer]:
+                  - paragraph [ref=e1551]: Total Projects
+                  - paragraph [ref=e1552]: "3"
+                - generic [ref=e1554] [cursor=pointer]:
+                  - paragraph [ref=e1555]: Yet to Start
+                  - paragraph [ref=e1556]: "2"
+            - generic [ref=e952]:
+              - generic [ref=e1557]:
+                - button [disabled] [ref=e1558]:
+                  - generic [ref=e1559] [cursor=pointer]: 
+                - generic [ref=e1560]: 1 / 2
+                - button [ref=e1561] [cursor=pointer]:
+                  - generic [ref=e1562]: 
+              - generic [ref=e953]:
+                - generic [ref=e954]: Contract Stats - Test Widget
+                - generic [ref=e956] [cursor=pointer]: 
+              - generic [ref=e1563]:
+                - generic [ref=e1565] [cursor=pointer]:
+                  - paragraph [ref=e1566]: Active Contracts
+                  - paragraph [ref=e1567]: "2"
+                - generic [ref=e1569] [cursor=pointer]:
+                  - paragraph [ref=e1570]: Pending Approval
+                  - paragraph [ref=e1571]: "0"
+    - iframe [ref=e970]:
+      
+  - text:   
+  - generic:
+    - generic [ref=e979]:
+      - generic [ref=e981]:
+        - heading "Your timezone has changed" [level=1] [ref=e982]
+        - paragraph [ref=e983]: The timezone setting for your computer is different from your account's timezone.
+        - generic [ref=e984]: Asia/Kolkata
+        - paragraph [ref=e985]: This may cause date & time fields to display incorrect values. Would you like to update your account timezone in Zuper to your system timezone?
+      - generic [ref=e986]:
+        - button "Cancel" [ref=e987] [cursor=pointer]
+        - button "Update" [ref=e988] [cursor=pointer]
+    - generic [ref=e993]:
+      - generic [ref=e994]:
+        - generic [ref=e995]:
+          - img "Zuper logo" [ref=e997]
+          - generic [ref=e998]:
+            - paragraph [ref=e999]: Zuper Guide
+            - generic [ref=e1000]: Online
+        - button "Close" [ref=e1002] [cursor=pointer]:
+          - generic [ref=e1003]: 
+      - generic [ref=e1004]:
+        - paragraph [ref=e1005]: Need help getting started?
+        - paragraph [ref=e1006]: Get a guided walkthrough from our AI onboarding assistant.
+        - button "Start Guided Tour" [ref=e1007] [cursor=pointer]
+    - generic [ref=e1573]:
+      - generic [ref=e1576]:
+        - generic [ref=e1577]: Zuper Connect
+        - emphasis [ref=e1579] [cursor=pointer]: 
+      - iframe [ref=e1580]:
+        - generic [ref=f4e5]:
+          - generic [ref=f4e6]:
+            - generic [ref=f4e10]: V
+            - generic [ref=f4e14] [cursor=pointer]:
+              - paragraph [ref=f4e15]: AI Test
+              - img [ref=f4e16]
+          - generic [ref=f4e20]:
+            - generic [ref=f4e24]:
+              - generic [ref=f4e25] [cursor=pointer]:
+                - img "country flag" [ref=f4e26]
+                - img [ref=f4e27]
+              - textbox [ref=f4e29]
+            - generic [ref=f4e30]:
+              - generic [ref=f4e32]:
+                - button "1" [ref=f4e33] [cursor=pointer]:
+                  - generic [ref=f4e35]: "1"
+                - button "2 ABC" [ref=f4e36] [cursor=pointer]:
+                  - generic [ref=f4e37]:
+                    - generic [ref=f4e38]: "2"
+                    - generic [ref=f4e39]: ABC
+                - button "3 DEF" [ref=f4e40] [cursor=pointer]:
+                  - generic [ref=f4e41]:
+                    - generic [ref=f4e42]: "3"
+                    - generic [ref=f4e43]: DEF
+                - button "4 GHI" [ref=f4e44] [cursor=pointer]:
+                  - generic [ref=f4e45]:
+                    - generic [ref=f4e46]: "4"
+                    - generic [ref=f4e47]: GHI
+                - button "5 JKL" [ref=f4e48] [cursor=pointer]:
+                  - generic [ref=f4e49]:
+                    - generic [ref=f4e50]: "5"
+                    - generic [ref=f4e51]: JKL
+                - button "6 MNO" [ref=f4e52] [cursor=pointer]:
+                  - generic [ref=f4e53]:
+                    - generic [ref=f4e54]: "6"
+                    - generic [ref=f4e55]: MNO
+                - button "7 PQRS" [ref=f4e56] [cursor=pointer]:
+                  - generic [ref=f4e57]:
+                    - generic [ref=f4e58]: "7"
+                    - generic [ref=f4e59]: PQRS
+                - button "8 TUV" [ref=f4e60] [cursor=pointer]:
+                  - generic [ref=f4e61]:
+                    - generic [ref=f4e62]: "8"
+                    - generic [ref=f4e63]: TUV
+                - button "9 WXYZ" [ref=f4e64] [cursor=pointer]:
+                  - generic [ref=f4e65]:
+                    - generic [ref=f4e66]: "9"
+                    - generic [ref=f4e67]: WXYZ
+                - button "*" [ref=f4e68] [cursor=pointer]:
+                  - generic [ref=f4e70]: "*"
+                - button "0 +" [ref=f4e71] [cursor=pointer]:
+                  - generic [ref=f4e72]:
+                    - generic [ref=f4e73]: "0"
+                    - generic [ref=f4e74]: +
+                - button "#" [ref=f4e75] [cursor=pointer]:
+                  - generic [ref=f4e77]: "#"
+              - img [ref=f4e80] [cursor=pointer]
+          - generic [ref=f4e81]:
+            - img [ref=f4e84]
+            - img [ref=f4e88]
+            - img [ref=f4e99]
+    - generic [ref=e1016]:
+      - button "Close" [ref=e1017] [cursor=pointer]:
+        - img [ref=e1018]
+      - generic [ref=e1021]:
+        - generic [ref=e1022]:
+          - generic [ref=e1023]:
+            - img [ref=e1025]
+            - generic [ref=e1028]: New Integration
+          - heading "SRS and ABC Supply can now be connected to Zuper." [level=2] [ref=e1029]
+          - paragraph [ref=e1030]: Search your suppliers' catalogs from Parts & Services, map their items to your own SKUs, and order without leaving Zuper.
+          - generic [ref=e1031]:
+            - generic [ref=e1032]:
+              - img [ref=e1034]
+              - generic [ref=e1037]:
+                - generic [ref=e1038]: Search
+                - generic [ref=e1039]: Look up parts and products across SRS and ABC Supply catalogs without leaving Zuper.
+            - generic [ref=e1040]:
+              - img [ref=e1042]
+              - generic [ref=e1045]:
+                - generic [ref=e1046]: Map
+                - generic [ref=e1047]: Match a supplier item to your own SKU once — Zuper keeps the pairing for every future order.
+            - generic [ref=e1048]:
+              - img [ref=e1050]
+              - generic [ref=e1054]:
+                - generic [ref=e1055]: Order
+                - generic [ref=e1056]: Live pricing flows straight into your estimates and purchase orders.
+          - button "Connect suppliers" [ref=e1058] [cursor=pointer]:
+            - text: Connect suppliers
+            - img [ref=e1059]
+        - generic "Supplier integration preview" [ref=e1062]
+  - text:   
+  - img
