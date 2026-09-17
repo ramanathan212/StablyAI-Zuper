@@ -152,8 +152,8 @@ export default defineConfig({
     },
     {
       name: 'Jobs',
-      grep: /(Jobs Bulk Update Fields should bulk update all specified fields for selected jobs|Jobs Filter Operator Workflow should filter jobs by multiple filters with all available operators and print row counts)$/i,
-      testMatch: ['jobs-bulk-update-fields.spec.ts','jobs-filter-operators.spec.ts'],
+      grep: /(Jobs Bulk Update Fields should bulk update all specified fields for selected jobs|Jobs Filter Operator Workflow should filter jobs by multiple filters with all available operators and print row counts|Jobs Bulk Update Field Scenarios should bulk update job fields and enforce required-value validation)$/i,
+      testMatch: ['jobs-bulk-update-fields.spec.ts','jobs-filter-operators.spec.ts','jobs-bulk-update-field-scenarios.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
       },
